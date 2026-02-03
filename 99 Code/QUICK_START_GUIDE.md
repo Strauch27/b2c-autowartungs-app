@@ -44,9 +44,9 @@ docker-compose up -d
 - Password: `werkstatt123`
 - URL: http://localhost:3000/de/workshop/login
 
-### Customer (created during booking)
+### Customer (register during booking flow)
 - Email: `demo@test.com`
-- Password: Check console or database
+- Password: `demo123` (or create your own during registration)
 
 ### Test Payment Card
 - Number: `4242 4242 4242 4242`
@@ -57,16 +57,19 @@ docker-compose up -d
 
 ## 3. Quick Test Flow (5 minutes)
 
-### Step 1: Create Booking (1 min)
+### Step 1: Create Booking (2 min)
 1. Go to http://localhost:3000/de
 2. Click "Jetzt buchen"
-3. Fill in: VW Golf, 2020, 45000 km
+3. Fill in vehicle: VW Golf, 2020, 45000 km
 4. Select services: Inspektion + Ölwechsel
 5. Choose date/time
 6. Address: Musterstraße 123, 44135 Dortmund
-7. Email: demo@test.com
-8. Pay with test card
-9. ✅ Booking confirmed
+7. **Register/Login** (REQUIRED):
+   - New users: Email: demo@test.com, Password: demo123, Name: Demo User
+   - Existing users: Login with credentials
+8. Review and confirm booking
+9. Pay with test card
+10. ✅ Booking confirmed
 
 ### Step 2: Jockey Pickup (30 sec)
 1. Login as jockey

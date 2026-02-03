@@ -9,7 +9,7 @@ A production-ready Playwright E2E test suite has been built with **168 comprehen
 | Test Suite | Test Cases | Coverage | Key Features |
 |------------|------------|----------|--------------|
 | **Authentication** | 25 | 100% | Workshop/Jockey/Customer login, logout, security |
-| **Booking Flow** | 31 | 100% | Guest checkout, multi-step form, validation |
+| **Booking Flow** | 31 | 100% | Registration + booking, multi-step form, validation |
 | **Workshop Dashboard** | 26 | 100% | Table rendering, extensions, component detection |
 | **Internationalization** | 36 | 100% | DE/EN switching, translations, locale handling |
 | **Components** | 29 | 100% | UI component rendering, accessibility |
@@ -70,7 +70,7 @@ The test suite is designed to catch the exact issues you've been experiencing:
 - Desktop Large (1920x1080)
 
 **All Major Features:**
-- Complete booking flow (guest checkout)
+- Complete booking flow (with registration)
 - Workshop extension creation with photos
 - Multi-language switching
 - Role-based access control

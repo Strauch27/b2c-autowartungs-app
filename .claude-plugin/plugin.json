@@ -1,0 +1,196 @@
+{
+  "name": "b2c-workshop-booking-toolkit",
+  "version": "1.0.0",
+  "description": "Comprehensive toolkit for B2C Workshop Booking App development with specialized agents, skills, and workflows",
+  "author": "B2C Workshop Booking Team",
+  "tags": ["fullstack", "nextjs", "booking", "b2c", "typescript"],
+
+  "agents": [
+    {
+      "name": "fullstack-engineer",
+      "path": ".claude/agents/fullstack-engineer.md",
+      "description": "Fullstack development with security and quality focus",
+      "skills": [
+        "frontend-design",
+        "security-validation",
+        "code-quality-check",
+        "performance-optimization"
+      ]
+    },
+    {
+      "name": "qa-test-engineer",
+      "path": ".claude/agents/qa-test-engineer.md",
+      "description": "Quality assurance and comprehensive testing",
+      "skills": [
+        "code-review",
+        "test-coverage-analysis",
+        "bug-detection"
+      ]
+    },
+    {
+      "name": "security-privacy-engineer",
+      "path": ".claude/agents/security-privacy-engineer.md",
+      "description": "Security auditing and GDPR compliance",
+      "skills": [
+        "security-audit",
+        "gdpr-compliance-check",
+        "vulnerability-scan"
+      ]
+    },
+    {
+      "name": "tech-lead-architect",
+      "path": ".claude/agents/tech-lead-architect.md",
+      "description": "System architecture and technical leadership",
+      "skills": [
+        "architecture-review",
+        "technical-guidance",
+        "code-quality-check"
+      ]
+    },
+    {
+      "name": "ux-ui-designer",
+      "path": ".claude/agents/ux-ui-designer.md",
+      "description": "User experience and interface design",
+      "skills": [
+        "frontend-design",
+        "accessibility-check",
+        "responsive-design-validation"
+      ]
+    },
+    {
+      "name": "product-manager",
+      "path": ".claude/agents/product-manager.md",
+      "description": "Product strategy and requirements management",
+      "skills": [
+        "requirements-analysis",
+        "user-story-writing",
+        "acceptance-criteria-definition"
+      ]
+    },
+    {
+      "name": "data-analytics-engineer",
+      "path": ".claude/agents/data-analytics-engineer.md",
+      "description": "Data analysis and business intelligence",
+      "skills": [
+        "data-analysis",
+        "metrics-tracking",
+        "reporting"
+      ]
+    }
+  ],
+
+  "skills": [
+    {
+      "name": "frontend-design",
+      "path": ".claude/skills/frontend-design.md",
+      "description": "Production-grade frontend implementation with modern best practices",
+      "autoInvoke": {
+        "patterns": ["create.*component", "implement.*ui", "build.*frontend", "design.*interface"]
+      }
+    },
+    {
+      "name": "security-validation",
+      "path": ".claude/skills/security-validation.md",
+      "description": "Security validation for code changes including XSS, SQL injection, auth checks",
+      "autoInvoke": {
+        "patterns": [".*api.*", ".*auth.*", ".*database.*", ".*user.*input.*"]
+      }
+    },
+    {
+      "name": "code-review",
+      "path": ".claude/skills/code-review.md",
+      "description": "Comprehensive code review focusing on quality, maintainability, and best practices"
+    },
+    {
+      "name": "test-coverage-analysis",
+      "path": ".claude/skills/test-coverage-analysis.md",
+      "description": "Analyze test coverage and identify gaps in testing strategy"
+    },
+    {
+      "name": "performance-optimization",
+      "path": ".claude/skills/performance-optimization.md",
+      "description": "Performance analysis and optimization recommendations"
+    },
+    {
+      "name": "gdpr-compliance-check",
+      "path": ".claude/skills/gdpr-compliance-check.md",
+      "description": "GDPR compliance validation for data handling and user consent"
+    },
+    {
+      "name": "architecture-review",
+      "path": ".claude/skills/architecture-review.md",
+      "description": "System architecture review and improvement recommendations"
+    },
+    {
+      "name": "accessibility-check",
+      "path": ".claude/skills/accessibility-check.md",
+      "description": "WCAG 2.1 AA accessibility compliance validation"
+    }
+  ],
+
+  "hooks": [
+    {
+      "name": "security-pre-commit",
+      "type": "PreToolUse",
+      "path": ".claude/hooks/security-pre-commit.md",
+      "description": "Security validation before any code changes",
+      "config": {
+        "enabled": true,
+        "patterns": ["Bash", "Write", "Edit"],
+        "severity": "warning"
+      }
+    },
+    {
+      "name": "code-quality-gate",
+      "type": "PostToolUse",
+      "path": ".claude/hooks/code-quality-gate.md",
+      "description": "Quality gate after code changes",
+      "config": {
+        "enabled": true,
+        "tools": ["Write", "Edit"],
+        "autoReview": true
+      }
+    },
+    {
+      "name": "explanatory-output",
+      "type": "SessionStart",
+      "path": ".claude/hooks/explanatory-output.md",
+      "description": "Educational insights about implementation decisions",
+      "config": {
+        "enabled": true,
+        "verbosity": "medium"
+      }
+    }
+  ],
+
+  "commands": [
+    {
+      "name": "/commit",
+      "path": ".claude/commands/commit.md",
+      "description": "Smart git commit with conventional commits format"
+    },
+    {
+      "name": "/code-review",
+      "path": ".claude/commands/code-review.md",
+      "description": "Comprehensive code review with multiple specialized agents"
+    },
+    {
+      "name": "/test-sprint",
+      "path": ".claude/commands/test-sprint.md",
+      "description": "Run comprehensive tests for a sprint"
+    },
+    {
+      "name": "/deploy-check",
+      "path": ".claude/commands/deploy-check.md",
+      "description": "Pre-deployment validation checklist"
+    }
+  ],
+
+  "settings": {
+    "defaultModel": "claude-sonnet-4-5",
+    "agentModel": "claude-sonnet-4-5",
+    "parallelAgents": 3,
+    "autoInvokeSkills": true,
+    "hooksPriority": ["security-pre-commit", "code-quality-gate", "explanatory-output"]
+  }
+}

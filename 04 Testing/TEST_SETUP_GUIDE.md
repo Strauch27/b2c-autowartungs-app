@@ -19,13 +19,13 @@
 - Workshop Login (Username/Password)
 - **Jockey Login (Username/Password)** ← NEU!
 - Customer Login (Email/Password)
-- Guest Checkout (ohne Login)
+- Customer Registration (required before booking)
 - Logout Funktionalität
 - Ungültige Credentials
 - Rollenbasierte Zugriffskontrolle
 
 #### ✅ Booking Flow Tests
-- Kompletter Guest-Checkout End-to-End
+- Kompletter Buchungsflow mit Registrierung End-to-End
 - Service-Auswahl (Einzel & Mehrfach)
 - Fahrzeugdaten-Eingabe
 - Datum/Zeit-Auswahl mit Auto-Close
@@ -183,7 +183,7 @@ cd "99 Code/backend"
 
 ### Was wird getestet?
 - ✅ Workshop Login API
-- ✅ Booking Creation (Guest Checkout)
+- ✅ Booking Creation (with Registration)
 - ✅ Workshop Orders API
 - ✅ Services API
 - ✅ Extension Creation

@@ -10,7 +10,7 @@ Comprehensive Playwright test suite covering all critical user journeys and comp
 - ✅ Workshop login with username/password
 - ✅ Jockey login with username/password
 - ✅ Customer login with email/password
-- ✅ Guest checkout (no login required)
+- ✅ Customer registration (required before booking)
 - ✅ Logout functionality across all portals
 - ✅ Invalid credentials handling
 - ✅ Role-based access control and redirects
@@ -25,7 +25,7 @@ Comprehensive Playwright test suite covering all critical user journeys and comp
 - ⚠️ SQL injection vulnerabilities
 
 ### 2. Booking Flow Tests (`booking-flow.spec.ts`) - 31 Tests
-- ✅ Complete guest checkout end-to-end
+- ✅ Complete booking flow with registration end-to-end
 - ✅ Service selection (single & multiple services)
 - ✅ Vehicle data entry with comprehensive validation
 - ✅ Date/time picker with calendar auto-close
@@ -203,7 +203,7 @@ npm run test:e2e:report
 - **Role:** CUSTOMER
 - **Access:** Customer Dashboard
 
-#### Guest Checkout
+#### Customer Registration & Booking
 - No credentials needed
 - Creates user on first booking
 - Auto-generated password sent via email

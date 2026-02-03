@@ -17,19 +17,22 @@ Open 4 browser tabs:
 
 ## Demo Flow (10 minutes)
 
-### Step 1: Customer Books Service (2 min)
+### Step 1: Customer Books Service (3 min)
 
-**Tab 1: Guest Checkout**
+**Tab 1: Customer Booking (with Registration)**
 1. Click "Jetzt buchen"
 2. Vehicle: VW Golf 2020, 45.000 km
 3. Services: ✓ Inspektion ✓ Ölwechsel
 4. Date: 3 days from today, 10:00
 5. Address: Musterstraße 123, 44135 Dortmund
-6. Email: demo@test.com
-7. Name: Demo Customer
-8. Phone: +49 123 456789
-9. Payment: 4242 4242 4242 4242
-10. Confirmation shown ✅
+6. **Registration (REQUIRED):**
+   - Email: demo@test.com
+   - Password: demo123
+   - Name: Demo Customer
+   - Phone: +49 123 456789
+7. Review and confirm booking
+8. Payment: 4242 4242 4242 4242
+9. Confirmation shown ✅
 
 **Expected:** Booking created, jockey assignment auto-created
 
