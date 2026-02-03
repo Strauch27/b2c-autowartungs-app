@@ -1,0 +1,5 @@
+# API Routes will be implemented in Sprint 1
+# - auth.routes.ts (authentication endpoints)
+# - vehicle.routes.ts (vehicle data endpoints)
+# - price.routes.ts (price calculation endpoints)
+# - booking.routes.ts (booking management endpoints)

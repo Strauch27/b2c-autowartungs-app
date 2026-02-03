@@ -1,0 +1,967 @@
+{
+  "common": {
+    "search": "Suchen",
+    "book": "Buchen",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "back": "Zurück",
+    "next": "Weiter",
+    "loading": "Wird geladen...",
+    "error": "Ein Fehler ist aufgetreten",
+    "success": "Erfolgreich",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "confirm": "Bestätigen",
+    "submit": "Absenden",
+    "close": "Schließen",
+    "yes": "Ja",
+    "no": "Nein"
+  },
+  "navigation": {
+    "home": "Startseite",
+    "workshops": "Werkstätten",
+    "booking": "Buchung",
+    "myAppointments": "Meine Termine",
+    "contact": "Kontakt"
+  },
+  "workshop": {
+    "search": "Werkstatt suchen",
+    "searchPlaceholder": "PLZ oder Ort eingeben",
+    "distance": "{distance} km entfernt",
+    "rating": "{rating} von 5 Sternen",
+    "reviews": "{count, plural, =0 {Keine Bewertungen} =1 {1 Bewertung} other {# Bewertungen}}",
+    "openingHours": "Öffnungszeiten",
+    "services": "Leistungen",
+    "selectService": "Service auswählen",
+    "noWorkshopsFound": "Keine Werkstätten gefunden",
+    "viewDetails": "Details ansehen",
+    "bookAppointment": "Termin buchen",
+    "recentReviews": "Neueste Bewertungen",
+    "ratingStatistics": "Bewertungsstatistik"
+  },
+  "booking": {
+    "selectSlot": "Termin wählen",
+    "noSlotsAvailable": "Keine Termine verfügbar",
+    "joinWaitlist": "Auf Warteliste setzen",
+    "contactDetails": "Kontaktdaten",
+    "vehicleDetails": "Fahrzeugdaten",
+    "summary": "Zusammenfassung",
+    "confirmation": "Bestätigung",
+    "totalPrice": "Gesamtpreis",
+    "payNow": "Jetzt bezahlen",
+    "serviceSelection": "Service-Auswahl",
+    "workshopSelection": "Werkstatt-Auswahl",
+    "timeSelection": "Termin-Auswahl",
+    "yourDetails": "Ihre Daten",
+    "reviewBooking": "Buchung überprüfen",
+    "priceSidebar": {
+      "guaranteedPrice": "Ihr garantierter Festpreis",
+      "noSurprises": "Keine Zusatzkosten, keine Überraschungen",
+      "breakdown": "Preis-Aufschlüsselung",
+      "service": "Service",
+      "concierge": "Concierge-Service",
+      "total": "Gesamt"
+    },
+    "serviceType": {
+      "title": "Wählen Sie Ihren Service-Typ",
+      "subtitle": "Entscheiden Sie, wie Sie Ihr Auto zur Werkstatt bringen möchten",
+      "popular": "Beliebt",
+      "included": "Inklusive",
+      "continue": "Weiter",
+      "standard": {
+        "name": "Standard",
+        "description": "Sie bringen Ihr Auto selbst zur Werkstatt",
+        "feature1": "Bereits im Festpreis enthalten",
+        "feature2": "Direkte Annahme in der Werkstatt",
+        "feature3": "Flexibler Termin"
+      },
+      "conciergeWithout": {
+        "name": "Concierge ohne Ersatzwagen",
+        "description": "Wir holen Ihr Auto ab und bringen es zurück",
+        "feature1": "Abholung an Ihrer Wunschadresse",
+        "feature2": "Rückgabe nach dem Service",
+        "feature3": "Kein Ersatzfahrzeug",
+        "feature4": "Ideal für Homeoffice"
+      },
+      "conciergeWith": {
+        "name": "Concierge mit Ersatzwagen",
+        "description": "Inklusive Ersatzfahrzeug für die Zeit",
+        "feature1": "Abholung und Rückgabe",
+        "feature2": "Ersatzfahrzeug inklusive",
+        "feature3": "Volle Mobilität",
+        "feature4": "Rundum-Sorglos-Paket"
+      },
+      "overnight": {
+        "name": "Over-Night Service",
+        "description": "Abholung abends, Rückgabe morgens",
+        "feature1": "Abholung am Abend",
+        "feature2": "Rückgabe am nächsten Morgen",
+        "feature3": "Perfekt für Berufstätige"
+      }
+    },
+    "concierge": {
+      "title": "Concierge-Details",
+      "subtitle": "Geben Sie die Details für Abholung und Rückgabe an",
+      "pickup": {
+        "title": "Abholung",
+        "street": "Straße",
+        "houseNumber": "Hausnummer",
+        "zipCode": "PLZ",
+        "city": "Stadt",
+        "timeSlot": "Wann sollen wir Ihr Auto abholen?"
+      },
+      "return": {
+        "title": "Rückgabe",
+        "sameAddress": "Gleiche Adresse wie Abholung",
+        "timeSlot": "Wann sollen wir Ihr Auto zurückbringen?"
+      },
+      "replacementCar": {
+        "title": "Ersatzwagen-Kategorie",
+        "SMALL": {
+          "name": "Klein",
+          "example": "z.B. VW Polo"
+        },
+        "MEDIUM": {
+          "name": "Mittel",
+          "example": "z.B. VW Golf"
+        },
+        "LARGE": {
+          "name": "Groß",
+          "example": "z.B. VW Passat"
+        }
+      },
+      "driverNotes": {
+        "label": "Hinweise für unseren Fahrer (optional)",
+        "placeholder": "z.B. Parkplatz hinter dem Haus, Tor-Code: 1234"
+      },
+      "infoBox": {
+        "title": "Wichtige Hinweise",
+        "description": "Unser Fahrer wird Sie ca. 30 Minuten vor Abholung telefonisch kontaktieren. Bitte stellen Sie sicher, dass Ihr Fahrzeug zugänglich ist."
+      },
+      "included": "Inklusive",
+      "continue": "Weiter zur Zusammenfassung"
+    },
+    "express": {
+      "step": "Schritt",
+      "discount": {
+        "badge": "Erstbuchung? 20% Rabatt!",
+        "subtitle": "Einmaliger Willkommens-Rabatt für Neukunden"
+      },
+      "step1": {
+        "title": "Fahrzeugdaten & Service",
+        "subtitle": "In nur 3 Schritten zu Ihrem Werkstatt-Termin mit Festpreis-Garantie",
+        "serviceQuestion": "Welchen Service benötigen Sie?",
+        "makeQuestion": "Wählen Sie Ihre Fahrzeugmarke",
+        "modelQuestion": "Wählen Sie Ihr Modell",
+        "yearQuestion": "Baujahr Ihres Fahrzeugs",
+        "mileageQuestion": "Kilometerstand (genau)",
+        "mileagePlaceholder": "z.B. 75000",
+        "mileageHelp": "Geben Sie den aktuellen Kilometerstand ein für präzise Preisberechnung",
+        "olderVehicle": "Älter (vor 2015)",
+        "fixedPriceTitle": "Ihr garantierter Festpreis",
+        "originalPrice": "Regulärer Preis",
+        "discountedPrice": "Mit Erstbucher-Rabatt",
+        "guaranteeText": "Keine versteckten Kosten • Garantierter Festpreis • 100% Transparent",
+        "savingsText": "Sie sparen €{amount} bei Ihrer Erstbuchung!",
+        "progressHint": {
+          "selectMake": "Wählen Sie Ihre Fahrzeugmarke um fortzufahren",
+          "selectModel": "Wählen Sie Ihr Modell um fortzufahren",
+          "selectYear": "Wählen Sie das Baujahr um fortzufahren",
+          "selectMileage": "Geben Sie den Kilometerstand ein um Ihren Festpreis zu sehen"
+        },
+        "continue": "Weiter"
+      },
+      "step2": {
+        "title": "Wo und wann?",
+        "zipCode": "Ihre Postleitzahl",
+        "timeSlot": "Wählen Sie Ihren Wunschtermin",
+        "back": "Zurück",
+        "continue": "Weiter zur Zahlung",
+        "workshopName": "Werkstatt",
+        "distance": "{distance} km entfernt",
+        "rating": "{rating}★ ({count} Bewertungen)"
+      },
+      "step3": {
+        "title": "Zahlung",
+        "summary": "Ihre Buchung",
+        "total": "Gesamt",
+        "stripeInfo": "Im nächsten Schritt geben Sie Ihre Kontaktdaten und Zahlungsinformationen sicher über Stripe ein.",
+        "payNow": "Jetzt bezahlen",
+        "discount": "Erstbucher-Rabatt (20%)"
+      }
+    },
+    "accountDialog": {
+      "title": "Konto erstellen?",
+      "subtitle": "Erstellen Sie jetzt ein Konto für noch schnellere Buchungen!",
+      "benefit1": "Noch schneller beim nächsten Mal",
+      "benefit2": "Service-Historie ansehen",
+      "benefit3": "Exklusive Angebote",
+      "email": "Email",
+      "password": "Passwort",
+      "passwordPlaceholder": "Mindestens 8 Zeichen",
+      "noThanks": "Nein, danke",
+      "createAccount": "Konto erstellen"
+    },
+    "welcomeBack": "Willkommen zurück!",
+    "lastBooking": "Ihr letzter Service: {service} für {vehicle}",
+    "bookAgain": "Erneut buchen"
+  },
+  "vehicleSelection": {
+    "title": "Fahrzeug auswählen",
+    "description": "Wählen Sie Ihr Fahrzeug in 3 einfachen Schritten. Der Preis wird automatisch berechnet.",
+    "step1": "1. Marke auswählen",
+    "step2": "2. Modell auswählen",
+    "step3": "3. Baujahr",
+    "selectMake": "Marke wählen...",
+    "selectModel": "Modell wählen...",
+    "selectYear": "Baujahr wählen...",
+    "selectMakeFirst": "Erst Marke auswählen",
+    "licensePlate": "Kennzeichen",
+    "licensePlatePlaceholder": "B-AB 1234",
+    "licensePlateHelp": "Das Kennzeichen wird für Ihre Terminbestätigung benötigt",
+    "optional": "(optional)",
+    "required": "erforderlich",
+    "yourPrice": "Ihr Festpreis für",
+    "vehicleClass": "Fahrzeugklasse",
+    "calculating": "Berechne...",
+    "includingVat": "inkl. MwSt.",
+    "continueToWorkshop": "Weiter zur Werkstatt-Auswahl",
+    "backToService": "Zurück zur Service-Auswahl",
+    "guaranteedPrice": "Garantierter Festpreis",
+    "noHiddenCosts": "Keine versteckten Kosten",
+    "instantCalculation": "Sofortige Preisberechnung",
+    "selectMakeAndModel": "Bitte wählen Sie Marke und Modell aus",
+    "yearRequiredForService": "Baujahr ist für diesen Service erforderlich",
+    "pricingError": "Preis konnte nicht berechnet werden",
+    "selectYearToContinue": "Bitte wählen Sie das Baujahr aus, um fortzufahren."
+  },
+  "vehicleClass": {
+    "KLEINWAGEN": "Kleinwagen",
+    "KOMPAKTKLASSE": "Kompaktklasse",
+    "MITTELKLASSE": "Mittelklasse",
+    "OBERKLASSE": "Oberklasse",
+    "SUV_VAN": "SUV / Van"
+  },
+  "appointment": {
+    "upcoming": "Anstehende Termine",
+    "past": "Vergangene Termine",
+    "current": "Aktueller Termin",
+    "history": "Historie",
+    "status": {
+      "PENDING": "Ausstehend",
+      "CONFIRMED": "Bestätigt",
+      "IN_PROGRESS": "In Bearbeitung",
+      "COMPLETED": "Abgeschlossen",
+      "CANCELLED": "Storniert",
+      "NO_SHOW": "Nicht erschienen"
+    },
+    "reschedule": "Termin verschieben",
+    "cancel": "Termin stornieren",
+    "details": "Termindetails",
+    "bookingNumber": "Buchungsnummer",
+    "createdOn": "Erstellt am",
+    "cancelledOn": "Storniert am",
+    "duration": "Dauer",
+    "downloadCalendar": "Zum Kalender hinzufügen (.ics)",
+    "newBooking": "Neuen Termin buchen"
+  },
+  "waitlist": {
+    "title": "Auf Warteliste setzen",
+    "description": "Tragen Sie sich in die Warteliste ein und wir benachrichtigen Sie, sobald ein Termin verfügbar ist.",
+    "email": "E-Mail-Adresse",
+    "preferredTime": "Bevorzugter Zeitraum",
+    "preferredDays": "Bevorzugte Wochentage",
+    "timeSlots": {
+      "morning": "Morgens (8-12 Uhr)",
+      "midday": "Mittags (12-14 Uhr)",
+      "afternoon": "Nachmittags (14-18 Uhr)",
+      "flexible": "Flexibel"
+    },
+    "weekdays": {
+      "monday": "Montag",
+      "tuesday": "Dienstag",
+      "wednesday": "Mittwoch",
+      "thursday": "Donnerstag",
+      "friday": "Freitag",
+      "saturday": "Samstag",
+      "sunday": "Sonntag"
+    },
+    "submitButton": "Auf Warteliste setzen",
+    "successTitle": "Erfolgreich angemeldet",
+    "successMessage": "Sie wurden erfolgreich auf die Warteliste gesetzt. Wir werden Sie per E-Mail benachrichtigen, sobald ein passender Termin verfügbar ist.",
+    "errorMessage": "Fehler beim Hinzufügen zur Warteliste. Bitte versuchen Sie es später erneut."
+  },
+  "validation": {
+    "required": "Dieses Feld ist erforderlich",
+    "email": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+    "phone": "Bitte geben Sie eine gültige Telefonnummer ein",
+    "licensePlate": "Bitte geben Sie ein gültiges Kennzeichen ein",
+    "minLength": "Mindestens {min} Zeichen erforderlich",
+    "maxLength": "Maximal {max} Zeichen erlaubt"
+  },
+  "dates": {
+    "today": "Heute",
+    "tomorrow": "Morgen",
+    "monday": "Montag",
+    "tuesday": "Dienstag",
+    "wednesday": "Mittwoch",
+    "thursday": "Donnerstag",
+    "friday": "Freitag",
+    "saturday": "Samstag",
+    "sunday": "Sonntag",
+    "january": "Januar",
+    "february": "Februar",
+    "march": "März",
+    "april": "April",
+    "may": "Mai",
+    "june": "Juni",
+    "july": "Juli",
+    "august": "August",
+    "september": "September",
+    "october": "Oktober",
+    "november": "November",
+    "december": "Dezember"
+  },
+  "feedback": {
+    "title": "Bewertung abgeben",
+    "rating": "Bewertung",
+    "comment": "Kommentar",
+    "submit": "Bewertung absenden",
+    "thankYou": "Vielen Dank für Ihre Bewertung!",
+    "ratingRequired": "Bitte vergeben Sie eine Bewertung"
+  },
+  "dashboard": {
+    "welcome": "Willkommen zurück",
+    "logout": "Abmelden",
+    "lastBooking": "Letzte Buchung",
+    "rebook": "Erneut buchen",
+    "rebookDescription": "Buchen Sie denselben Service schnell und einfach erneut",
+    "bookingHistory": "Buchungshistorie",
+    "noBookings": "Keine Buchungen gefunden",
+    "noBookingsDescription": "Sie haben noch keine Termine gebucht. Buchen Sie jetzt Ihren ersten Termin!",
+    "vehicles": "Meine Fahrzeuge",
+    "noVehicles": "Noch keine Fahrzeuge",
+    "noVehiclesDescription": "Fügen Sie Ihr Fahrzeug hinzu für schnellere Buchungen",
+    "addVehicle": "Fahrzeug hinzufügen",
+    "manageVehicles": "Fahrzeuge verwalten",
+    "vehicleCount": "1 Fahrzeug",
+    "vehicleCountPlural": "{count} Fahrzeuge",
+    "newVehicle": "Neuer Termin",
+    "viewAll": "Alle anzeigen",
+    "details": "Details anzeigen",
+    "bookAgain": "Erneut buchen",
+    "quickActions": "Schnellaktionen",
+    "editProfile": "Profil bearbeiten",
+    "myAppointments": "Buchungen anzeigen",
+    "vehicle": {
+      "title": "Meine Fahrzeuge",
+      "edit": "Fahrzeug bearbeiten",
+      "delete": "Fahrzeug löschen",
+      "add": "Fahrzeug hinzufügen",
+      "licensePlate": "Kennzeichen",
+      "make": "Hersteller",
+      "model": "Modell",
+      "year": "Baujahr",
+      "vin": "FIN",
+      "fuelType": "Kraftstoff",
+      "color": "Farbe",
+      "mileage": "Kilometerstand",
+      "default": "Standard",
+      "deleteConfirm": "Fahrzeug löschen?",
+      "deleteConfirmDescription": "Diese Aktion kann nicht rückgängig gemacht werden. Das Fahrzeug wird dauerhaft aus Ihrem Konto entfernt.",
+      "deleteSuccess": "Fahrzeug gelöscht",
+      "addSuccess": "Fahrzeug hinzugefügt",
+      "updateSuccess": "Fahrzeug aktualisiert",
+      "errorLoading": "Fahrzeuge konnten nicht geladen werden",
+      "errorDeleting": "Fehler beim Löschen des Fahrzeugs"
+    }
+  },
+  "error": {
+    "pageNotFound": "Seite nicht gefunden",
+    "bookingNotFound": "Termin nicht gefunden oder Link ungültig",
+    "somethingWentWrong": "Etwas ist schief gelaufen",
+    "tryAgain": "Bitte versuchen Sie es erneut",
+    "backToHome": "Zur Startseite"
+  },
+  "landing": {
+    "hero": {
+      "title": "Werkstatt-Termin in 2 Minuten buchen",
+      "subtitle": "Finden Sie zertifizierte Werkstätten in Ihrer Nähe. Transparente Festpreise, schnelle Terminvergabe und sofortige Bestätigung. Buchen Sie jetzt online!",
+      "cta": "Jetzt Festpreis berechnen",
+      "searchPlaceholder": "Oder direkt nach Werkstätten in Ihrer Nähe suchen",
+      "features": {
+        "fixedPrice": "Festpreis-Garantie",
+        "certified": "Geprüfte Werkstätten",
+        "instant": "Sofortige Bestätigung"
+      }
+    },
+    "fixedPrice": {
+      "badge": "100% Festpreis-Garantie - Keine versteckten Kosten",
+      "whyRonya": {
+        "headline": "Warum Ronya?",
+        "subheadline": "Bezahle nur, was du buchst - wie bei Amazon",
+        "transparent": {
+          "title": "Transparente Festpreise",
+          "description": "Kein Kleingedrucktes, keine Überraschungen"
+        },
+        "noHidden": {
+          "title": "Keine versteckten Kosten",
+          "description": "Der angezeigte Preis ist der finale Preis"
+        },
+        "digitalApproval": {
+          "title": "Digitale Freigabe",
+          "description": "Zusatzarbeiten nur mit Ihrer Genehmigung"
+        },
+        "moneyBack": {
+          "title": "Geld-zurück-Garantie",
+          "description": "100% zufrieden oder Geld zurück"
+        },
+        "liveTracking": {
+          "title": "Live-Tracking Ihrer Abholung",
+          "description": "Verfolgen Sie in Echtzeit, wo sich unser Fahrer befindet. Mit GPS-Tracking und ETA-Anzeige wissen Sie immer genau, wann Ihr Fahrzeug abgeholt wird."
+        }
+      }
+    },
+    "howItWorks": {
+      "title": "So funktioniert's",
+      "step1": {
+        "title": "PLZ eingeben",
+        "description": "Finden Sie Werkstätten in Ihrer Nähe"
+      },
+      "step2": {
+        "title": "Service wählen",
+        "description": "Wählen Sie den gewünschten Service"
+      },
+      "step3": {
+        "title": "Termin buchen",
+        "description": "Wählen Sie Datum und Uhrzeit"
+      }
+    },
+    "usp": {
+      "title": "Ihre Vorteile",
+      "subtitle": "Mit Ronya wird Ihr Werkstattbesuch so einfach wie nie zuvor",
+      "transparentPricing": {
+        "title": "Transparente Festpreise",
+        "description": "Garantierte Festpreise ohne versteckte Kosten. Sie wissen vorher genau, was Sie bezahlen."
+      },
+      "fastBooking": {
+        "title": "Schnelle Buchung",
+        "description": "In nur 2 Minuten online zum Wunschtermin. Keine Wartezeit am Telefon."
+      },
+      "securePayment": {
+        "title": "Sichere Zahlung",
+        "description": "Bezahlen Sie bequem und sicher online. Verschlüsselte Datenübertragung."
+      },
+      "certifiedWorkshops": {
+        "title": "Geprüfte Werkstätten",
+        "description": "Nur zertifizierte Partnerwerkstätten mit hohen Qualitätsstandards."
+      }
+    },
+    "pricing": {
+      "title": "Transparente Preise",
+      "subtitle": "Festpreise ohne Überraschungen",
+      "inspection": {
+        "title": "Inspektion",
+        "price": "ab 149€",
+        "description": "Komplette Fahrzeugprüfung"
+      },
+      "oilChange": {
+        "title": "Ölwechsel",
+        "price": "ab 79€",
+        "description": "Inkl. Öl und Filter"
+      },
+      "tireChange": {
+        "title": "Reifenwechsel",
+        "price": "ab 39€",
+        "description": "Montage und Wuchtung"
+      },
+      "tuv": {
+        "title": "HU/AU (TÜV)",
+        "price": "ab 99€",
+        "description": "Hauptuntersuchung"
+      },
+      "brakePadsFront": {
+        "title": "Bremsbeläge vorne",
+        "price": "ab 89€",
+        "description": "Inkl. Einbau und Bremstest"
+      },
+      "brakePadsRear": {
+        "title": "Bremsbeläge hinten",
+        "price": "ab 89€",
+        "description": "Inkl. Einbau und Bremstest"
+      },
+      "brakeDiscsFront": {
+        "title": "Bremsscheiben vorne",
+        "price": "ab 149€",
+        "description": "Inkl. Einbau und Bremstest"
+      },
+      "brakeDiscsRear": {
+        "title": "Bremsscheiben hinten",
+        "price": "ab 149€",
+        "description": "Inkl. Einbau und Bremstest"
+      },
+      "brakePackageFull": {
+        "title": "Bremsen-Komplettpaket",
+        "price": "ab 405€",
+        "description": "Beläge + Scheiben vorne & hinten",
+        "badge": "15% Ersparnis"
+      }
+    },
+    "trust": {
+      "title": "Vertrauen Sie auf Qualität",
+      "workshops": "500+",
+      "workshopsLabel": "Werkstätten deutschlandweit",
+      "customers": "10.000+",
+      "customersLabel": "Zufriedene Kunden",
+      "rating": "4.8/5",
+      "ratingLabel": "Durchschnittliche Bewertung"
+    },
+    "trustBadge": {
+      "customers": "10.000+ zufriedene Kunden",
+      "rating": "4.8/5 Sterne Bewertung"
+    },
+    "nav": {
+      "bookAppointment": "Termin Buchen",
+      "workshops": "Werkstätten",
+      "prices": "Preise",
+      "faq": "FAQ",
+      "login": "Anmelden",
+      "register": "Registrieren",
+      "logout": "Abmelden",
+      "myAccount": "Mein Account",
+      "dashboard": "Dashboard",
+      "navigation": "Navigation"
+    },
+    "faq": {
+      "title": "Häufige Fragen",
+      "questions": {
+        "howItWorks": {
+          "question": "Wie funktioniert die Buchung?",
+          "answer": "Geben Sie einfach Ihre PLZ ein, wählen Sie eine Werkstatt und buchen Sie online einen Termin. Sie erhalten sofort eine Bestätigung per E-Mail."
+        },
+        "fixedPrices": {
+          "question": "Sind die Preise verbindlich?",
+          "answer": "Ja, alle angezeigten Preise sind Festpreise. Es kommen keine versteckten Kosten hinzu."
+        },
+        "cancellation": {
+          "question": "Kann ich meinen Termin stornieren?",
+          "answer": "Ja, Sie können bis zu 24 Stunden vor dem Termin kostenlos stornieren. Bei kurzfristigen Stornierungen gelten unsere Stornierungsbedingungen."
+        },
+        "payment": {
+          "question": "Wie bezahle ich?",
+          "answer": "Sie können bequem online per Kreditkarte oder PayPal bezahlen. Die Zahlung erfolgt erst nach Abschluss der Arbeiten."
+        }
+      }
+    }
+  },
+  "footer": {
+    "tagline": "Die einfachste Art, Werkstatt-Termine zu buchen.",
+    "services": {
+      "title": "Services",
+      "findWorkshop": "Werkstatt finden",
+      "ourServices": "Unsere Services",
+      "prices": "Preise"
+    },
+    "legal": {
+      "title": "Rechtliches",
+      "imprint": "Impressum",
+      "privacy": "Datenschutz",
+      "terms": "AGB"
+    },
+    "contact": {
+      "title": "Kontakt",
+      "email": "support@ronya.de",
+      "hours": "Mo-Fr 9-18 Uhr",
+      "help": "Hilfe"
+    },
+    "forWorkshops": "Für Werkstätten",
+    "admin": "Admin",
+    "copyright": "© {year} Ronya B2C. Alle Rechte vorbehalten."
+  },
+  "tracking": {
+    "title": "Fahrzeug verfolgen",
+    "subtitle": "Verfolgen Sie Ihr Fahrzeug in Echtzeit",
+    "bookingNumber": "Buchungsnummer",
+    "currentStatus": "Aktueller Status",
+    "estimatedArrival": "Voraussichtliche Ankunft",
+    "distanceAway": "{distance} km entfernt",
+    "liveMap": "Live-Karte",
+    "mapNotAvailable": "Karte erfordert Google Maps API",
+    "yourDriver": "Ihr Fahrer",
+    "callDriver": "Fahrer anrufen",
+    "lastUpdate": "Letzte Aktualisierung",
+    "tripTimeline": "Fahrt-Ablauf",
+    "contactWorkshop": "Fragen? Kontaktieren Sie {workshop} unter {phone}",
+    "loadingTracking": "Lade Tracking-Informationen...",
+    "trackingNotFound": "Tracking-Informationen nicht gefunden",
+    "invalidLink": "Ungültiger Tracking-Link",
+    "status": {
+      "PENDING": "Ausstehend",
+      "EN_ROUTE_TO_PICKUP": "Unterwegs zur Abholung",
+      "ARRIVED_AT_CUSTOMER": "Beim Kunden angekommen",
+      "VEHICLE_PICKED_UP": "Fahrzeug übernommen",
+      "EN_ROUTE_TO_WORKSHOP": "Unterwegs zur Werkstatt",
+      "AT_WORKSHOP": "In der Werkstatt",
+      "EN_ROUTE_TO_RETURN": "Unterwegs zur Rückgabe",
+      "ARRIVED_FOR_RETURN": "Zur Rückgabe angekommen",
+      "COMPLETED": "Abgeschlossen",
+      "CANCELLED": "Storniert"
+    },
+    "timeline": {
+      "scheduledPickup": "Geplante Abholung",
+      "arrivedAtLocation": "Bei Ihnen angekommen",
+      "vehiclePickedUp": "Fahrzeug abgeholt",
+      "arrivedAtWorkshop": "In Werkstatt angekommen",
+      "scheduledReturn": "Geplante Rückgabe",
+      "vehicleReturned": "Fahrzeug zurückgegeben"
+    }
+  },
+  "jockey": {
+    "title": "Jockey GPS-Tracking",
+    "subtitle": "Verfolgen Sie Ihre Position und verwalten Sie den Fahrt-Status",
+    "enterTripId": "Trip-ID eingeben",
+    "enterTripIdDescription": "Geben Sie Ihre zugewiesene Trip-ID ein, um mit dem Tracking zu beginnen",
+    "tripIdPlaceholder": "Trip-ID",
+    "loadTrip": "Trip laden",
+    "tripDetails": "Trip-Details",
+    "customer": "Kunde",
+    "pickupAddress": "Abholadresse",
+    "workshop": "Werkstatt",
+    "gpsTracking": "GPS-Tracking",
+    "startGpsTracking": "GPS-Tracking starten",
+    "stopGpsTracking": "GPS-Tracking beenden",
+    "currentPosition": "Aktuelle Position",
+    "lat": "Breite",
+    "lng": "Länge",
+    "lastUpdate": "Letzte Aktualisierung",
+    "updateStatus": "Status aktualisieren",
+    "noStatusUpdates": "Keine Status-Updates verfügbar",
+    "errors": {
+      "enterTripId": "Bitte geben Sie eine Trip-ID ein",
+      "geolocationNotSupported": "Geolocation wird von Ihrem Browser nicht unterstützt",
+      "gpsError": "GPS-Fehler: {message}",
+      "failedToLoad": "Trip konnte nicht geladen werden",
+      "failedToUpdateStatus": "Status konnte nicht aktualisiert werden"
+    }
+  },
+  "header": {
+    "home": "Home",
+    "howItWorks": "So funktioniert's",
+    "faq": "FAQ",
+    "login": "Anmelden",
+    "bookNow": "Termin buchen"
+  },
+  "hero": {
+    "badge": "Festpreis-Garantie",
+    "title": "Premium Fahrzeugwartung mit",
+    "titleHighlight": "Festpreis-Garantie",
+    "subtitle": "Wir holen Ihr Auto ab & bringen es zurück – bequemer geht's nicht.",
+    "cta": "Preis berechnen",
+    "login": "Anmelden",
+    "rating": "aus",
+    "reviews": "Bewertungen"
+  },
+  "portals": {
+    "title": "Ihr Portal wählen",
+    "subtitle": "Egal ob Kunde, Fahrer oder Werkstatt – wir haben das passende Portal für Sie.",
+    "customer": {
+      "title": "Kunden",
+      "description": "Buchen Sie Ihren nächsten Service bequem online. Transparente Preise, einfache Terminwahl.",
+      "button": "Zum Portal"
+    },
+    "jockey": {
+      "title": "Fahrer",
+      "description": "Verwalten Sie Ihre Aufträge, dokumentieren Sie Übergaben und navigieren Sie effizient.",
+      "button": "Zum Portal"
+    },
+    "workshop": {
+      "title": "Werkstatt",
+      "description": "Bearbeiten Sie Aufträge, erstellen Sie Kostenvoranschläge und kommunizieren Sie mit Kunden.",
+      "button": "Zum Portal"
+    }
+  },
+  "values": {
+    "title": "Warum AutoConcierge?",
+    "subtitle": "Wir machen Autowartung so einfach wie nie zuvor.",
+    "items": {
+      "price": {
+        "title": "Transparente Festpreise",
+        "description": "Keine versteckten Kosten. Sie wissen vorher genau, was Sie bezahlen."
+      },
+      "certified": {
+        "title": "Zertifizierte Werkstätten",
+        "description": "Nur geprüfte Partner mit höchsten Qualitätsstandards."
+      },
+      "pickup": {
+        "title": "Hol- und Bringservice",
+        "description": "Wir holen Ihr Auto ab und bringen es zurück – inklusive."
+      },
+      "instant": {
+        "title": "Sofortige Bestätigung",
+        "description": "Buchen Sie online und erhalten Sie sofort Ihre Terminbestätigung."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "So einfach geht's",
+    "subtitle": "In nur drei Schritten zur stressfreien Autowartung.",
+    "steps": {
+      "vehicle": {
+        "title": "Fahrzeug eingeben",
+        "description": "Geben Sie Marke, Modell und Baujahr ein."
+      },
+      "service": {
+        "title": "Service wählen",
+        "description": "Wählen Sie den gewünschten Service aus."
+      },
+      "booking": {
+        "title": "Termin buchen",
+        "description": "Wählen Sie Datum, Zeit und Abholadresse."
+      }
+    }
+  },
+  "faq": {
+    "title": "Häufig gestellte Fragen",
+    "subtitle": "Hier finden Sie Antworten auf die häufigsten Fragen.",
+    "items": [
+      {
+        "question": "Wie funktioniert der Festpreis?",
+        "answer": "Unser Festpreis-System garantiert Ihnen transparente Kosten. Nachdem Sie Ihr Fahrzeug und den gewünschten Service angegeben haben, erhalten Sie sofort einen verbindlichen Endpreis – ohne versteckte Gebühren oder Überraschungen."
+      },
+      {
+        "question": "Welche Services bieten Sie an?",
+        "answer": "Wir bieten eine breite Palette an Wartungsservices: Ölwechsel, Inspektionen, Bremsservice, Klimaservice, Reifenwechsel und vieles mehr. Alle Services werden von zertifizierten Partnerwerkstätten durchgeführt."
+      },
+      {
+        "question": "Wie funktioniert der Hol- und Bringservice?",
+        "answer": "Einer unserer geschulten Fahrer holt Ihr Fahrzeug zum vereinbarten Zeitpunkt ab, bringt es zur Werkstatt und liefert es nach Fertigstellung wieder zu Ihnen zurück. Der Service ist in allen unseren Paketen inklusive."
+      },
+      {
+        "question": "Welche Zahlungsmethoden werden akzeptiert?",
+        "answer": "Sie können bequem per Kreditkarte, PayPal oder SEPA-Lastschrift bezahlen. Die Zahlung erfolgt sicher über unsere verschlüsselte Plattform."
+      },
+      {
+        "question": "Kann ich meine Buchung stornieren?",
+        "answer": "Ja, Sie können Ihre Buchung bis zu 24 Stunden vor dem geplanten Termin kostenlos stornieren. Bei kurzfristigeren Stornierungen fallen ggf. Bearbeitungsgebühren an."
+      },
+      {
+        "question": "Sind Ihre Werkstätten zertifiziert?",
+        "answer": "Absolut. Alle unsere Partnerwerkstätten durchlaufen einen strengen Qualitätsprozess und sind von unabhängigen Stellen zertifiziert. Wir arbeiten nur mit den besten Werkstätten zusammen."
+      }
+    ]
+  },
+  "lovableFooter": {
+    "tagline": "Premium Fahrzeugwartung mit Festpreis-Garantie und Concierge-Service.",
+    "services": "Services",
+    "oilChange": "Ölwechsel",
+    "inspection": "Inspektion",
+    "brakeService": "Bremsservice",
+    "acService": "Klimaservice",
+    "company": "Unternehmen",
+    "about": "Über uns",
+    "careers": "Karriere",
+    "partner": "Partner werden",
+    "legal": "Rechtliches",
+    "imprint": "Impressum",
+    "privacy": "Datenschutz",
+    "terms": "AGB",
+    "rights": "Alle Rechte vorbehalten."
+  },
+  "lovableBooking": {
+    "conciergeBanner": {
+      "title": "Concierge-Service inklusive",
+      "subtitle": "Wir holen Ihr Fahrzeug ab und bringen es nach dem Service wieder zu Ihnen zurück."
+    },
+    "steps": {
+      "vehicle": "Fahrzeug",
+      "service": "Service",
+      "pickup": "Abholung",
+      "confirm": "Bestätigung"
+    },
+    "step1": {
+      "title": "Für welches Fahrzeug möchten Sie einen Service buchen?",
+      "brand": "Marke",
+      "selectBrand": "Marke auswählen",
+      "model": "Modell",
+      "selectModel": "Modell auswählen",
+      "year": "Baujahr",
+      "selectYear": "Jahr auswählen",
+      "mileage": "Kilometerstand",
+      "mileagePlaceholder": "z.B. 45000",
+      "saveVehicle": "Fahrzeug für zukünftige Buchungen speichern",
+      "next": "Weiter zur Service-Auswahl"
+    },
+    "step2": {
+      "title": "Welchen Service benötigen Sie?",
+      "services": {
+        "oil": {
+          "name": "Ölwechsel",
+          "description": "Motoröl und Filter wechseln"
+        },
+        "inspection": {
+          "name": "Inspektion",
+          "description": "Komplette Fahrzeugprüfung"
+        },
+        "brakes": {
+          "name": "Bremsservice",
+          "description": "Bremsbeläge und Scheiben prüfen"
+        },
+        "ac": {
+          "name": "Klimaservice",
+          "description": "Klimaanlage warten und befüllen"
+        }
+      },
+      "from": "ab",
+      "next": "Weiter zur Terminwahl"
+    },
+    "step3": {
+      "title": "Wann sollen wir Ihr Fahrzeug abholen und zurückbringen?",
+      "concierge": {
+        "title": "So funktioniert unser Concierge-Service",
+        "step1": "Wir holen Ihr Fahrzeug zum gewünschten Zeitpunkt ab",
+        "step2": "Der Service wird in unserer Partnerwerkstatt durchgeführt",
+        "step3": "Wir bringen Ihr Fahrzeug zurück – fertig gewartet"
+      },
+      "pickup": {
+        "title": "Abholung",
+        "subtitle": "Wann sollen wir Ihr Fahrzeug abholen?",
+        "date": "Abholdatum",
+        "time": "Abholzeit"
+      },
+      "return": {
+        "title": "Rückgabe",
+        "subtitle": "Wann sollen wir Ihr Fahrzeug zurückbringen?",
+        "date": "Rückgabedatum",
+        "time": "Rückgabezeit",
+        "note": "Die Rückgabe muss mindestens einen Tag nach der Abholung erfolgen."
+      },
+      "address": {
+        "title": "Abhol- & Rückgabeadresse",
+        "street": "Straße & Hausnummer",
+        "streetPlaceholder": "z.B. Musterstraße 123",
+        "zip": "PLZ",
+        "zipPlaceholder": "z.B. 10115",
+        "city": "Stadt",
+        "cityPlaceholder": "z.B. Berlin"
+      },
+      "next": "Weiter zur Zusammenfassung"
+    },
+    "step4": {
+      "title": "Ihre Buchungsübersicht",
+      "vehicle": "Fahrzeug",
+      "service": "Service",
+      "timeline": {
+        "title": "Ihr Concierge-Ablauf",
+        "pickup": "Abholung",
+        "return": "Rückgabe",
+        "address": "Adresse"
+      },
+      "conciergeIncluded": "Concierge-Service inklusive",
+      "conciergeDescription": "Abholung & Rückgabe Ihres Fahrzeugs",
+      "total": "Gesamtpreis",
+      "contact": {
+        "title": "Ihre Kontaktdaten",
+        "email": "E-Mail-Adresse",
+        "emailPlaceholder": "max@mustermann.de",
+        "firstName": "Vorname",
+        "firstNamePlaceholder": "Max",
+        "lastName": "Nachname",
+        "lastNamePlaceholder": "Mustermann",
+        "phone": "Telefonnummer",
+        "phonePlaceholder": "+49 123 456789",
+        "note": "Wir erstellen für Sie ein Kundenkonto und senden Ihnen die Zugangsdaten per E-Mail."
+      },
+      "terms": "Ich akzeptiere die AGB und Datenschutzbestimmungen",
+      "submit": "Jetzt kostenpflichtig buchen"
+    }
+  },
+  "login": {
+    "title": "Willkommen zurück",
+    "subtitle": "Melden Sie sich an, um fortzufahren.",
+    "email": "E-Mail-Adresse",
+    "emailPlaceholder": "ihre@email.de",
+    "password": "Passwort",
+    "passwordPlaceholder": "Ihr Passwort",
+    "forgot": "Passwort vergessen?",
+    "submit": "Anmelden",
+    "noAccount": "Noch kein Konto?",
+    "register": "Jetzt registrieren",
+    "portalTitles": {
+      "customer": "Kunden-Portal",
+      "jockey": "Fahrer-Portal",
+      "workshop": "Werkstatt-Portal"
+    },
+    "portalDescriptions": {
+      "customer": "Buchen Sie Ihren nächsten Service bequem online und behalten Sie den Überblick über alle Ihre Fahrzeuge.",
+      "jockey": "Verwalten Sie Ihre Aufträge, dokumentieren Sie Übergaben und navigieren Sie effizient zu Ihren Kunden.",
+      "workshop": "Bearbeiten Sie Aufträge, erstellen Sie Kostenvoranschläge und kommunizieren Sie mit Kunden."
+    }
+  },
+  "customerDashboard": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "newBooking": "Neue Buchung",
+      "myBookings": "Meine Buchungen",
+      "vehicles": "Fahrzeuge",
+      "profile": "Profil"
+    },
+    "stats": {
+      "activeBookings": "Aktive Buchungen",
+      "savedVehicles": "Gespeicherte Fahrzeuge",
+      "lastBooking": "Letzte Buchung"
+    },
+    "recentBookings": "Aktuelle Buchungen",
+    "noBookings": "Keine aktiven Buchungen",
+    "viewDetails": "Details anzeigen",
+    "status": {
+      "planned": "Geplant",
+      "inProgress": "In Bearbeitung",
+      "completed": "Abgeschlossen"
+    }
+  },
+  "jockeyDashboard": {
+    "today": "Heute",
+    "stats": {
+      "todayTrips": "Heutige Fahrten",
+      "completed": "Abgeschlossen",
+      "pending": "Ausstehend"
+    },
+    "assignments": "Heutige Aufträge",
+    "noAssignments": "Keine Aufträge für heute",
+    "status": {
+      "upcoming": "Bevorstehend",
+      "onRoute": "Unterwegs",
+      "completed": "Abgeschlossen"
+    },
+    "pickup": "Abholung",
+    "navigate": "Navigation starten",
+    "startPickup": "Abholung starten",
+    "documentHandover": "Übergabe dokumentieren",
+    "complete": "Abschließen"
+  },
+  "workshopDashboard": {
+    "stats": {
+      "ordersToday": "Aufträge heute",
+      "inProgress": "In Bearbeitung",
+      "completed": "Abgeschlossen"
+    },
+    "orders": "Aktuelle Aufträge",
+    "noOrders": "Keine Aufträge vorhanden",
+    "table": {
+      "orderId": "Auftrags-ID",
+      "customer": "Kunde",
+      "vehicle": "Fahrzeug",
+      "service": "Service",
+      "status": "Status",
+      "actions": "Aktionen"
+    },
+    "status": {
+      "received": "Eingegangen",
+      "inProgress": "In Bearbeitung",
+      "waitingApproval": "Wartet auf Freigabe",
+      "completed": "Abgeschlossen"
+    },
+    "viewDetails": "Details",
+    "createExtension": "Erweiterung"
+  }
+}

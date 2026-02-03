@@ -1,0 +1,442 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// USER & AUTHENTICATION MODELS (Multi-Portal Architecture)
+// ============================================================================
+
+enum UserRole {
+  CUSTOMER
+  JOCKEY
+  WORKSHOP
+  ADMIN
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  username     String?   @unique
+  passwordHash String? // Only for JOCKEY and WORKSHOP
+  role         UserRole  @default(CUSTOMER)
+  firstName    String?
+  lastName     String?
+  phone        String?
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime? // Track last login for security
+  fcmToken     String? // Firebase Cloud Messaging token for push notifications
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  customerProfile       CustomerProfile?
+  jockeyProfile         JockeyProfile?
+  workshopProfile       WorkshopProfile?
+  sessions              Session[]
+  bookings              Booking[]            @relation("CustomerBookings")
+  jockeyAssignments     Booking[]            @relation("JockeyAssignments")
+  jockeyTaskAssignments JockeyAssignment[]   @relation("JockeyTaskAssignments")
+  notificationLogs      NotificationLog[]
+
+  @@index([email])
+  @@index([username])
+  @@index([role])
+  @@index([fcmToken])
+}
+
+model CustomerProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Address
+  street     String?
+  city       String?
+  postalCode String?
+
+  // Stripe Integration
+  stripeCustomerId String? @unique
+
+  // Preferences
+  preferredContactMethod String? // EMAIL, PHONE, SMS
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // Soft-delete for GDPR compliance
+
+  @@index([userId])
+}
+
+model JockeyProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  licenseNumber String?
+  vehicleType   String? // Type of vehicle the jockey drives
+  isAvailable   Boolean @default(true)
+  rating        Float?  @default(5.0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isAvailable])
+}
+
+model WorkshopProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  workshopName String
+  address      String
+  city         String
+  postalCode   String
+  phone        String
+  capacity     Int    @default(5) // Number of concurrent services
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  slots     TimeSlot[]
+
+  @@index([userId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+// ============================================================================
+// VEHICLE & PRICE MATRIX MODELS
+// ============================================================================
+
+model Vehicle {
+  id         String @id @default(cuid())
+  customerId String
+
+  // REQUIRED FIELDS (from TECHNICAL_IMPACT_ANALYSIS)
+  brand   String // e.g. "VW", "Audi", "BMW"
+  model   String // e.g. "Golf 7", "A4 B9", "3er G20"
+  year    Int // Build year (REQUIRED!)
+  mileage Int // Current mileage (REQUIRED!)
+
+  // Optional Fields
+  licensePlate String?
+  vin          String? // Vehicle Identification Number (Post-MVP)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  bookings  Booking[]
+
+  @@index([brand, model]) // For PriceMatrix lookup
+}
+
+model PriceMatrix {
+  id String @id @default(cuid())
+
+  // Vehicle Definition
+  brand    String // e.g. "VW"
+  model    String // e.g. "Golf 7"
+  yearFrom Int // Valid from year (e.g. 2012)
+  yearTo   Int // Valid to year (e.g. 2019)
+
+  // Service Type
+  serviceType ServiceType
+
+  // Pricing
+  basePrice         Decimal @db.Decimal(10, 2) // Base price in EUR
+  mileageMultiplier Decimal @default(1.0) @db.Decimal(5, 2)
+  ageMultiplier     Decimal @default(1.0) @db.Decimal(5, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([brand, model, yearFrom, yearTo, serviceType])
+  @@index([brand, model])
+}
+
+// ============================================================================
+// BOOKING MODELS
+// ============================================================================
+
+enum ServiceType {
+  INSPECTION // Inspection/Maintenance (Main product)
+  OIL_SERVICE // Oil service
+  BRAKE_SERVICE // Brake service
+  TUV // TÜV/HU (German inspection)
+  CLIMATE_SERVICE // Climate service
+  CUSTOM // Custom service
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  JOCKEY_ASSIGNED
+  IN_TRANSIT_TO_WORKSHOP
+  IN_WORKSHOP
+  COMPLETED
+  IN_TRANSIT_TO_CUSTOMER
+  DELIVERED
+  CANCELLED
+}
+
+model Booking {
+  id            String @id @default(cuid())
+  bookingNumber String @unique
+
+  // Relations
+  customerId String
+  customer   User   @relation("CustomerBookings", fields: [customerId], references: [id])
+
+  vehicleId String
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+
+  // Service Details
+  serviceType      ServiceType // Primary service type (for backward compatibility)
+  services         Json? // Array of {type: ServiceType, price: Decimal} for multi-service bookings
+  mileageAtBooking Int // Mileage at booking time (REQUIRED)
+  status           BookingStatus @default(PENDING_PAYMENT)
+
+  // Pricing
+  totalPrice     Decimal @db.Decimal(10, 2)
+  priceBreakdown Json? // Detailed price calculation
+
+  // Scheduling
+  pickupDate       DateTime
+  pickupTimeSlot   String // e.g., "08:00-10:00"
+  deliveryDate     DateTime?
+  deliveryTimeSlot String?
+
+  // Address information
+  pickupAddress    String
+  pickupCity       String
+  pickupPostalCode String
+
+  // Jockey assignment (legacy field)
+  jockeyId String?
+  jockey   User?   @relation("JockeyAssignments", fields: [jockeyId], references: [id])
+
+  // Payment (Stripe Integration)
+  paymentIntentId String?
+  paidAt          DateTime?
+
+  // Additional notes
+  customerNotes String? @db.Text
+  internalNotes String? @db.Text
+
+  // Relations
+  extensions        Extension[]
+  jockeyAssignments JockeyAssignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([bookingNumber])
+  @@index([status])
+  @@index([pickupDate])
+}
+
+// ============================================================================
+// BOOKING EXTENSIONS (Service Upgrades/Changes)
+// ============================================================================
+
+enum ExtensionStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  CANCELLED
+}
+
+model Extension {
+  id        String  @id @default(cuid())
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  // Extension details
+  description String   @db.Text
+  items       Json // [{name: string, price: number, quantity: number}]
+  totalAmount Int // Total in cents
+  images      String[] // S3/Upload URLs
+  videos      String[] // S3/Upload URLs
+
+  // Status tracking
+  status ExtensionStatus @default(PENDING)
+
+  // Payment
+  paymentIntentId String? // Stripe Payment Intent for extension payment
+  paidAt          DateTime?
+
+  // Timestamps
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  approvedAt DateTime?
+  declinedAt DateTime?
+
+  // Decline reason
+  declineReason String? @db.Text
+
+  @@index([bookingId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// TIME SLOT MANAGEMENT
+// ============================================================================
+
+model TimeSlot {
+  id              String          @id @default(cuid())
+  workshopUserId  String // References WorkshopProfile
+  workshopProfile WorkshopProfile @relation(fields: [workshopUserId], references: [id])
+
+  date     DateTime @db.Date
+  timeSlot String // e.g., "08:00-10:00", "10:00-12:00"
+
+  isAvailable     Boolean @default(true)
+  maxCapacity     Int     @default(4)
+  currentBookings Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workshopUserId, date, timeSlot])
+  @@index([date])
+  @@index([isAvailable])
+}
+
+// ============================================================================
+// NOTIFICATION MODELS
+// ============================================================================
+
+enum NotificationType {
+  BOOKING_CONFIRMATION
+  STATUS_UPDATE
+  PICKUP_REMINDER
+  IN_WORKSHOP
+  SERVICE_COMPLETE
+  DELIVERY_REMINDER
+  DELIVERED
+  PAYMENT_CONFIRMATION
+  SERVICE_EXTENSION
+  GENERAL
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+  READ
+}
+
+model NotificationLog {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  bookingId String?
+
+  type   NotificationType
+  status NotificationStatus @default(PENDING)
+
+  title String
+  body  String @db.Text
+  data  Json? // Additional payload data
+
+  fcmMessageId String? // FCM message ID for tracking
+  errorMessage String? @db.Text
+
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  readAt      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([bookingId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// JOCKEY ASSIGNMENT MODELS
+// ============================================================================
+
+enum AssignmentType {
+  PICKUP
+  RETURN
+}
+
+enum AssignmentStatus {
+  ASSIGNED
+  EN_ROUTE
+  AT_LOCATION
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model JockeyAssignment {
+  id        String @id @default(cuid())
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  jockeyId  String
+  jockey    User    @relation("JockeyTaskAssignments", fields: [jockeyId], references: [id])
+
+  // Type: PICKUP or RETURN
+  type AssignmentType @default(PICKUP)
+
+  // Scheduling
+  scheduledTime DateTime
+  arrivedAt     DateTime?
+  departedAt    DateTime?
+  completedAt   DateTime?
+
+  // Status
+  status AssignmentStatus @default(ASSIGNED)
+
+  // Handover details (photos, signatures, notes)
+  handoverData Json? // { photos: [], customerSignature: '', ronjaSignature: '', notes: '' }
+
+  // Customer info (for quick access)
+  customerName       String
+  customerPhone      String
+  customerAddress    String
+  customerCity       String
+  customerPostalCode String
+
+  // Vehicle info (for quick access)
+  vehicleBrand        String
+  vehicleModel        String
+  vehicleLicensePlate String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([jockeyId])
+  @@index([bookingId])
+  @@index([scheduledTime])
+  @@index([status])
+  @@map("jockey_assignments")
+}

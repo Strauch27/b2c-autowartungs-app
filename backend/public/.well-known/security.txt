@@ -1,0 +1,21 @@
+Contact: mailto:security@yourcompany.com
+Expires: 2027-02-01T00:00:00.000Z
+Preferred-Languages: en, de
+Canonical: https://yourapp.com/.well-known/security.txt
+
+# Security Policy
+# We take security seriously. If you discover a security vulnerability,
+# please report it responsibly to security@yourcompany.com.
+#
+# Please include:
+# - Description of the vulnerability
+# - Steps to reproduce
+# - Potential impact
+# - Suggested remediation (if known)
+#
+# Response Timeline:
+# - Initial acknowledgment: Within 24 hours
+# - Assessment & plan: Within 72 hours
+# - Resolution: Based on severity (Critical: 24h, High: 7d, Medium: 30d)
+#
+# We appreciate responsible disclosure and will acknowledge your contribution.

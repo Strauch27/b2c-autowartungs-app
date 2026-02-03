@@ -1,0 +1,110 @@
+Backend File Structure - Pricing Service Implementation
+========================================================
+
+99 Code/backend/
+├── PRICING_IMPLEMENTATION_SUMMARY.md  ← START HERE - Complete implementation guide
+│
+├── src/
+│   ├── services/
+│   │   ├── pricing.service.ts                    ← CORE: Main pricing calculation service
+│   │   ├── PRICING_SERVICE_README.md             ← DOCUMENTATION: Usage guide
+│   │   └── __tests__/
+│   │       └── pricing.service.test.ts           ← TESTS: 30+ unit tests
+│   │
+│   ├── repositories/
+│   │   └── price-matrix.repository.ts            ← DATABASE: PriceMatrix access layer
+│   │
+│   ├── types/
+│   │   └── pricing.types.ts                      ← TYPES: TypeScript definitions
+│   │
+│   └── controllers/
+│       └── pricing.controller.example.ts         ← EXAMPLE: API integration guide
+│
+└── prisma/
+    └── (PriceMatrix schema - see 02 Planning/04_Database_Schema.md)
+
+Key Files Created:
+==================
+
+1. pricing.service.ts (308 lines)
+   - calculatePrice() - Main calculation logic
+   - getPriceByMileage() - Mileage interval selection
+   - getAgeMultiplier() - Age surcharge calculation
+   - getFallbackPrice() - Fallback when model not found
+   - validateInput() - Input validation
+
+2. price-matrix.repository.ts (185 lines)
+   - findByBrandModelYear() - Exact price lookup
+   - getAveragePriceForBrand() - Brand fallback
+   - getAllBrands() - Available brands
+   - getModelsByBrand() - Models per brand
+
+3. pricing.service.test.ts (584 lines)
+   - Full test coverage with mock data
+   - Tests all calculation scenarios
+   - Edge cases and boundary values
+
+4. pricing.types.ts (219 lines)
+   - Type-safe interfaces
+   - Constants and enums
+   - Validation constraints
+
+5. pricing.controller.example.ts (328 lines)
+   - API endpoint examples
+   - Integration patterns
+   - Request/response handling
+
+6. PRICING_SERVICE_README.md (Complete documentation)
+   - Usage examples
+   - API reference
+   - Business rules
+
+Business Logic Implemented:
+============================
+
+✓ Brand/Model-Based Pricing (NOT vehicle class!)
+✓ Mileage Intervals: 30k, 60k, 90k, 120k+
+✓ Age Multiplier: 1.0x (≤10y), 1.1x (>10y), 1.2x (>15y)
+✓ Fallback Logic: Exact → Brand Average → Default
+✓ Input Validation: Brand, Model, Year (1994-2026), Mileage (0-500k)
+
+Example Calculations:
+=====================
+
+VW Golf (60k km, 11 years old):
+  Base: 219 EUR
+  Age multiplier: 1.1 (+10%)
+  Final: 241 EUR
+
+Mercedes S-Class (90k km, 8 years old):
+  Base: 499 EUR
+  Age multiplier: 1.0 (no surcharge)
+  Final: 499 EUR
+
+Old VW Golf (120k km, 18 years old):
+  Base: 349 EUR
+  Age multiplier: 1.2 (+20%)
+  Final: 419 EUR
+
+Next Steps:
+===========
+
+1. Database Setup
+   - Create PriceMatrix table
+   - Run Prisma migrations
+   - Seed price data
+
+2. API Integration
+   - Create pricing routes
+   - Add to booking flow
+   - Frontend integration
+
+3. Testing
+   - Run: npm test pricing.service.test.ts
+   - Integration tests
+   - Load testing
+
+4. Documentation
+   - Update API docs
+   - Swagger/OpenAPI specs
+   - Frontend integration guide

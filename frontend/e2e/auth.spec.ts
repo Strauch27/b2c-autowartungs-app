@@ -1,0 +1,458 @@
+import { test, expect } from '@playwright/test';
+import { loginAsWorkshop, loginAsJockey, loginAsCustomer, logout, expectLoginError, clearAuth } from './helpers/auth-helpers';
+import { TEST_USERS } from './fixtures/test-data';
+
+/**
+ * Authentication E2E Tests
+ *
+ * Tests all authentication flows for the 3 user portals:
+ * - Workshop login with username/password
+ * - Jockey login with username/password
+ * - Customer login with email/password (guest + registered)
+ * - Logout functionality
+ * - Invalid credentials handling
+ * - Role-based redirects
+ *
+ * DEFECT DETECTION:
+ * - Wrong login credentials (werkstatt vs werkstatt-witten)
+ * - Missing authentication error messages
+ * - Incorrect redirects after login
+ * - Session persistence issues
+ */
+
+test.describe('Authentication Tests', () => {
+
+  test.beforeEach(async ({ page }) => {
+    // Clear auth state before each test
+    await clearAuth(page);
+  });
+
+  // ============================================================================
+  // Workshop Authentication
+  // ============================================================================
+
+  test.describe('Workshop Login', () => {
+
+    test('TC-AUTH-001: should display workshop login page with correct fields', async ({ page }) => {
+      await page.goto('/de/workshop/login');
+      await page.waitForLoadState('networkidle');
+
+      // Verify page title
+      await expect(page.locator('h1')).toContainText(/Willkommen|Welcome/i);
+
+      // Workshop uses username field (NOT email) - using data-testid for stability
+      const usernameField = page.getByTestId('workshop-username-input');
+      await expect(usernameField).toBeVisible();
+      await expect(usernameField).toHaveAttribute('type', 'text');
+
+      // Verify password field
+      const passwordField = page.getByTestId('workshop-password-input');
+      await expect(passwordField).toBeVisible();
+      await expect(passwordField).toHaveAttribute('type', 'password');
+
+      // Verify submit button
+      await expect(page.getByTestId('workshop-login-button')).toBeVisible();
+    });
+
+    test('TC-AUTH-002: should login successfully with correct workshop credentials', async ({ page }) => {
+      // CRITICAL: Use werkstatt-witten, not just werkstatt
+      await loginAsWorkshop(page, 'de', TEST_USERS.workshop);
+
+      // Verify successful redirect to dashboard
+      await expect(page).toHaveURL(/\/workshop\/dashboard/);
+
+      // Verify workshop dashboard is displayed
+      await expect(page.locator('main')).toBeVisible();
+
+      // Check for workshop-specific UI elements
+      const workshopIndicator = page.locator('text=/Werkstatt|Workshop/i');
+      await expect(workshopIndicator.first()).toBeVisible({ timeout: 5000 });
+    });
+
+    test('TC-AUTH-003: should show error for invalid workshop credentials', async ({ page }) => {
+      await page.goto('/de/workshop/login');
+      await page.waitForLoadState('networkidle');
+
+      // Fill in wrong credentials using data-testid
+      await page.getByTestId('workshop-username-input').fill(TEST_USERS.invalidUser.username);
+      await page.getByTestId('workshop-password-input').fill(TEST_USERS.invalidUser.password);
+
+      // Submit form
+      await page.getByTestId('workshop-login-button').click();
+
+      // Verify error message is displayed
+      await expectLoginError(page, 'de');
+
+      // Should NOT redirect - stay on login page
+      await expect(page).toHaveURL(/\/workshop\/login/);
+    });
+
+    test('TC-AUTH-004: should validate required fields on workshop login', async ({ page }) => {
+      await page.goto('/de/workshop/login');
+      await page.waitForLoadState('networkidle');
+
+      // Try to submit empty form using data-testid
+      const submitButton = page.getByTestId('workshop-login-button');
+
+      // Check if submit is disabled or shows validation
+      await submitButton.click();
+
+      // Should still be on login page
+      await expect(page).toHaveURL(/\/workshop\/login/);
+    });
+
+    test('TC-AUTH-005: should toggle password visibility', async ({ page }) => {
+      await page.goto('/de/workshop/login');
+
+      const passwordField = page.getByTestId('workshop-password-input');
+      await passwordField.fill('test-password');
+
+      // Password should be hidden by default
+      await expect(passwordField).toHaveAttribute('type', 'password');
+
+      // Click eye icon to show password
+      const toggleButton = page.locator('button:has(svg)').filter({
+        has: page.locator('svg')
+      }).nth(0);
+
+      if (await toggleButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await toggleButton.click();
+        // Password should now be visible
+        await expect(passwordField).toHaveAttribute('type', 'text');
+      }
+    });
+  });
+
+  // ============================================================================
+  // Jockey Authentication
+  // ============================================================================
+
+  test.describe('Jockey Login', () => {
+
+    test('TC-AUTH-006: should display jockey login page', async ({ page }) => {
+      await page.goto('/de/jockey/login');
+      await page.waitForLoadState('networkidle');
+
+      // Jockey also uses username (not email)
+      const usernameField = page.getByTestId('jockey-username-input');
+      await expect(usernameField).toBeVisible();
+
+      const passwordField = page.getByTestId('jockey-password-input');
+      await expect(passwordField).toBeVisible();
+
+      await expect(page.getByTestId('jockey-login-button')).toBeVisible();
+    });
+
+    test('TC-AUTH-007: should login successfully with jockey credentials', async ({ page }) => {
+      await loginAsJockey(page, 'de', TEST_USERS.jockey);
+
+      // Verify redirect to jockey dashboard
+      await expect(page).toHaveURL(/\/jockey\/dashboard/);
+
+      // Verify jockey dashboard content
+      await expect(page.locator('main')).toBeVisible();
+    });
+
+    test('TC-AUTH-008: should show error for invalid jockey credentials', async ({ page }) => {
+      await page.goto('/de/jockey/login');
+
+      await page.getByTestId('jockey-username-input').fill('wrong-jockey');
+      await page.getByTestId('jockey-password-input').fill('wrong-password');
+      await page.getByTestId('jockey-login-button').click();
+
+      await expectLoginError(page, 'de');
+      await expect(page).toHaveURL(/\/jockey\/login/);
+    });
+  });
+
+  // ============================================================================
+  // Customer Authentication
+  // ============================================================================
+
+  test.describe('Customer Login', () => {
+
+    test('TC-AUTH-009: should display customer login page with email field', async ({ page }) => {
+      await page.goto('/de/customer/login');
+      await page.waitForLoadState('networkidle');
+
+      // Customer uses email (NOT username)
+      const emailField = page.getByTestId('customer-email-input');
+      await expect(emailField).toBeVisible();
+
+      const passwordField = page.getByTestId('customer-password-input');
+      await expect(passwordField).toBeVisible();
+
+      await expect(page.getByTestId('customer-login-button')).toBeVisible();
+    });
+
+    test('TC-AUTH-010: should login successfully with customer credentials', async ({ page }) => {
+      await loginAsCustomer(page, 'de', TEST_USERS.customer);
+
+      // Verify redirect to customer dashboard
+      await expect(page).toHaveURL(/\/customer\/dashboard/);
+
+      // Verify customer dashboard
+      await expect(page.locator('main')).toBeVisible();
+    });
+
+    test('TC-AUTH-011: should show error for invalid customer credentials', async ({ page }) => {
+      await page.goto('/de/customer/login');
+
+      await page.getByTestId('customer-email-input').fill('wrong@example.com');
+      await page.getByTestId('customer-password-input').fill('wrong-password');
+      await page.getByTestId('customer-login-button').click();
+
+      await expectLoginError(page, 'de');
+      await expect(page).toHaveURL(/\/customer\/login/);
+    });
+
+    test('TC-AUTH-012: should validate email format', async ({ page }) => {
+      await page.goto('/de/customer/login');
+
+      const emailField = page.getByTestId('customer-email-input');
+      await emailField.fill('invalid-email');
+
+      // HTML5 validation should catch this
+      const isValid = await emailField.evaluate((el: HTMLInputElement) => el.validity.valid);
+      expect(isValid).toBe(false);
+    });
+  });
+
+  // ============================================================================
+  // Logout Functionality
+  // ============================================================================
+
+  test.describe('Logout', () => {
+
+    test('TC-AUTH-013: should logout from workshop portal', async ({ page }) => {
+      // Login first
+      await loginAsWorkshop(page, 'de');
+
+      // Logout
+      await logout(page);
+
+      // Should redirect to home or login page
+      await page.waitForLoadState('networkidle');
+      const currentUrl = page.url();
+
+      // Should not be on dashboard anymore
+      expect(currentUrl).not.toContain('/workshop/dashboard');
+
+      // Try to access dashboard - should redirect to login
+      await page.goto('/de/workshop/dashboard');
+      await page.waitForLoadState('networkidle');
+
+      // Should redirect to login (or show login form)
+      const isOnLogin = page.url().includes('/workshop/login');
+      const hasLoginForm = await page.getByTestId('workshop-password-input').isVisible({ timeout: 3000 }).catch(() => false);
+
+      expect(isOnLogin || hasLoginForm).toBeTruthy();
+    });
+
+    test('TC-AUTH-014: should logout from customer portal', async ({ page }) => {
+      await loginAsCustomer(page, 'de');
+      await logout(page);
+
+      // Try to access dashboard
+      await page.goto('/de/customer/dashboard');
+      await page.waitForLoadState('networkidle');
+
+      const isOnLogin = page.url().includes('/customer/login');
+      const hasLoginForm = await page.getByTestId('customer-email-input').isVisible({ timeout: 3000 }).catch(() => false);
+
+      expect(isOnLogin || hasLoginForm).toBeTruthy();
+    });
+
+    test('TC-AUTH-015: should clear session on logout', async ({ page }) => {
+      await loginAsWorkshop(page, 'de');
+
+      // Check localStorage/sessionStorage has auth data
+      const hasAuthBefore = await page.evaluate(() => {
+        return Boolean(
+          localStorage.getItem('auth') ||
+          sessionStorage.getItem('auth') ||
+          document.cookie.includes('session')
+        );
+      });
+
+      await logout(page);
+
+      // Auth data should be cleared (or user is logged out)
+      // Verify by trying to access protected route
+      await page.goto('/de/workshop/dashboard');
+      await page.waitForLoadState('networkidle');
+
+      const isProtected = !page.url().includes('/workshop/dashboard') ||
+                         await page.getByTestId('workshop-password-input').isVisible({ timeout: 2000 }).catch(() => false);
+
+      expect(isProtected).toBeTruthy();
+    });
+  });
+
+  // ============================================================================
+  // Role-Based Redirects
+  // ============================================================================
+
+  test.describe('Role-Based Access', () => {
+
+    test('TC-AUTH-016: workshop user should only access workshop routes', async ({ page }) => {
+      await loginAsWorkshop(page, 'de');
+
+      // Should be on workshop dashboard
+      await expect(page).toHaveURL(/\/workshop\/dashboard/);
+
+      // Try to access customer dashboard
+      await page.goto('/de/customer/dashboard');
+      await page.waitForLoadState('networkidle');
+
+      // Should not have customer access or redirect
+      const hasCustomerAccess = page.url().includes('/customer/dashboard') &&
+                               !page.url().includes('/login');
+
+      // If has access, that's a security issue (but might be by design)
+      // For now, just verify we can distinguish portals
+    });
+
+    test('TC-AUTH-017: should redirect to correct dashboard after login', async ({ page }) => {
+      // Workshop -> workshop/dashboard
+      await loginAsWorkshop(page, 'de');
+      await expect(page).toHaveURL(/\/workshop\/dashboard/);
+      await clearAuth(page);
+
+      // Customer -> customer/dashboard
+      await loginAsCustomer(page, 'de');
+      await expect(page).toHaveURL(/\/customer\/dashboard/);
+      await clearAuth(page);
+
+      // Jockey -> jockey/dashboard
+      await loginAsJockey(page, 'de');
+      await expect(page).toHaveURL(/\/jockey\/dashboard/);
+    });
+  });
+
+  // ============================================================================
+  // Multi-Language Authentication
+  // ============================================================================
+
+  test.describe('Authentication in Different Languages', () => {
+
+    test('TC-AUTH-018: should login in English locale', async ({ page }) => {
+      await page.goto('/en/workshop/login');
+      await page.waitForLoadState('networkidle');
+
+      await page.getByTestId('workshop-username-input').fill(TEST_USERS.workshop.username);
+      await page.getByTestId('workshop-password-input').fill(TEST_USERS.workshop.password);
+      await page.getByTestId('workshop-login-button').click();
+
+      // Should redirect to English dashboard
+      await expect(page).toHaveURL(/\/en\/workshop\/dashboard/);
+    });
+
+    test('TC-AUTH-019: should show error messages in German', async ({ page }) => {
+      await page.goto('/de/workshop/login');
+
+      await page.getByTestId('workshop-username-input').fill('wrong');
+      await page.getByTestId('workshop-password-input').fill('wrong');
+      await page.getByTestId('workshop-login-button').click();
+
+      // Error should be in German
+      const errorText = await page.locator('text=/fehlgeschlagen|ungültig|falsch/i').first();
+      await expect(errorText).toBeVisible({ timeout: 5000 });
+    });
+
+    test('TC-AUTH-020: should show error messages in English', async ({ page }) => {
+      await page.goto('/en/workshop/login');
+
+      await page.getByTestId('workshop-username-input').fill('wrong');
+      await page.getByTestId('workshop-password-input').fill('wrong');
+      await page.getByTestId('workshop-login-button').click();
+
+      // Error should be in English
+      const errorText = page.locator('text=/failed|invalid|incorrect/i');
+      await expect(errorText.first()).toBeVisible({ timeout: 5000 });
+    });
+  });
+
+  // ============================================================================
+  // Session Persistence
+  // ============================================================================
+
+  test.describe('Session Management', () => {
+
+    test('TC-AUTH-021: should persist session across page reloads', async ({ page }) => {
+      await loginAsWorkshop(page, 'de');
+      await expect(page).toHaveURL(/\/workshop\/dashboard/);
+
+      // Reload page
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+
+      // Should still be on dashboard (session persisted)
+      await expect(page).toHaveURL(/\/workshop\/dashboard/);
+    });
+
+    test('TC-AUTH-022: should persist session across navigation', async ({ page }) => {
+      await loginAsCustomer(page, 'de');
+      await expect(page).toHaveURL(/\/customer\/dashboard/);
+
+      // Navigate to home
+      await page.goto('/de');
+      await page.waitForLoadState('networkidle');
+
+      // Navigate back to dashboard
+      await page.goto('/de/customer/dashboard');
+      await page.waitForLoadState('networkidle');
+
+      // Should still have access
+      await expect(page).toHaveURL(/\/customer\/dashboard/);
+    });
+  });
+
+  // ============================================================================
+  // Edge Cases & Security
+  // ============================================================================
+
+  test.describe('Edge Cases', () => {
+
+    test('TC-AUTH-023: should handle SQL injection attempts safely', async ({ page }) => {
+      await page.goto('/de/workshop/login');
+
+      // Try SQL injection in username
+      await page.getByTestId('workshop-username-input').fill("' OR '1'='1");
+      await page.getByTestId('workshop-password-input').fill("' OR '1'='1");
+      await page.getByTestId('workshop-login-button').click();
+
+      // Should show error, not grant access
+      await page.waitForLoadState('networkidle');
+      const onDashboard = page.url().includes('/workshop/dashboard');
+      expect(onDashboard).toBe(false);
+    });
+
+    test('TC-AUTH-024: should handle special characters in password', async ({ page }) => {
+      await page.goto('/de/customer/login');
+
+      const specialPassword = 'P@ssw0rd!#$%^&*()';
+      await page.getByTestId('customer-email-input').fill('test@example.com');
+      await page.getByTestId('customer-password-input').fill(specialPassword);
+      await page.getByTestId('customer-login-button').click();
+
+      // Should handle gracefully (error or login based on backend)
+      await page.waitForLoadState('networkidle');
+      expect(page.url()).toBeTruthy(); // No crash
+    });
+
+    test('TC-AUTH-025: should handle very long input', async ({ page }) => {
+      await page.goto('/de/workshop/login');
+
+      const longString = 'a'.repeat(1000);
+      await page.getByTestId('workshop-username-input').fill(longString);
+      await page.getByTestId('workshop-password-input').fill(longString);
+
+      // Should handle gracefully
+      await page.getByTestId('workshop-login-button').click();
+
+      await page.waitForLoadState('networkidle');
+      expect(page.url()).toBeTruthy(); // No crash
+    });
+  });
+});

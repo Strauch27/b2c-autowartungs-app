@@ -1,0 +1,952 @@
+{
+  "common": {
+    "search": "Search",
+    "book": "Book",
+    "cancel": "Cancel",
+    "save": "Save",
+    "back": "Back",
+    "next": "Next",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "submit": "Submit",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "navigation": {
+    "home": "Home",
+    "workshops": "Workshops",
+    "booking": "Booking",
+    "myAppointments": "My Appointments",
+    "contact": "Contact"
+  },
+  "workshop": {
+    "search": "Find Workshop",
+    "searchPlaceholder": "Enter postal code or city",
+    "distance": "{distance} km away",
+    "rating": "{rating} out of 5 stars",
+    "reviews": "{count, plural, =0 {No reviews} =1 {1 review} other {# reviews}}",
+    "openingHours": "Opening Hours",
+    "services": "Services",
+    "selectService": "Select Service",
+    "noWorkshopsFound": "No workshops found",
+    "viewDetails": "View Details",
+    "bookAppointment": "Book Appointment",
+    "recentReviews": "Recent Reviews",
+    "ratingStatistics": "Rating Statistics"
+  },
+  "booking": {
+    "selectSlot": "Select Appointment",
+    "noSlotsAvailable": "No appointments available",
+    "joinWaitlist": "Join Waitlist",
+    "contactDetails": "Contact Details",
+    "vehicleDetails": "Vehicle Details",
+    "summary": "Summary",
+    "confirmation": "Confirmation",
+    "totalPrice": "Total Price",
+    "payNow": "Pay Now",
+    "serviceSelection": "Service Selection",
+    "workshopSelection": "Workshop Selection",
+    "timeSelection": "Time Selection",
+    "yourDetails": "Your Details",
+    "reviewBooking": "Review Booking",
+    "priceSidebar": {
+      "guaranteedPrice": "Your guaranteed fixed price",
+      "noSurprises": "No additional costs, no surprises",
+      "breakdown": "Price Breakdown",
+      "service": "Service",
+      "concierge": "Concierge Service",
+      "total": "Total"
+    },
+    "serviceType": {
+      "title": "Choose Your Service Type",
+      "subtitle": "Decide how you want to bring your car to the workshop",
+      "popular": "Popular",
+      "included": "Included",
+      "continue": "Continue",
+      "standard": {
+        "name": "Standard",
+        "description": "You bring your car to the workshop yourself",
+        "feature1": "Already included in fixed price",
+        "feature2": "Direct acceptance at workshop",
+        "feature3": "Flexible appointment"
+      },
+      "conciergeWithout": {
+        "name": "Concierge without Replacement Car",
+        "description": "We pick up your car and bring it back",
+        "feature1": "Pickup at your preferred address",
+        "feature2": "Return after service",
+        "feature3": "No replacement vehicle",
+        "feature4": "Ideal for home office"
+      },
+      "conciergeWith": {
+        "name": "Concierge with Replacement Car",
+        "description": "Including replacement vehicle for the time",
+        "feature1": "Pickup and return",
+        "feature2": "Replacement vehicle included",
+        "feature3": "Full mobility",
+        "feature4": "All-inclusive package"
+      },
+      "overnight": {
+        "name": "Over-Night Service",
+        "description": "Pickup in the evening, return in the morning",
+        "feature1": "Pickup in the evening",
+        "feature2": "Return next morning",
+        "feature3": "Perfect for professionals"
+      }
+    },
+    "concierge": {
+      "title": "Concierge Details",
+      "subtitle": "Provide details for pickup and return",
+      "pickup": {
+        "title": "Pickup",
+        "street": "Street",
+        "houseNumber": "House Number",
+        "zipCode": "Postal Code",
+        "city": "City",
+        "timeSlot": "When should we pick up your car?"
+      },
+      "return": {
+        "title": "Return",
+        "sameAddress": "Same address as pickup",
+        "timeSlot": "When should we return your car?"
+      },
+      "replacementCar": {
+        "title": "Replacement Car Category",
+        "SMALL": {
+          "name": "Small",
+          "example": "e.g. VW Polo"
+        },
+        "MEDIUM": {
+          "name": "Medium",
+          "example": "e.g. VW Golf"
+        },
+        "LARGE": {
+          "name": "Large",
+          "example": "e.g. VW Passat"
+        }
+      },
+      "driverNotes": {
+        "label": "Notes for our driver (optional)",
+        "placeholder": "e.g. Parking behind the house, gate code: 1234"
+      },
+      "infoBox": {
+        "title": "Important Information",
+        "description": "Our driver will contact you by phone about 30 minutes before pickup. Please ensure your vehicle is accessible."
+      },
+      "included": "Included",
+      "continue": "Continue to Summary"
+    },
+    "express": {
+      "step": "Step",
+      "discount": {
+        "badge": "First booking? 20% discount!",
+        "subtitle": "One-time welcome discount for new customers"
+      },
+      "step1": {
+        "title": "Vehicle Data & Service",
+        "subtitle": "Your workshop appointment with fixed price guarantee in just 3 steps",
+        "serviceQuestion": "Which service do you need?",
+        "makeQuestion": "Select your vehicle make",
+        "modelQuestion": "Select your model",
+        "yearQuestion": "Year of manufacture",
+        "mileageQuestion": "Mileage (exact)",
+        "mileagePlaceholder": "e.g. 75000",
+        "mileageHelp": "Enter the current mileage for precise price calculation",
+        "olderVehicle": "Older (before 2015)",
+        "fixedPriceTitle": "Your guaranteed fixed price",
+        "originalPrice": "Regular price",
+        "discountedPrice": "With first booking discount",
+        "guaranteeText": "No hidden costs • Guaranteed fixed price • 100% Transparent",
+        "savingsText": "You save €{amount} on your first booking!",
+        "progressHint": {
+          "selectMake": "Select your vehicle make to continue",
+          "selectModel": "Select your model to continue",
+          "selectYear": "Select the year to continue",
+          "selectMileage": "Enter the mileage to see your fixed price"
+        },
+        "continue": "Continue"
+      },
+      "step2": {
+        "title": "Where and when?",
+        "zipCode": "Your postal code",
+        "timeSlot": "Choose your preferred time",
+        "back": "Back",
+        "continue": "Continue to payment",
+        "workshopName": "Workshop",
+        "distance": "{distance} km away",
+        "rating": "{rating}★ ({count} reviews)"
+      },
+      "step3": {
+        "title": "Payment",
+        "summary": "Your booking",
+        "total": "Total",
+        "stripeInfo": "In the next step, you will securely enter your contact details and payment information via Stripe.",
+        "payNow": "Pay now",
+        "discount": "First booking discount (20%)"
+      }
+    }
+  },
+  "vehicleSelection": {
+    "title": "Select Vehicle",
+    "description": "Select your vehicle in 3 simple steps. The price will be calculated automatically.",
+    "step1": "1. Select Make",
+    "step2": "2. Select Model",
+    "step3": "3. Year",
+    "selectMake": "Select make...",
+    "selectModel": "Select model...",
+    "selectYear": "Select year...",
+    "selectMakeFirst": "Select make first",
+    "licensePlate": "License Plate",
+    "licensePlatePlaceholder": "B-AB 1234",
+    "licensePlateHelp": "License plate is needed for your appointment confirmation",
+    "optional": "(optional)",
+    "required": "required",
+    "yourPrice": "Your fixed price for",
+    "vehicleClass": "Vehicle Class",
+    "calculating": "Calculating...",
+    "includingVat": "incl. VAT",
+    "continueToWorkshop": "Continue to Workshop Selection",
+    "backToService": "Back to Service Selection",
+    "guaranteedPrice": "Guaranteed Fixed Price",
+    "noHiddenCosts": "No Hidden Costs",
+    "instantCalculation": "Instant Calculation",
+    "selectMakeAndModel": "Please select make and model",
+    "yearRequiredForService": "Year is required for this service",
+    "pricingError": "Could not calculate price",
+    "selectYearToContinue": "Please select the year to continue."
+  },
+  "vehicleClass": {
+    "KLEINWAGEN": "Small Car",
+    "KOMPAKTKLASSE": "Compact Class",
+    "MITTELKLASSE": "Mid-Size",
+    "OBERKLASSE": "Luxury Class",
+    "SUV_VAN": "SUV / Van"
+  },
+  "appointment": {
+    "upcoming": "Upcoming Appointments",
+    "past": "Past Appointments",
+    "current": "Current Appointment",
+    "history": "History",
+    "status": {
+      "PENDING": "Pending",
+      "CONFIRMED": "Confirmed",
+      "IN_PROGRESS": "In Progress",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled",
+      "NO_SHOW": "No Show"
+    },
+    "reschedule": "Reschedule Appointment",
+    "cancel": "Cancel Appointment",
+    "details": "Appointment Details",
+    "bookingNumber": "Booking Number",
+    "createdOn": "Created on",
+    "cancelledOn": "Cancelled on",
+    "duration": "Duration",
+    "downloadCalendar": "Add to Calendar (.ics)",
+    "newBooking": "Book New Appointment"
+  },
+  "waitlist": {
+    "title": "Join Waitlist",
+    "description": "Join the waitlist and we'll notify you as soon as an appointment becomes available.",
+    "email": "Email Address",
+    "preferredTime": "Preferred Time",
+    "preferredDays": "Preferred Days",
+    "timeSlots": {
+      "morning": "Morning (8am-12pm)",
+      "midday": "Midday (12pm-2pm)",
+      "afternoon": "Afternoon (2pm-6pm)",
+      "flexible": "Flexible"
+    },
+    "weekdays": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    },
+    "submitButton": "Join Waitlist",
+    "successTitle": "Successfully Registered",
+    "successMessage": "You have been successfully added to the waitlist. We will notify you by email as soon as a suitable appointment is available.",
+    "errorMessage": "Error adding to waitlist. Please try again later."
+  },
+  "validation": {
+    "required": "This field is required",
+    "email": "Please enter a valid email address",
+    "phone": "Please enter a valid phone number",
+    "licensePlate": "Please enter a valid license plate",
+    "minLength": "Minimum {min} characters required",
+    "maxLength": "Maximum {max} characters allowed"
+  },
+  "dates": {
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
+    "january": "January",
+    "february": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December"
+  },
+  "feedback": {
+    "title": "Leave a Review",
+    "rating": "Rating",
+    "comment": "Comment",
+    "submit": "Submit Review",
+    "thankYou": "Thank you for your review!",
+    "ratingRequired": "Please provide a rating"
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "logout": "Logout",
+    "lastBooking": "Last Booking",
+    "rebook": "Book Again",
+    "rebookDescription": "Rebook the same service quickly and easily",
+    "bookingHistory": "Booking History",
+    "noBookings": "No bookings found",
+    "noBookingsDescription": "You haven't booked any appointments yet. Book your first appointment now!",
+    "vehicles": "My Vehicles",
+    "noVehicles": "No vehicles yet",
+    "noVehiclesDescription": "Add your vehicle for faster bookings",
+    "addVehicle": "Add Vehicle",
+    "manageVehicles": "Manage Vehicles",
+    "vehicleCount": "1 Vehicle",
+    "vehicleCountPlural": "{count} Vehicles",
+    "newVehicle": "New Appointment",
+    "viewAll": "View All",
+    "details": "View Details",
+    "bookAgain": "Book Again",
+    "quickActions": "Quick Actions",
+    "editProfile": "Edit Profile",
+    "myAppointments": "View Bookings",
+    "vehicle": {
+      "title": "My Vehicles",
+      "edit": "Edit Vehicle",
+      "delete": "Delete Vehicle",
+      "add": "Add Vehicle",
+      "licensePlate": "License Plate",
+      "make": "Make",
+      "model": "Model",
+      "year": "Year",
+      "vin": "VIN",
+      "fuelType": "Fuel Type",
+      "color": "Color",
+      "mileage": "Mileage",
+      "default": "Default",
+      "deleteConfirm": "Delete Vehicle?",
+      "deleteConfirmDescription": "This action cannot be undone. The vehicle will be permanently removed from your account.",
+      "deleteSuccess": "Vehicle deleted",
+      "addSuccess": "Vehicle added",
+      "updateSuccess": "Vehicle updated",
+      "errorLoading": "Could not load vehicles",
+      "errorDeleting": "Error deleting vehicle"
+    }
+  },
+  "error": {
+    "pageNotFound": "Page not found",
+    "bookingNotFound": "Appointment not found or invalid link",
+    "somethingWentWrong": "Something went wrong",
+    "tryAgain": "Please try again",
+    "backToHome": "Back to Home"
+  },
+  "landing": {
+    "hero": {
+      "title": "Book Workshop Appointment in 2 Minutes",
+      "subtitle": "Find certified workshops nearby. Transparent fixed prices, fast appointment booking and instant confirmation. Book online now!",
+      "cta": "Calculate Fixed Price Now",
+      "searchPlaceholder": "Or search directly for workshops nearby",
+      "features": {
+        "fixedPrice": "Fixed Price Guarantee",
+        "certified": "Certified Workshops",
+        "instant": "Instant Confirmation"
+      }
+    },
+    "fixedPrice": {
+      "badge": "100% Fixed Price Guarantee - No Hidden Costs",
+      "whyRonya": {
+        "headline": "Why Ronya?",
+        "subheadline": "Pay only what you book - like Amazon",
+        "transparent": {
+          "title": "Transparent Fixed Prices",
+          "description": "No fine print, no surprises"
+        },
+        "noHidden": {
+          "title": "No Hidden Costs",
+          "description": "The displayed price is the final price"
+        },
+        "digitalApproval": {
+          "title": "Digital Approval",
+          "description": "Additional work only with your approval"
+        },
+        "moneyBack": {
+          "title": "Money-Back Guarantee",
+          "description": "100% satisfied or money back"
+        },
+        "liveTracking": {
+          "title": "Live Tracking of Your Pickup",
+          "description": "Track in real-time where our driver is. With GPS tracking and ETA display, you always know exactly when your vehicle will be picked up."
+        }
+      }
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "step1": {
+        "title": "Enter Postal Code",
+        "description": "Find workshops near you"
+      },
+      "step2": {
+        "title": "Select Service",
+        "description": "Choose your desired service"
+      },
+      "step3": {
+        "title": "Book Appointment",
+        "description": "Select date and time"
+      }
+    },
+    "usp": {
+      "title": "Your Benefits",
+      "subtitle": "With Ronya, your workshop visit becomes easier than ever",
+      "transparentPricing": {
+        "title": "Transparent Fixed Prices",
+        "description": "Guaranteed fixed prices without hidden costs. You know exactly what you'll pay in advance."
+      },
+      "fastBooking": {
+        "title": "Fast Booking",
+        "description": "Get your desired appointment online in just 2 minutes. No phone waiting time."
+      },
+      "securePayment": {
+        "title": "Secure Payment",
+        "description": "Pay conveniently and securely online. Encrypted data transmission."
+      },
+      "certifiedWorkshops": {
+        "title": "Certified Workshops",
+        "description": "Only certified partner workshops with high quality standards."
+      }
+    },
+    "pricing": {
+      "title": "Transparent Prices",
+      "subtitle": "Fixed prices without surprises",
+      "inspection": {
+        "title": "Inspection",
+        "price": "from €149",
+        "description": "Complete vehicle inspection"
+      },
+      "oilChange": {
+        "title": "Oil Change",
+        "price": "from €79",
+        "description": "Incl. oil and filter"
+      },
+      "tireChange": {
+        "title": "Tire Change",
+        "price": "from €39",
+        "description": "Mounting and balancing"
+      },
+      "tuv": {
+        "title": "TÜV (MOT)",
+        "price": "from €99",
+        "description": "Main inspection"
+      },
+      "brakePadsFront": {
+        "title": "Brake Pads Front",
+        "price": "from €89",
+        "description": "Incl. installation and brake test"
+      },
+      "brakePadsRear": {
+        "title": "Brake Pads Rear",
+        "price": "from €89",
+        "description": "Incl. installation and brake test"
+      },
+      "brakeDiscsFront": {
+        "title": "Brake Discs Front",
+        "price": "from €149",
+        "description": "Incl. installation and brake test"
+      },
+      "brakeDiscsRear": {
+        "title": "Brake Discs Rear",
+        "price": "from €149",
+        "description": "Incl. installation and brake test"
+      },
+      "brakePackageFull": {
+        "title": "Complete Brake Package",
+        "price": "from €405",
+        "description": "Pads + Discs front & rear",
+        "badge": "15% savings"
+      }
+    },
+    "trust": {
+      "title": "Trust in Quality",
+      "workshops": "500+",
+      "workshopsLabel": "Workshops nationwide",
+      "customers": "10,000+",
+      "customersLabel": "Satisfied customers",
+      "rating": "4.8/5",
+      "ratingLabel": "Average rating"
+    },
+    "trustBadge": {
+      "customers": "10,000+ satisfied customers",
+      "rating": "4.8/5 star rating"
+    },
+    "nav": {
+      "bookAppointment": "Book Appointment",
+      "workshops": "Workshops",
+      "prices": "Prices",
+      "faq": "FAQ",
+      "login": "Sign In",
+      "register": "Register",
+      "logout": "Sign Out",
+      "myAccount": "My Account",
+      "dashboard": "Dashboard",
+      "navigation": "Navigation"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "questions": {
+        "howItWorks": {
+          "question": "How does the booking work?",
+          "answer": "Simply enter your postal code, select a workshop and book an appointment online. You will receive immediate confirmation via email."
+        },
+        "fixedPrices": {
+          "question": "Are the prices binding?",
+          "answer": "Yes, all displayed prices are fixed prices. There are no hidden costs."
+        },
+        "cancellation": {
+          "question": "Can I cancel my appointment?",
+          "answer": "Yes, you can cancel free of charge up to 24 hours before the appointment. For short-notice cancellations, our cancellation terms apply."
+        },
+        "payment": {
+          "question": "How do I pay?",
+          "answer": "You can pay conveniently online by credit card or PayPal. Payment is made after completion of the work."
+        }
+      }
+    }
+  },
+  "footer": {
+    "tagline": "The easiest way to book workshop appointments.",
+    "services": {
+      "title": "Services",
+      "findWorkshop": "Find Workshop",
+      "ourServices": "Our Services",
+      "prices": "Prices"
+    },
+    "legal": {
+      "title": "Legal",
+      "imprint": "Imprint",
+      "privacy": "Privacy Policy",
+      "terms": "Terms & Conditions"
+    },
+    "contact": {
+      "title": "Contact",
+      "email": "support@ronya.de",
+      "hours": "Mon-Fri 9am-6pm",
+      "help": "Help"
+    },
+    "forWorkshops": "For Workshops",
+    "admin": "Admin",
+    "copyright": "© {year} Ronya B2C. All rights reserved."
+  },
+  "tracking": {
+    "title": "Track Your Vehicle",
+    "subtitle": "Track your vehicle in real-time",
+    "bookingNumber": "Booking Number",
+    "currentStatus": "Current Status",
+    "estimatedArrival": "Estimated Arrival",
+    "distanceAway": "{distance} km away",
+    "liveMap": "Live Map",
+    "mapNotAvailable": "Map requires Google Maps API",
+    "yourDriver": "Your Driver",
+    "callDriver": "Call Driver",
+    "lastUpdate": "Last Update",
+    "tripTimeline": "Trip Timeline",
+    "contactWorkshop": "Questions? Contact {workshop} at {phone}",
+    "loadingTracking": "Loading tracking information...",
+    "trackingNotFound": "Tracking information not found",
+    "invalidLink": "Invalid tracking link",
+    "status": {
+      "PENDING": "Pending",
+      "EN_ROUTE_TO_PICKUP": "En route to pickup",
+      "ARRIVED_AT_CUSTOMER": "Arrived at customer",
+      "VEHICLE_PICKED_UP": "Vehicle picked up",
+      "EN_ROUTE_TO_WORKSHOP": "En route to workshop",
+      "AT_WORKSHOP": "At workshop",
+      "EN_ROUTE_TO_RETURN": "En route to return",
+      "ARRIVED_FOR_RETURN": "Arrived for return",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    },
+    "timeline": {
+      "scheduledPickup": "Scheduled Pickup",
+      "arrivedAtLocation": "Arrived at Your Location",
+      "vehiclePickedUp": "Vehicle Picked Up",
+      "arrivedAtWorkshop": "Arrived at Workshop",
+      "scheduledReturn": "Scheduled Return",
+      "vehicleReturned": "Vehicle Returned"
+    }
+  },
+  "jockey": {
+    "title": "Jockey GPS Tracking",
+    "subtitle": "Track your position and manage trip status",
+    "enterTripId": "Enter Trip ID",
+    "enterTripIdDescription": "Enter your assigned Trip ID to start tracking",
+    "tripIdPlaceholder": "Trip ID",
+    "loadTrip": "Load Trip",
+    "tripDetails": "Trip Details",
+    "customer": "Customer",
+    "pickupAddress": "Pickup Address",
+    "workshop": "Workshop",
+    "gpsTracking": "GPS Tracking",
+    "startGpsTracking": "Start GPS Tracking",
+    "stopGpsTracking": "Stop GPS Tracking",
+    "currentPosition": "Current Position",
+    "lat": "Latitude",
+    "lng": "Longitude",
+    "lastUpdate": "Last Update",
+    "updateStatus": "Update Status",
+    "noStatusUpdates": "No status updates available",
+    "errors": {
+      "enterTripId": "Please enter a Trip ID",
+      "geolocationNotSupported": "Geolocation is not supported by your browser",
+      "gpsError": "GPS error: {message}",
+      "failedToLoad": "Failed to load trip",
+      "failedToUpdateStatus": "Failed to update status"
+    }
+  },
+  "header": {
+    "home": "Home",
+    "howItWorks": "How It Works",
+    "faq": "FAQ",
+    "login": "Login",
+    "bookNow": "Book Now"
+  },
+  "hero": {
+    "badge": "Fixed Price Guarantee",
+    "title": "Premium Vehicle Maintenance with",
+    "titleHighlight": "Fixed Price Guarantee",
+    "subtitle": "We pick up your car & bring it back – it couldn't be more convenient.",
+    "cta": "Get Your Quote",
+    "login": "Login",
+    "rating": "from",
+    "reviews": "reviews"
+  },
+  "portals": {
+    "title": "Choose Your Portal",
+    "subtitle": "Whether customer, driver, or workshop – we have the right portal for you.",
+    "customer": {
+      "title": "Customers",
+      "description": "Book your next service conveniently online. Transparent prices, easy scheduling.",
+      "button": "Go to Portal"
+    },
+    "jockey": {
+      "title": "Drivers",
+      "description": "Manage your assignments, document handovers, and navigate efficiently.",
+      "button": "Go to Portal"
+    },
+    "workshop": {
+      "title": "Workshop",
+      "description": "Process orders, create quotes, and communicate with customers.",
+      "button": "Go to Portal"
+    }
+  },
+  "values": {
+    "title": "Why AutoConcierge?",
+    "subtitle": "We make car maintenance easier than ever before.",
+    "items": {
+      "price": {
+        "title": "Transparent Fixed Prices",
+        "description": "No hidden costs. You know exactly what you'll pay upfront."
+      },
+      "certified": {
+        "title": "Certified Workshops",
+        "description": "Only verified partners with the highest quality standards."
+      },
+      "pickup": {
+        "title": "Pickup & Delivery Service",
+        "description": "We pick up your car and bring it back – included."
+      },
+      "instant": {
+        "title": "Instant Confirmation",
+        "description": "Book online and receive your appointment confirmation immediately."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "Stress-free car maintenance in just three steps.",
+    "steps": {
+      "vehicle": {
+        "title": "Enter Vehicle",
+        "description": "Enter your car's make, model, and year."
+      },
+      "service": {
+        "title": "Choose Service",
+        "description": "Select the service you need."
+      },
+      "booking": {
+        "title": "Book Appointment",
+        "description": "Choose date, time, and pickup address."
+      }
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Find answers to the most common questions here.",
+    "items": [
+      {
+        "question": "How does the fixed price work?",
+        "answer": "Our fixed price system guarantees you transparent costs. After entering your vehicle and desired service, you'll immediately receive a binding final price – no hidden fees or surprises."
+      },
+      {
+        "question": "What services do you offer?",
+        "answer": "We offer a wide range of maintenance services: oil changes, inspections, brake service, AC service, tire changes, and much more. All services are performed by certified partner workshops."
+      },
+      {
+        "question": "How does the pickup and delivery service work?",
+        "answer": "One of our trained drivers picks up your vehicle at the agreed time, takes it to the workshop, and delivers it back to you after completion. The service is included in all our packages."
+      },
+      {
+        "question": "What payment methods are accepted?",
+        "answer": "You can conveniently pay by credit card, PayPal, or SEPA direct debit. Payment is processed securely through our encrypted platform."
+      },
+      {
+        "question": "Can I cancel my booking?",
+        "answer": "Yes, you can cancel your booking free of charge up to 24 hours before the scheduled appointment. For shorter-notice cancellations, processing fees may apply."
+      },
+      {
+        "question": "Are your workshops certified?",
+        "answer": "Absolutely. All our partner workshops go through a rigorous quality process and are certified by independent bodies. We only work with the best workshops."
+      }
+    ]
+  },
+  "lovableFooter": {
+    "tagline": "Premium vehicle maintenance with fixed price guarantee and concierge service.",
+    "services": "Services",
+    "oilChange": "Oil Change",
+    "inspection": "Inspection",
+    "brakeService": "Brake Service",
+    "acService": "AC Service",
+    "company": "Company",
+    "about": "About Us",
+    "careers": "Careers",
+    "partner": "Become a Partner",
+    "legal": "Legal",
+    "imprint": "Imprint",
+    "privacy": "Privacy Policy",
+    "terms": "Terms & Conditions",
+    "rights": "All rights reserved."
+  },
+  "lovableBooking": {
+    "conciergeBanner": {
+      "title": "Concierge Service Included",
+      "subtitle": "We pick up your vehicle and bring it back to you after service."
+    },
+    "steps": {
+      "vehicle": "Vehicle",
+      "service": "Service",
+      "pickup": "Pickup",
+      "confirm": "Confirm"
+    },
+    "step1": {
+      "title": "Which vehicle would you like to book a service for?",
+      "brand": "Brand",
+      "selectBrand": "Select brand",
+      "model": "Model",
+      "selectModel": "Select model",
+      "year": "Year",
+      "selectYear": "Select year",
+      "mileage": "Mileage",
+      "mileagePlaceholder": "e.g. 45000",
+      "saveVehicle": "Save vehicle for future bookings",
+      "next": "Continue to Service Selection"
+    },
+    "step2": {
+      "title": "Which service do you need?",
+      "services": {
+        "oil": {
+          "name": "Oil Change",
+          "description": "Change engine oil and filter"
+        },
+        "inspection": {
+          "name": "Inspection",
+          "description": "Complete vehicle check"
+        },
+        "brakes": {
+          "name": "Brake Service",
+          "description": "Check brake pads and discs"
+        },
+        "ac": {
+          "name": "AC Service",
+          "description": "Maintain and refill AC system"
+        }
+      },
+      "from": "from",
+      "next": "Continue to Schedule"
+    },
+    "step3": {
+      "title": "When should we pick up and return your vehicle?",
+      "concierge": {
+        "title": "How Our Concierge Service Works",
+        "step1": "We pick up your vehicle at your preferred time",
+        "step2": "The service is performed at our partner workshop",
+        "step3": "We bring your vehicle back – fully serviced"
+      },
+      "pickup": {
+        "title": "Pickup",
+        "subtitle": "When should we pick up your vehicle?",
+        "date": "Pickup Date",
+        "time": "Pickup Time"
+      },
+      "return": {
+        "title": "Return",
+        "subtitle": "When should we return your vehicle?",
+        "date": "Return Date",
+        "time": "Return Time",
+        "note": "Return must be at least one day after pickup."
+      },
+      "address": {
+        "title": "Pickup & Return Address",
+        "street": "Street & Number",
+        "streetPlaceholder": "e.g. 123 Main Street",
+        "zip": "ZIP Code",
+        "zipPlaceholder": "e.g. 10115",
+        "city": "City",
+        "cityPlaceholder": "e.g. Berlin"
+      },
+      "next": "Continue to Summary"
+    },
+    "step4": {
+      "title": "Your Booking Summary",
+      "vehicle": "Vehicle",
+      "service": "Service",
+      "timeline": {
+        "title": "Your Concierge Schedule",
+        "pickup": "Pickup",
+        "return": "Return",
+        "address": "Address"
+      },
+      "conciergeIncluded": "Concierge Service Included",
+      "conciergeDescription": "Pickup & return of your vehicle",
+      "total": "Total Price",
+      "contact": {
+        "title": "Your Contact Information",
+        "email": "Email Address",
+        "emailPlaceholder": "john@example.com",
+        "firstName": "First Name",
+        "firstNamePlaceholder": "John",
+        "lastName": "Last Name",
+        "lastNamePlaceholder": "Doe",
+        "phone": "Phone Number",
+        "phonePlaceholder": "+49 123 456789",
+        "note": "We will create an account for you and send your login credentials via email."
+      },
+      "terms": "I accept the Terms & Conditions and Privacy Policy",
+      "submit": "Book Now"
+    }
+  },
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to continue.",
+    "email": "Email Address",
+    "emailPlaceholder": "your@email.com",
+    "password": "Password",
+    "passwordPlaceholder": "Your password",
+    "forgot": "Forgot password?",
+    "submit": "Sign In",
+    "noAccount": "Don't have an account?",
+    "register": "Register now",
+    "portalTitles": {
+      "customer": "Customer Portal",
+      "jockey": "Driver Portal",
+      "workshop": "Workshop Portal"
+    },
+    "portalDescriptions": {
+      "customer": "Book your next service conveniently online and keep track of all your vehicles.",
+      "jockey": "Manage your assignments, document handovers, and navigate efficiently to your customers.",
+      "workshop": "Process orders, create quotes, and communicate with customers."
+    }
+  },
+  "customerDashboard": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "newBooking": "New Booking",
+      "myBookings": "My Bookings",
+      "vehicles": "Vehicles",
+      "profile": "Profile"
+    },
+    "stats": {
+      "activeBookings": "Active Bookings",
+      "savedVehicles": "Saved Vehicles",
+      "lastBooking": "Last Booking"
+    },
+    "recentBookings": "Recent Bookings",
+    "noBookings": "No active bookings",
+    "viewDetails": "View Details",
+    "status": {
+      "planned": "Planned",
+      "inProgress": "In Progress",
+      "completed": "Completed"
+    }
+  },
+  "jockeyDashboard": {
+    "today": "Today",
+    "stats": {
+      "todayTrips": "Today's Trips",
+      "completed": "Completed",
+      "pending": "Pending"
+    },
+    "assignments": "Today's Assignments",
+    "noAssignments": "No assignments for today",
+    "status": {
+      "upcoming": "Upcoming",
+      "onRoute": "On Route",
+      "completed": "Completed"
+    },
+    "pickup": "Pickup",
+    "navigate": "Start Navigation",
+    "startPickup": "Start Pickup",
+    "documentHandover": "Document Handover",
+    "complete": "Complete"
+  },
+  "workshopDashboard": {
+    "stats": {
+      "ordersToday": "Orders Today",
+      "inProgress": "In Progress",
+      "completed": "Completed"
+    },
+    "orders": "Current Orders",
+    "noOrders": "No orders available",
+    "table": {
+      "orderId": "Order ID",
+      "customer": "Customer",
+      "vehicle": "Vehicle",
+      "service": "Service",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "received": "Received",
+      "inProgress": "In Progress",
+      "waitingApproval": "Waiting for Approval",
+      "completed": "Completed"
+    },
+    "viewDetails": "Details",
+    "createExtension": "Extension"
+  }
+}

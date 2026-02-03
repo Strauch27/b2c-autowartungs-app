@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buchungsbestätigung</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      background-color: #ffffff;
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      text-align: center;
+      border-bottom: 3px solid #007bff;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      color: #007bff;
+      margin: 0;
+      font-size: 28px;
+    }
+    .booking-number {
+      background-color: #f0f8ff;
+      border-left: 4px solid #007bff;
+      padding: 15px;
+      margin: 20px 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .info-section {
+      margin: 25px 0;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border-radius: 6px;
+    }
+    .info-section h2 {
+      color: #007bff;
+      margin-top: 0;
+      font-size: 20px;
+      border-bottom: 2px solid #e0e0e0;
+      padding-bottom: 10px;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    .info-label {
+      font-weight: 600;
+      color: #555;
+    }
+    .info-value {
+      color: #333;
+      text-align: right;
+    }
+    .price-total {
+      background-color: #e8f5e9;
+      border: 2px solid #4caf50;
+      padding: 20px;
+      margin: 25px 0;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .price-total .label {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 5px;
+    }
+    .price-total .amount {
+      font-size: 32px;
+      font-weight: 700;
+      color: #2e7d32;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    .status-badge.confirmed {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .next-steps {
+      background-color: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 20px;
+      margin: 25px 0;
+      border-radius: 4px;
+    }
+    .next-steps h3 {
+      margin-top: 0;
+      color: #856404;
+    }
+    .next-steps ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+    .next-steps li {
+      margin: 8px 0;
+    }
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 2px solid #e0e0e0;
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+    }
+    .footer a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    .footer a:hover {
+      text-decoration: underline;
+    }
+    .support-box {
+      background-color: #e3f2fd;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 6px;
+      text-align: center;
+    }
+    @media only screen and (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      .container {
+        padding: 20px;
+      }
+      .info-row {
+        flex-direction: column;
+      }
+      .info-value {
+        text-align: left;
+        margin-top: 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Buchungsbestätigung</h1>
+      <p style="margin: 10px 0 0 0; color: #666;">Vielen Dank für Ihre Buchung!</p>
+    </div>
+
+    <p>Hallo {{customerName}},</p>
+
+    <p>Ihre Buchung wurde erfolgreich erstellt. Hier sind die Details:</p>
+
+    <div class="booking-number">
+      Buchungsnummer: <strong>{{bookingNumber}}</strong>
+    </div>
+
+    <div class="info-section">
+      <h2>Fahrzeugdaten</h2>
+      <div class="info-row">
+        <span class="info-label">Fahrzeug:</span>
+        <span class="info-value">{{vehicle.brand}} {{vehicle.model}}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Baujahr:</span>
+        <span class="info-value">{{vehicle.year}}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Kilometerstand:</span>
+        <span class="info-value">{{vehicle.mileage}} km</span>
+      </div>
+      {{#if vehicle.licensePlate}}
+      <div class="info-row">
+        <span class="info-label">Kennzeichen:</span>
+        <span class="info-value">{{vehicle.licensePlate}}</span>
+      </div>
+      {{/if}}
+    </div>
+
+    <div class="info-section">
+      <h2>Service-Details</h2>
+      <div class="info-row">
+        <span class="info-label">Service-Typ:</span>
+        <span class="info-value">{{serviceTypeLabel}}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Status:</span>
+        <span class="info-value">
+          <span class="status-badge {{#if isPaid}}confirmed{{/if}}">
+            {{statusLabel}}
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h2>Abholung</h2>
+      <div class="info-row">
+        <span class="info-label">Datum:</span>
+        <span class="info-value">{{pickupDate}}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Zeitfenster:</span>
+        <span class="info-value">{{pickupTimeSlot}}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Adresse:</span>
+        <span class="info-value">
+          {{pickupAddress}}<br>
+          {{pickupPostalCode}} {{pickupCity}}
+        </span>
+      </div>
+    </div>
+
+    <div class="price-total">
+      <div class="label">Gesamtpreis</div>
+      <div class="amount">{{totalPrice}} €</div>
+      <div style="font-size: 14px; color: #666; margin-top: 5px;">inkl. MwSt.</div>
+    </div>
+
+    {{#unless isPaid}}
+    <div class="next-steps">
+      <h3>Nächste Schritte</h3>
+      <ul>
+        <li>Bitte schließen Sie die Zahlung ab, um Ihre Buchung zu bestätigen</li>
+        <li>Nach erfolgreicher Zahlung erhalten Sie eine weitere E-Mail mit allen Details</li>
+        <li>Ein Jockey wird Ihnen zugewiesen und kontaktiert Sie vor dem Termin</li>
+      </ul>
+    </div>
+    {{/unless}}
+
+    {{#if isPaid}}
+    <div class="next-steps">
+      <h3>Was passiert jetzt?</h3>
+      <ul>
+        <li>Ein Jockey wird Ihnen in Kürze zugewiesen</li>
+        <li>Sie werden vor dem Termin kontaktiert, um die Abholung zu bestätigen</li>
+        <li>Ihr Fahrzeug wird zur Werkstatt gebracht und nach dem Service wieder zurückgebracht</li>
+        <li>Sie erhalten Updates zum Status Ihrer Buchung</li>
+      </ul>
+    </div>
+    {{/if}}
+
+    {{#if customerNotes}}
+    <div class="info-section">
+      <h2>Ihre Anmerkungen</h2>
+      <p style="margin: 0; font-style: italic;">{{customerNotes}}</p>
+    </div>
+    {{/if}}
+
+    <div class="support-box">
+      <strong>Fragen zu Ihrer Buchung?</strong><br>
+      Kontaktieren Sie uns jederzeit unter:<br>
+      <a href="mailto:support@b2c-autowartung.de">support@b2c-autowartung.de</a>
+    </div>
+
+    <div class="footer">
+      <p><strong>B2C Autowartung</strong></p>
+      <p>Ihr zuverlässiger Partner für Fahrzeugwartung</p>
+      <p style="margin-top: 20px; font-size: 12px; color: #999;">
+        Diese E-Mail wurde an {{email}} gesendet.<br>
+        Sie erhalten diese E-Mail, weil Sie eine Buchung bei B2C Autowartung vorgenommen haben.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

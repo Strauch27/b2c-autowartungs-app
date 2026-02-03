@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: b2c-backend
+    environment:
+      NODE_ENV: development
+      # Use host PostgreSQL instead of Docker PostgreSQL
+      DATABASE_URL: postgresql://b2c_user:b2c_password@host.docker.internal:5432/autowartungs_app
+      JWT_SECRET: dev-jwt-secret-change-in-production-min-32-characters
+      JWT_EXPIRES_IN: 7d
+      MAGIC_LINK_SECRET: dev-magic-link-secret-change-in-production-min-32-chars
+      FRONTEND_URL: http://localhost:3000
+      BACKEND_URL: http://localhost:5001
+      PORT: 5000
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - ./backend/uploads:/app/uploads
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed && npm run dev"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: b2c-frontend
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:5001
+      NEXT_PUBLIC_FRONTEND_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    command: npm run dev

@@ -1,0 +1,588 @@
+{
+  "info": {
+    "name": "B2C Autowartung - Booking API",
+    "description": "Complete collection for testing the Booking API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "booking_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "vehicle_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "extension_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('jwt_token', jsonData.data.token);",
+                  "    console.log('JWT Token saved:', jsonData.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@test.com\",\n  \"magicLinkToken\": \"your_magic_link_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/verify-magic-link",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "verify-magic-link"]
+            },
+            "description": "Authenticate and get JWT token"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Create Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('booking_id', jsonData.data.id);",
+                  "    console.log('Booking ID saved:', jsonData.data.id);",
+                  "    ",
+                  "    pm.test('Status is PENDING_PAYMENT', function () {",
+                  "        pm.expect(jsonData.data.status).to.eql('PENDING_PAYMENT');",
+                  "    });",
+                  "    ",
+                  "    pm.test('Payment intent created', function () {",
+                  "        pm.expect(jsonData.data.paymentIntent).to.exist;",
+                  "        pm.expect(jsonData.data.paymentIntent.clientSecret).to.exist;",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"{{vehicle_id}}\",\n  \"serviceType\": \"INSPECTION\",\n  \"pickupDate\": \"2026-03-15T00:00:00Z\",\n  \"pickupTimeSlot\": \"09:00-11:00\",\n  \"pickupAddress\": \"Hauptstraße 1\",\n  \"pickupCity\": \"Berlin\",\n  \"pickupPostalCode\": \"10115\",\n  \"customerNotes\": \"Bitte vorsichtig fahren\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bookings",
+              "host": ["{{base_url}}"],
+              "path": ["bookings"]
+            },
+            "description": "Creates a new booking for a customer"
+          }
+        },
+        {
+          "name": "Get All Bookings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has pagination', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.pagination).to.exist;",
+                  "    pm.expect(jsonData.pagination.page).to.be.a('number');",
+                  "    pm.expect(jsonData.pagination.total).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/bookings?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["bookings"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Retrieves all bookings for the authenticated customer"
+          }
+        },
+        {
+          "name": "Get Bookings by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/bookings?status=CONFIRMED",
+              "host": ["{{base_url}}"],
+              "path": ["bookings"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "CONFIRMED"
+                }
+              ]
+            },
+            "description": "Filter bookings by status"
+          }
+        },
+        {
+          "name": "Get Single Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Booking has vehicle and customer data', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.vehicle).to.exist;",
+                  "    pm.expect(jsonData.data.customer).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["bookings", "{{booking_id}}"]
+            },
+            "description": "Retrieves details for a specific booking"
+          }
+        },
+        {
+          "name": "Update Booking Notes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Notes were updated', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.customerNotes).to.eql('Aktualisierte Notiz');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerNotes\": \"Aktualisierte Notiz\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["bookings", "{{booking_id}}"]
+            },
+            "description": "Updates customer notes for a booking"
+          }
+        },
+        {
+          "name": "Get Booking Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Has status history', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.statusHistory).to.be.an('array');",
+                  "    pm.expect(jsonData.data.statusHistory.length).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["bookings", "{{booking_id}}", "status"]
+            },
+            "description": "Retrieves current status and history for a booking"
+          }
+        },
+        {
+          "name": "Cancel Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Booking is cancelled', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.status).to.eql('CANCELLED');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Termin passt nicht mehr\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["bookings", "{{booking_id}}"]
+            },
+            "description": "Cancels a booking and processes refund"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Extensions",
+      "item": [
+        {
+          "name": "Get Booking Extensions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data.length > 0) {",
+                  "        pm.collectionVariables.set('extension_id', jsonData.data[0].id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}/extensions",
+              "host": ["{{base_url}}"],
+              "path": ["bookings", "{{booking_id}}", "extensions"]
+            },
+            "description": "Retrieves all extensions for a booking"
+          }
+        },
+        {
+          "name": "Approve Extension",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Extension is approved', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.extension.status).to.eql('APPROVED');",
+                  "});",
+                  "",
+                  "pm.test('Payment intent created', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.paymentIntent).to.exist;",
+                  "    pm.expect(jsonData.data.paymentIntent.clientSecret).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}/extensions/{{extension_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": [
+                "bookings",
+                "{{booking_id}}",
+                "extensions",
+                "{{extension_id}}",
+                "approve"
+              ]
+            },
+            "description": "Approves an extension and creates payment intent"
+          }
+        },
+        {
+          "name": "Decline Extension",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Extension is declined', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.status).to.eql('DECLINED');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Zu teuer\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}/extensions/{{extension_id}}/decline",
+              "host": ["{{base_url}}"],
+              "path": [
+                "bookings",
+                "{{booking_id}}",
+                "extensions",
+                "{{extension_id}}",
+                "decline"
+              ]
+            },
+            "description": "Declines an extension"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Test Scenarios",
+      "item": [
+        {
+          "name": "Error - Invalid Vehicle ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"invalid_vehicle_id\",\n  \"serviceType\": \"INSPECTION\",\n  \"pickupDate\": \"2026-03-15T00:00:00Z\",\n  \"pickupTimeSlot\": \"09:00-11:00\",\n  \"pickupAddress\": \"Test Street\",\n  \"pickupCity\": \"Berlin\",\n  \"pickupPostalCode\": \"10115\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bookings",
+              "host": ["{{base_url}}"],
+              "path": ["bookings"]
+            },
+            "description": "Tests error handling for invalid vehicle ID"
+          }
+        },
+        {
+          "name": "Error - Past Pickup Date",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message mentions future date', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error.message.toLowerCase()).to.include('future');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"{{vehicle_id}}\",\n  \"serviceType\": \"INSPECTION\",\n  \"pickupDate\": \"2020-01-01T00:00:00Z\",\n  \"pickupTimeSlot\": \"09:00-11:00\",\n  \"pickupAddress\": \"Test Street\",\n  \"pickupCity\": \"Berlin\",\n  \"pickupPostalCode\": \"10115\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bookings",
+              "host": ["{{base_url}}"],
+              "path": ["bookings"]
+            },
+            "description": "Tests error handling for past pickup date"
+          }
+        },
+        {
+          "name": "Error - Invalid Time Slot",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"{{vehicle_id}}\",\n  \"serviceType\": \"INSPECTION\",\n  \"pickupDate\": \"2026-03-15T00:00:00Z\",\n  \"pickupTimeSlot\": \"invalid-format\",\n  \"pickupAddress\": \"Test Street\",\n  \"pickupCity\": \"Berlin\",\n  \"pickupPostalCode\": \"10115\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bookings",
+              "host": ["{{base_url}}"],
+              "path": ["bookings"]
+            },
+            "description": "Tests error handling for invalid time slot format"
+          }
+        }
+      ]
+    }
+  ]
+}

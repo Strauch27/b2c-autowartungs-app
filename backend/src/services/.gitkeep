@@ -1,0 +1,6 @@
+# Services (business logic) will be implemented in Sprint 1
+# - auth.service.ts (JWT, Magic Link, Password hashing)
+# - email.service.ts (Nodemailer integration)
+# - price.service.ts (Price calculation logic)
+# - vehicle.service.ts (Vehicle data management)
+# - booking.service.ts (Booking lifecycle management)

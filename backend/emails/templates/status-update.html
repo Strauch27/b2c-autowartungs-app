@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Status-Update Ihrer Buchung</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      background-color: #ffffff;
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      text-align: center;
+      border-bottom: 3px solid #2196f3;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      color: #2196f3;
+      margin: 0;
+      font-size: 28px;
+    }
+    .status-icon {
+      font-size: 64px;
+      margin: 20px 0;
+    }
+    .booking-info {
+      background-color: #f0f8ff;
+      border-left: 4px solid #007bff;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .booking-info .label {
+      color: #666;
+      font-size: 14px;
+    }
+    .booking-info .value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #007bff;
+      margin-top: 5px;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 16px;
+      font-weight: 600;
+      margin: 20px 0;
+    }
+    .status-badge.confirmed {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .status-badge.jockey-assigned {
+      background-color: #cce5ff;
+      color: #004085;
+    }
+    .status-badge.in-transit-to-workshop {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    .status-badge.in-workshop {
+      background-color: #d1ecf1;
+      color: #0c5460;
+    }
+    .status-badge.completed {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .status-badge.in-transit-to-customer {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    .status-badge.delivered {
+      background-color: #d4edda;
+      color: #155724;
+      border: 2px solid #28a745;
+    }
+    .status-badge.cancelled {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    .progress-bar {
+      background-color: #e0e0e0;
+      border-radius: 10px;
+      height: 20px;
+      margin: 30px 0;
+      overflow: hidden;
+    }
+    .progress-fill {
+      background: linear-gradient(90deg, #2196f3 0%, #4caf50 100%);
+      height: 100%;
+      border-radius: 10px;
+      transition: width 0.3s ease;
+    }
+    .status-message {
+      background-color: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      padding: 20px;
+      margin: 25px 0;
+      border-radius: 4px;
+    }
+    .status-message h2 {
+      margin-top: 0;
+      color: #1565c0;
+      font-size: 22px;
+    }
+    .status-message p {
+      margin: 10px 0 0 0;
+      color: #555;
+      font-size: 16px;
+    }
+    .info-section {
+      margin: 25px 0;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border-radius: 6px;
+    }
+    .info-section h2 {
+      color: #007bff;
+      margin-top: 0;
+      font-size: 20px;
+      border-bottom: 2px solid #e0e0e0;
+      padding-bottom: 10px;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    .info-label {
+      font-weight: 600;
+      color: #555;
+    }
+    .info-value {
+      color: #333;
+      text-align: right;
+    }
+    .jockey-info {
+      background-color: #fff8e1;
+      border: 2px solid #ffc107;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 25px 0;
+    }
+    .jockey-info h3 {
+      margin-top: 0;
+      color: #f57f17;
+    }
+    .timeline {
+      margin: 25px 0;
+      padding-left: 20px;
+      border-left: 3px solid #e0e0e0;
+    }
+    .timeline-item {
+      margin: 20px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .timeline-item::before {
+      content: '●';
+      position: absolute;
+      left: -13px;
+      font-size: 20px;
+      color: #e0e0e0;
+    }
+    .timeline-item.active::before {
+      color: #4caf50;
+    }
+    .timeline-item.current::before {
+      color: #2196f3;
+      font-size: 24px;
+    }
+    .timeline-item h4 {
+      margin: 0 0 5px 0;
+      color: #333;
+    }
+    .timeline-item p {
+      margin: 0;
+      color: #666;
+      font-size: 14px;
+    }
+    .next-steps {
+      background-color: #fff3e0;
+      border-left: 4px solid #ff9800;
+      padding: 20px;
+      margin: 25px 0;
+      border-radius: 4px;
+    }
+    .next-steps h3 {
+      margin-top: 0;
+      color: #e65100;
+    }
+    .next-steps ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+    .next-steps li {
+      margin: 8px 0;
+    }
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 2px solid #e0e0e0;
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+    }
+    @media only screen and (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      .container {
+        padding: 20px;
+      }
+      .info-row {
+        flex-direction: column;
+      }
+      .info-value {
+        text-align: left;
+        margin-top: 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="status-icon">{{statusIcon}}</div>
+      <h1>Status-Update</h1>
+      <p style="margin: 10px 0 0 0; color: #666;">Ihre Buchung wurde aktualisiert</p>
+    </div>
+
+    <p>Hallo {{customerName}},</p>
+
+    <p>Es gibt ein Update zum Status Ihrer Buchung.</p>
+
+    <div class="booking-info">
+      <div class="label">Buchungsnummer</div>
+      <div class="value">{{bookingNumber}}</div>
+    </div>
+
+    <div style="text-align: center;">
+      <span class="status-badge {{statusClass}}">{{statusLabel}}</span>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" style="width: {{progressPercent}}%;"></div>
+    </div>
+
+    <div class="status-message">
+      <h2>{{statusTitle}}</h2>
+      <p>{{statusDescription}}</p>
+    </div>
+
+    <div class="info-section">
+      <h2>Buchungsdetails</h2>
+      <div class="info-row">
+        <span class="info-label">Fahrzeug:</span>
+        <span class="info-value">{{vehicle.brand}} {{vehicle.model}} ({{vehicle.year}})</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Service:</span>
+        <span class="info-value">{{serviceTypeLabel}}</span>
+      </div>
+      {{#if pickupDate}}
+      <div class="info-row">
+        <span class="info-label">Abholdatum:</span>
+        <span class="info-value">{{pickupDate}}</span>
+      </div>
+      {{/if}}
+      {{#if deliveryDate}}
+      <div class="info-row">
+        <span class="info-label">Rückgabedatum:</span>
+        <span class="info-value">{{deliveryDate}}</span>
+      </div>
+      {{/if}}
+    </div>
+
+    {{#if jockey}}
+    <div class="jockey-info">
+      <h3>Ihr Jockey</h3>
+      <div class="info-row" style="border: none;">
+        <span class="info-label">Name:</span>
+        <span class="info-value">{{jockey.name}}</span>
+      </div>
+      {{#if jockey.phone}}
+      <div class="info-row" style="border: none;">
+        <span class="info-label">Telefon:</span>
+        <span class="info-value">{{jockey.phone}}</span>
+      </div>
+      {{/if}}
+      {{#if jockey.rating}}
+      <div class="info-row" style="border: none;">
+        <span class="info-label">Bewertung:</span>
+        <span class="info-value">⭐ {{jockey.rating}}/5.0</span>
+      </div>
+      {{/if}}
+    </div>
+    {{/if}}
+
+    <div class="timeline">
+      <div class="timeline-item {{#if timeline.confirmed}}active{{/if}} {{#if (eq currentStatus 'CONFIRMED')}}current{{/if}}">
+        <h4>Buchung bestätigt</h4>
+        <p>Ihre Zahlung wurde verarbeitet</p>
+      </div>
+      <div class="timeline-item {{#if timeline.jockeyAssigned}}active{{/if}} {{#if (eq currentStatus 'JOCKEY_ASSIGNED')}}current{{/if}}">
+        <h4>Jockey zugewiesen</h4>
+        <p>Ein Fahrer wurde Ihrer Buchung zugewiesen</p>
+      </div>
+      <div class="timeline-item {{#if timeline.inTransitToWorkshop}}active{{/if}} {{#if (eq currentStatus 'IN_TRANSIT_TO_WORKSHOP')}}current{{/if}}">
+        <h4>Auf dem Weg zur Werkstatt</h4>
+        <p>Ihr Fahrzeug wird zur Werkstatt gebracht</p>
+      </div>
+      <div class="timeline-item {{#if timeline.inWorkshop}}active{{/if}} {{#if (eq currentStatus 'IN_WORKSHOP')}}current{{/if}}">
+        <h4>In der Werkstatt</h4>
+        <p>Der Service wird durchgeführt</p>
+      </div>
+      <div class="timeline-item {{#if timeline.completed}}active{{/if}} {{#if (eq currentStatus 'COMPLETED')}}current{{/if}}">
+        <h4>Service abgeschlossen</h4>
+        <p>Die Wartung wurde erfolgreich durchgeführt</p>
+      </div>
+      <div class="timeline-item {{#if timeline.inTransitToCustomer}}active{{/if}} {{#if (eq currentStatus 'IN_TRANSIT_TO_CUSTOMER')}}current{{/if}}">
+        <h4>Auf dem Rückweg</h4>
+        <p>Ihr Fahrzeug wird zu Ihnen gebracht</p>
+      </div>
+      <div class="timeline-item {{#if timeline.delivered}}active{{/if}} {{#if (eq currentStatus 'DELIVERED')}}current{{/if}}">
+        <h4>Übergeben</h4>
+        <p>Ihr Fahrzeug wurde zurückgegeben</p>
+      </div>
+    </div>
+
+    {{#if nextSteps}}
+    <div class="next-steps">
+      <h3>Nächste Schritte</h3>
+      <ul>
+        {{#each nextSteps}}
+        <li>{{this}}</li>
+        {{/each}}
+      </ul>
+    </div>
+    {{/if}}
+
+    {{#if additionalNotes}}
+    <div class="info-section">
+      <h2>Zusätzliche Informationen</h2>
+      <p style="margin: 0;">{{additionalNotes}}</p>
+    </div>
+    {{/if}}
+
+    <div style="background-color: #e3f2fd; padding: 15px; margin: 20px 0; border-radius: 6px; text-align: center;">
+      <strong>Fragen zum Status?</strong><br>
+      Kontaktieren Sie uns jederzeit:<br>
+      <a href="mailto:support@b2c-autowartung.de" style="color: #007bff; text-decoration: none;">support@b2c-autowartung.de</a>
+    </div>
+
+    <div class="footer">
+      <p><strong>B2C Autowartung</strong></p>
+      <p>Ihr zuverlässiger Partner für Fahrzeugwartung</p>
+      <p style="margin-top: 20px; font-size: 12px; color: #999;">
+        Diese E-Mail wurde an {{email}} gesendet.<br>
+        Buchungsnummer: {{bookingNumber}} | Aktueller Status: {{statusLabel}}
+      </p>
+    </div>
+  </div>
+</body>
+</html>
