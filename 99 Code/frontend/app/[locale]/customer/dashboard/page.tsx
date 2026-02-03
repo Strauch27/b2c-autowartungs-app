@@ -131,7 +131,7 @@ export default function CustomerDashboardPage() {
               {t.customerDashboard.nav.dashboard}
             </Link>
             <Link
-              href={`/${locale}/booking`}
+              href={`/${locale}/customer/booking`}
               className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
             >
               <Plus className="h-4 w-4" />
@@ -356,7 +356,7 @@ export default function CustomerDashboardPage() {
               <p className="mb-4 max-w-sm text-muted-foreground">
                 Buchen Sie jetzt Ihren nächsten Wartungstermin mit Festpreis-Garantie.
               </p>
-              <Link href={`/${locale}/booking`}>
+              <Link href={`/${locale}/customer/booking`}>
                 <Button variant="cta" size="lg">
                   Jetzt buchen
                 </Button>

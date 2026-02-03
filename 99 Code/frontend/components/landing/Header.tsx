@@ -58,7 +58,7 @@ const Header = () => {
               {t.header.login}
             </Button>
           </Link>
-          <Link href={`/${locale}/booking`}>
+          <Link href={`/${locale}/customer/booking`}>
             <Button variant="cta" size="sm">
               {t.header.bookNow}
             </Button>
@@ -92,7 +92,7 @@ const Header = () => {
                     {t.header.login}
                   </Button>
                 </Link>
-                <Link href={`/${locale}/booking`} onClick={() => setIsOpen(false)}>
+                <Link href={`/${locale}/customer/booking`} onClick={() => setIsOpen(false)}>
                   <Button variant="cta" className="w-full">
                     {t.header.bookNow}
                   </Button>

@@ -72,15 +72,6 @@ export default function BookingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        {/* Registration Required Banner */}
-        <Alert className="mb-6 border-primary bg-primary/5">
-          <UserPlus className="h-4 w-4" />
-          <p className="text-sm font-medium">
-            {locale === "de"
-              ? "Bitte registrieren Sie sich, um zu buchen"
-              : "Please register to book"}
-          </p>
-        </Alert>
         {/* Step Indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-between">

@@ -266,39 +266,65 @@ export async function registerCustomer(req: Request, res: Response): Promise<voi
     }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-
-    if (existingUser) {
-      res.status(409).json({
-        success: false,
-        message: 'An account with this email already exists'
-      });
-      return;
-    }
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+      include: { customerProfile: true }
+    });
 
     // Hash password
     const passwordHash = await hashPassword(password);
 
-    // Create user with customer profile
-    const user = await prisma.user.create({
-      data: {
-        email,
-        passwordHash,
-        firstName,
-        lastName,
-        phone,
-        role: UserRole.CUSTOMER,
-        isActive: true,
-        customerProfile: {
-          create: {}
-        }
-      },
-      include: {
-        customerProfile: true
-      }
-    });
+    let user;
 
-    // If bookingId is provided, link the booking to this customer
+    if (existingUser) {
+      // If user exists and is active, they should login instead
+      if (existingUser.isActive && existingUser.passwordHash) {
+        res.status(409).json({
+          success: false,
+          message: 'An account with this email already exists. Please login instead.'
+        });
+        return;
+      }
+
+      // User exists but is inactive (from guest checkout) - activate them
+      user = await prisma.user.update({
+        where: { email },
+        data: {
+          passwordHash,
+          firstName: firstName || existingUser.firstName,
+          lastName: lastName || existingUser.lastName,
+          phone: phone || existingUser.phone,
+          isActive: true,
+          customerProfile: existingUser.customerProfile ? undefined : {
+            create: {}
+          }
+        },
+        include: {
+          customerProfile: true
+        }
+      });
+    } else {
+      // Create new user with customer profile
+      user = await prisma.user.create({
+        data: {
+          email,
+          passwordHash,
+          firstName,
+          lastName,
+          phone,
+          role: UserRole.CUSTOMER,
+          isActive: true,
+          customerProfile: {
+            create: {}
+          }
+        },
+        include: {
+          customerProfile: true
+        }
+      });
+    }
+
+    // If bookingId is provided, ensure the booking is linked to this customer
     if (bookingId) {
       await prisma.booking.update({
         where: { id: bookingId },

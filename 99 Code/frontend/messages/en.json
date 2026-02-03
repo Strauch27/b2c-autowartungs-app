@@ -17,6 +17,27 @@
     "yes": "Yes",
     "no": "No"
   },
+  "vehicleForm": {
+    "brand": "Brand",
+    "brandPlaceholder": "Select brand",
+    "brandSearch": "Search brand...",
+    "model": "Model",
+    "modelPlaceholder": "Select model",
+    "modelSelectBrandFirst": "Select brand first",
+    "year": "Year",
+    "yearPlaceholder": "Select year",
+    "mileage": "Mileage",
+    "mileagePlaceholder": "e.g. 75000",
+    "mileageUnit": "km",
+    "mileageRange": "Valid: 0 - 500,000 km",
+    "required": "*",
+    "loading": "Loading...",
+    "noBrandsFound": "No brands found",
+    "noModelsAvailable": "No models available",
+    "errorLoadingBrands": "Error loading brands",
+    "errorLoadingModels": "Error loading models",
+    "plausibilityWarning": "Note"
+  },
   "navigation": {
     "home": "Home",
     "workshops": "Workshops",

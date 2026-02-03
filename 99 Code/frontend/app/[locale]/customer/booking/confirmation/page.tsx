@@ -274,7 +274,7 @@ export default function ConfirmationPage() {
         <div className="text-center text-sm text-gray-600">
           <p>
             Need help?{" "}
-            <a href="/support" className="text-primary hover:underline">
+            <a href={`/${locale}/support`} className="text-primary hover:underline">
               Contact our support team
             </a>
           </p>

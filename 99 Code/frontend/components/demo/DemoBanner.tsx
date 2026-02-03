@@ -1,11 +1,26 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { X } from "lucide-react";
+
+const STORAGE_KEY = "demo-banner-dismissed";
 
 export function DemoBanner() {
   const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+  const [isDismissed, setIsDismissed] = useState(true); // Start hidden to prevent flash
 
-  if (!isDemoMode) {
+  useEffect(() => {
+    // Check localStorage on mount
+    const dismissed = localStorage.getItem(STORAGE_KEY) === "true";
+    setIsDismissed(dismissed);
+  }, []);
+
+  const handleDismiss = () => {
+    localStorage.setItem(STORAGE_KEY, "true");
+    setIsDismissed(true);
+  };
+
+  if (!isDemoMode || isDismissed) {
     return null;
   }
 
@@ -24,6 +39,13 @@ export function DemoBanner() {
               This is a demonstration environment - no real payments will be processed
             </p>
           </div>
+          <button
+            onClick={handleDismiss}
+            className="ml-4 p-1 rounded-full hover:bg-yellow-500 transition-colors"
+            aria-label="Dismiss demo banner"
+          >
+            <X className="h-4 w-4 text-yellow-900" />
+          </button>
         </div>
       </div>
     </div>

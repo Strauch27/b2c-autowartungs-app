@@ -19,6 +19,7 @@ import {
   checkPlausibility,
 } from "@/lib/validations/vehicle-schema";
 import { getBrands, getModelsByBrand, Brand, Model } from "@/lib/api/vehicles";
+import { useLanguage } from "@/lib/i18n/useLovableTranslation";
 
 interface VehicleSelectionFormProps {
   onSubmit: (data: VehicleFormData) => void;
@@ -29,6 +30,8 @@ export function VehicleSelectionForm({
   onSubmit,
   onValidationChange,
 }: VehicleSelectionFormProps) {
+  const { t } = useLanguage();
+
   // Form state
   const [brand, setBrand] = useState<string>("");
   const [model, setModel] = useState<string>("");
@@ -83,7 +86,7 @@ export function VehicleSelectionForm({
       console.error("Failed to load brands:", error);
       setErrors((prev) => ({
         ...prev,
-        brands: "Fehler beim Laden der Marken",
+        brands: t.vehicleForm.errorLoadingBrands,
       }));
     } finally {
       setIsLoadingBrands(false);
@@ -99,7 +102,7 @@ export function VehicleSelectionForm({
       console.error("Failed to load models:", error);
       setErrors((prev) => ({
         ...prev,
-        models: "Fehler beim Laden der Modelle",
+        models: t.vehicleForm.errorLoadingModels,
       }));
     } finally {
       setIsLoadingModels(false);
@@ -187,13 +190,13 @@ export function VehicleSelectionForm({
       {/* Brand Selection with Autocomplete */}
       <div className="space-y-2">
         <Label htmlFor="brand">
-          Marke <span className="text-red-500">*</span>
+          {t.vehicleForm.brand} <span className="text-red-500">{t.vehicleForm.required}</span>
         </Label>
         <div className="space-y-2">
           <Input
             id="brand-search"
             type="text"
-            placeholder="Marke suchen..."
+            placeholder={t.vehicleForm.brandSearch}
             value={brandSearch}
             onChange={(e) => setBrandSearch(e.target.value)}
             disabled={isLoadingBrands}
@@ -204,12 +207,12 @@ export function VehicleSelectionForm({
             disabled={isLoadingBrands}
           >
             <SelectTrigger id="brand" className={errors.brand ? "border-red-500" : ""}>
-              <SelectValue placeholder="Marke auswählen" />
+              <SelectValue placeholder={t.vehicleForm.brandPlaceholder} />
             </SelectTrigger>
             <SelectContent>
               {filteredBrands.length === 0 ? (
                 <div className="p-2 text-sm text-muted-foreground">
-                  {isLoadingBrands ? "Lädt..." : "Keine Marken gefunden"}
+                  {isLoadingBrands ? t.vehicleForm.loading : t.vehicleForm.noBrandsFound}
                 </div>
               ) : (
                 filteredBrands.map((b) => (
@@ -229,7 +232,7 @@ export function VehicleSelectionForm({
       {/* Model Selection */}
       <div className="space-y-2">
         <Label htmlFor="model">
-          Modell <span className="text-red-500">*</span>
+          {t.vehicleForm.model} <span className="text-red-500">{t.vehicleForm.required}</span>
         </Label>
         <Select
           value={model}
@@ -240,17 +243,17 @@ export function VehicleSelectionForm({
             <SelectValue
               placeholder={
                 !brand
-                  ? "Erst Marke auswählen"
+                  ? t.vehicleForm.modelSelectBrandFirst
                   : isLoadingModels
-                  ? "Lädt..."
-                  : "Modell auswählen"
+                  ? t.vehicleForm.loading
+                  : t.vehicleForm.modelPlaceholder
               }
             />
           </SelectTrigger>
           <SelectContent>
             {models.length === 0 ? (
               <div className="p-2 text-sm text-muted-foreground">
-                {isLoadingModels ? "Lädt..." : "Keine Modelle verfügbar"}
+                {isLoadingModels ? t.vehicleForm.loading : t.vehicleForm.noModelsAvailable}
               </div>
             ) : (
               models.map((m) => (
@@ -269,11 +272,11 @@ export function VehicleSelectionForm({
       {/* Year Selection */}
       <div className="space-y-2">
         <Label htmlFor="year">
-          Baujahr <span className="text-red-500">*</span>
+          {t.vehicleForm.year} <span className="text-red-500">{t.vehicleForm.required}</span>
         </Label>
         <Select value={year} onValueChange={setYear}>
           <SelectTrigger id="year" className={errors.year ? "border-red-500" : ""}>
-            <SelectValue placeholder="Baujahr auswählen" />
+            <SelectValue placeholder={t.vehicleForm.yearPlaceholder} />
           </SelectTrigger>
           <SelectContent>
             {yearOptions.map((y) => (
@@ -289,13 +292,13 @@ export function VehicleSelectionForm({
       {/* Mileage Input */}
       <div className="space-y-2">
         <Label htmlFor="mileage">
-          Kilometerstand <span className="text-red-500">*</span>
+          {t.vehicleForm.mileage} <span className="text-red-500">{t.vehicleForm.required}</span>
         </Label>
         <div className="relative">
           <Input
             id="mileage"
             type="number"
-            placeholder="z.B. 75000"
+            placeholder={t.vehicleForm.mileagePlaceholder}
             value={mileage}
             onChange={(e) => setMileage(e.target.value)}
             min="0"
@@ -304,14 +307,14 @@ export function VehicleSelectionForm({
             className={errors.mileage ? "border-red-500" : ""}
           />
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-            km
+            {t.vehicleForm.mileageUnit}
           </span>
         </div>
         {errors.mileage && (
           <p className="text-sm text-red-500">{errors.mileage}</p>
         )}
         <p className="text-xs text-muted-foreground">
-          Gültig: 0 - 500.000 km
+          {t.vehicleForm.mileageRange}
         </p>
       </div>
 
@@ -319,7 +322,7 @@ export function VehicleSelectionForm({
       {plausibilityWarning && (
         <Alert variant="warning">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Hinweis</AlertTitle>
+          <AlertTitle>{t.vehicleForm.plausibilityWarning}</AlertTitle>
           <AlertDescription>{plausibilityWarning}</AlertDescription>
         </Alert>
       )}

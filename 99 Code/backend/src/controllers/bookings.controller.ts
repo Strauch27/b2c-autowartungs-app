@@ -172,16 +172,44 @@ export async function getBooking(req: Request, res: Response, next: NextFunction
 /**
  * Create new booking
  * POST /api/bookings
- * Requires authentication - no guest checkout
+ * Supports both authenticated and guest checkout
  */
 export async function createBooking(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    // Require authentication
-    if (!req.user) {
-      throw new ApiError(401, 'Authentication required. Please register or login to create a booking.');
-    }
+    let customerId: string;
 
-    const customerId = req.user.userId;
+    // Check if user is authenticated
+    if (req.user) {
+      customerId = req.user.userId;
+    } else {
+      // Guest checkout - require customer data in body
+      if (!req.body.customer?.email) {
+        throw new ApiError(400, 'Customer email is required for guest checkout');
+      }
+
+      // Find or create customer
+      let customer = await prisma.user.findUnique({
+        where: { email: req.body.customer.email }
+      });
+
+      if (!customer) {
+        // Create new customer account (will be activated later during registration)
+        customer = await prisma.user.create({
+          data: {
+            email: req.body.customer.email,
+            firstName: req.body.customer.firstName || '',
+            lastName: req.body.customer.lastName || '',
+            phone: req.body.customer.phone || '',
+            role: 'CUSTOMER',
+            passwordHash: '', // Will be set during registration
+            isActive: false, // Inactive until registration is completed
+          }
+        });
+        logger.info('Guest customer created', { email: customer.email, id: customer.id });
+      }
+
+      customerId = customer.id;
+    }
 
     // Check if this is the new DTO format or legacy format
     if (req.body.vehicle && req.body.services) {
@@ -194,7 +222,10 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       // Continue with payment and notifications...
       await handleBookingPaymentAndNotifications(booking, customerId, req, res);
     } else {
-      // Legacy format
+      // Legacy format - requires authentication
+      if (!req.user) {
+        throw new ApiError(401, 'Authentication required for legacy booking format');
+      }
       const validatedData = createBookingSchema.parse(req.body);
       const booking = await bookingsService.createBooking({
         ...validatedData,

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/useLovableTranslation";
 
 interface LoginFormProps {
@@ -25,6 +26,8 @@ const LoginForm = ({
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { t } = useLanguage();
+  const params = useParams();
+  const locale = params.locale as string || 'de';
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +60,7 @@ const LoginForm = ({
           <div className="flex items-center justify-between">
             <Label htmlFor="password">{t.login.password}</Label>
             <Link
-              href="/forgot-password"
+              href={`/${locale}/forgot-password`}
               className="text-sm text-primary hover:underline"
             >
               {t.login.forgot}

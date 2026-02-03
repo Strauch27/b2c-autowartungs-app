@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,8 @@ export function HeroSectionAB() {
   const tWorkshop = useTranslations('workshop');
   const [plz, setPlz] = useState('');
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string || 'de';
 
   // Get A/B test variants
   const colorVariant = useABTest('primary-color');
@@ -37,7 +39,7 @@ export function HeroSectionAB() {
         cta_type: 'plz_search',
         plz
       });
-      router.push(`/de/workshops?plz=${plz}`);
+      router.push(`/${locale}/workshops?plz=${plz}`);
     }
   };
 
@@ -48,7 +50,7 @@ export function HeroSectionAB() {
     trackABTestConversion('cta-copy', AB_TEST_EVENTS.CTA_CLICK, {
       cta_type: 'primary_button'
     });
-    router.push('/de/buchen/fahrzeugklasse');
+    router.push(`/${locale}/customer/booking`);
   };
 
   // Social proof component

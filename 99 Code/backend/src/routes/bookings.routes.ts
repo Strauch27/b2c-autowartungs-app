@@ -15,23 +15,23 @@ import {
   approveExtension,
   declineExtension
 } from '../controllers/bookings.controller';
-import { authenticate } from '../middleware/auth';
+import { authenticate, optionalAuthenticate } from '../middleware/auth';
 import { requireCustomer } from '../middleware/rbac';
 
 const router = Router();
 
 /**
  * POST /api/bookings
- * Create new booking (requires authentication)
+ * Create new booking (supports both authenticated and guest checkout)
  * Body:
- * - customer: { email, firstName, lastName, phone } (optional - uses auth user if not provided)
+ * - customer: { email, firstName, lastName, phone } (required for guest checkout)
  * - vehicle: { brand, model, year, mileage } (required)
  * - services: string[] (required)
  * - pickup: { date, timeSlot, street, city, postalCode } (required)
  * - delivery: { date, timeSlot } (required)
  * - customerNotes: string (optional)
  */
-router.post('/', authenticate, requireCustomer, createBooking);
+router.post('/', optionalAuthenticate, createBooking);
 
 /**
  * All other routes require authentication and customer role

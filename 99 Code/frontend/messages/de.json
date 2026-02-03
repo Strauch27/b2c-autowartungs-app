@@ -17,6 +17,27 @@
     "yes": "Ja",
     "no": "Nein"
   },
+  "vehicleForm": {
+    "brand": "Marke",
+    "brandPlaceholder": "Marke auswählen",
+    "brandSearch": "Marke suchen...",
+    "model": "Modell",
+    "modelPlaceholder": "Modell auswählen",
+    "modelSelectBrandFirst": "Erst Marke auswählen",
+    "year": "Baujahr",
+    "yearPlaceholder": "Baujahr auswählen",
+    "mileage": "Kilometerstand",
+    "mileagePlaceholder": "z.B. 75000",
+    "mileageUnit": "km",
+    "mileageRange": "Gültig: 0 - 500.000 km",
+    "required": "*",
+    "loading": "Lädt...",
+    "noBrandsFound": "Keine Marken gefunden",
+    "noModelsAvailable": "Keine Modelle verfügbar",
+    "errorLoadingBrands": "Fehler beim Laden der Marken",
+    "errorLoadingModels": "Fehler beim Laden der Modelle",
+    "plausibilityWarning": "Hinweis"
+  },
   "navigation": {
     "home": "Startseite",
     "workshops": "Werkstätten",

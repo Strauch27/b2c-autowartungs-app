@@ -203,7 +203,7 @@ function DashboardContent() {
       <header className="sticky top-0 z-50 border-b border-border bg-jockey text-jockey-foreground">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href={`/${language}`} className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-jockey-foreground/10">
                 <Car className="h-4 w-4" />
               </div>

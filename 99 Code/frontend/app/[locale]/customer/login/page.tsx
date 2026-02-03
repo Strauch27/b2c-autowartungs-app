@@ -42,7 +42,7 @@ export default function CustomerLoginPage() {
     <div className="flex min-h-screen">
       {/* Left Side - Form */}
       <div className="flex w-full flex-col justify-center px-4 py-12 lg:w-1/2 lg:px-20">
-        <Link href="/" className="mb-12 flex items-center gap-2">
+        <Link href={`/${locale}`} className="mb-12 flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
             <Car className="h-5 w-5 text-primary-foreground" />
           </div>
@@ -58,7 +58,7 @@ export default function CustomerLoginPage() {
         <LoginForm
           onSubmit={handleLogin}
           portalType="customer"
-          registerLink="/customer/register"
+          registerLink={`/${locale}/customer/register`}
           isLoading={isLoading}
         />
       </div>

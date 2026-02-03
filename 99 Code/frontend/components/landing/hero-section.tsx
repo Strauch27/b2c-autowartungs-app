@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,10 +10,12 @@ export function HeroSection() {
   const t = useTranslations('landing.hero');
   const tFixedPrice = useTranslations('landing.fixedPrice');
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string || 'de';
 
   const handleGetStarted = () => {
     // Route to Express Flow (simplified 3-step booking)
-    router.push('/de/buchen/express');
+    router.push(`/${locale}/customer/booking`);
   };
 
   return (

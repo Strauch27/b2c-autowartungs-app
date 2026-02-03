@@ -64,7 +64,17 @@ export async function getBrands(): Promise<Brand[]> {
       return MOCK_BRANDS;
     }
 
-    return await response.json();
+    const json = await response.json();
+    // Handle both direct array and {success, data} response formats
+    const brands = Array.isArray(json) ? json : (json.data || []);
+
+    // If backend returns empty array, use mock data for development
+    if (brands.length === 0) {
+      console.warn("No brands from API, using mock data");
+      return MOCK_BRANDS;
+    }
+
+    return brands;
   } catch (error) {
     console.warn("API call failed, using mock data:", error);
     return MOCK_BRANDS;
@@ -85,7 +95,17 @@ export async function getModelsByBrand(brand: string): Promise<Model[]> {
       return MOCK_MODELS[brand] || [];
     }
 
-    return await response.json();
+    const json = await response.json();
+    // Handle both direct array and {success, data} response formats
+    const models = Array.isArray(json) ? json : (json.data || []);
+
+    // If backend returns empty array, use mock data for development
+    if (models.length === 0) {
+      console.warn("No models from API, using mock data");
+      return MOCK_MODELS[brand] || [];
+    }
+
+    return models;
   } catch (error) {
     console.warn("API call failed, using mock data:", error);
     return MOCK_MODELS[brand] || [];
