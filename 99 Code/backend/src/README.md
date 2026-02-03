@@ -139,7 +139,7 @@ npx prisma db seed
 npm run dev
 ```
 
-The server will start on `http://localhost:5000` (or port specified in .env).
+The server will start on `http://localhost:5001` (or port specified in .env).
 
 ## Usage Examples
 
@@ -170,7 +170,7 @@ app.get('/api/admin', authenticate, requireRole(UserRole.ADMIN), (req, res) => {
 
 ```typescript
 // Request magic link
-const response = await fetch('http://localhost:5000/api/auth/customer/magic-link', {
+const response = await fetch('http://localhost:5001/api/auth/customer/magic-link', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ email: 'customer@example.com' })
@@ -181,7 +181,7 @@ const { token, user } = await response.json();
 localStorage.setItem('authToken', token);
 
 // Make authenticated requests
-fetch('http://localhost:5000/api/protected', {
+fetch('http://localhost:5001/api/protected', {
   headers: {
     'Authorization': `Bearer ${token}`
   }
@@ -212,17 +212,17 @@ fetch('http://localhost:5000/api/protected', {
 
 ```bash
 # Customer magic link
-curl -X POST http://localhost:5000/api/auth/customer/magic-link \
+curl -X POST http://localhost:5001/api/auth/customer/magic-link \
   -H "Content-Type: application/json" \
   -d '{"email":"customer1@example.com"}'
 
 # Jockey login
-curl -X POST http://localhost:5000/api/auth/jockey/login \
+curl -X POST http://localhost:5001/api/auth/jockey/login \
   -H "Content-Type: application/json" \
   -d '{"username":"jockey1","password":"password123"}'
 
 # Get current user
-curl http://localhost:5000/api/auth/me \
+curl http://localhost:5001/api/auth/me \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 

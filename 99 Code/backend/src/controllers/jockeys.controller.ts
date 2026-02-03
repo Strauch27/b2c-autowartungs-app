@@ -8,6 +8,7 @@ import { prisma } from '../config/database';
 import { logger } from '../config/logger';
 import { z } from 'zod';
 import { AssignmentStatus, BookingStatus } from '@prisma/client';
+import { assertTransition, Actor } from '../domain/bookingFsm';
 
 // Validation schemas
 const updateStatusSchema = z.object({
@@ -202,22 +203,60 @@ export async function updateAssignmentStatus(req: Request, res: Response, next: 
       data: updateData,
     });
 
-    // Update booking status based on assignment type and status
+    // Update booking status based on assignment type and status (FSM-aware)
+    // FSM Flow:
+    // - PICKUP: PICKUP_ASSIGNED -> (EN_ROUTE) -> (AT_LOCATION) -> PICKED_UP -> AT_WORKSHOP
+    // - RETURN: RETURN_ASSIGNED -> (EN_ROUTE) -> (AT_LOCATION) -> RETURNED
     if (status === 'COMPLETED') {
-      const bookingStatus: BookingStatus = assignment.type === 'PICKUP'
-        ? 'IN_TRANSIT_TO_WORKSHOP'
-        : 'DELIVERED';
-
-      await prisma.booking.update({
+      // Get current booking to validate FSM transition
+      const currentBooking = await prisma.booking.findUnique({
         where: { id: assignment.bookingId },
-        data: { status: bookingStatus }
+        select: { status: true }
       });
 
-      logger.info('Assignment completed, booking status updated', {
-        assignmentId: id,
-        bookingId: assignment.bookingId,
-        newStatus: bookingStatus
-      });
+      if (!currentBooking) {
+        logger.error('Booking not found for assignment', {
+          assignmentId: id,
+          bookingId: assignment.bookingId
+        });
+        res.json({
+          success: true,
+          data: { assignment: updatedAssignment }
+        });
+        return;
+      }
+
+      // Determine target booking status based on assignment type
+      const targetStatus: BookingStatus = assignment.type === 'PICKUP'
+        ? BookingStatus.PICKED_UP  // Vehicle picked up, in transit to workshop
+        : BookingStatus.RETURNED;  // Vehicle returned to customer
+
+      // Validate FSM transition before updating
+      try {
+        assertTransition(currentBooking.status, targetStatus, Actor.JOCKEY);
+
+        await prisma.booking.update({
+          where: { id: assignment.bookingId },
+          data: { status: targetStatus }
+        });
+
+        logger.info('Assignment completed, booking status updated', {
+          assignmentId: id,
+          bookingId: assignment.bookingId,
+          assignmentType: assignment.type,
+          oldStatus: currentBooking.status,
+          newStatus: targetStatus
+        });
+      } catch (fsmError: any) {
+        // Log FSM violation but don't fail the assignment update
+        logger.warn('FSM transition not allowed for booking status update', {
+          assignmentId: id,
+          bookingId: assignment.bookingId,
+          currentStatus: currentBooking.status,
+          targetStatus,
+          error: fsmError.message
+        });
+      }
     }
 
     res.json({
@@ -366,10 +405,10 @@ export async function completeAssignment(req: Request, res: Response, next: Next
       },
     });
 
-    // Update booking status
+    // Update booking status using new FSM statuses
     const bookingStatus: BookingStatus = assignment.type === 'PICKUP'
-      ? 'IN_TRANSIT_TO_WORKSHOP'
-      : 'DELIVERED';
+      ? BookingStatus.PICKED_UP
+      : BookingStatus.RETURNED;
 
     await prisma.booking.update({
       where: { id: assignment.bookingId },

@@ -41,9 +41,9 @@ model User {
   jockeyProfile         JockeyProfile?
   workshopProfile       WorkshopProfile?
   sessions              Session[]
-  bookings              Booking[]            @relation("CustomerBookings")
-  jockeyAssignments     Booking[]            @relation("JockeyAssignments")
-  jockeyTaskAssignments JockeyAssignment[]   @relation("JockeyTaskAssignments")
+  bookings              Booking[]          @relation("CustomerBookings")
+  jockeyAssignments     Booking[]          @relation("JockeyAssignments")
+  jockeyTaskAssignments JockeyAssignment[] @relation("JockeyTaskAssignments")
   notificationLogs      NotificationLog[]
 
   @@index([email])
@@ -166,6 +166,17 @@ model PriceMatrix {
   mileageMultiplier Decimal @default(1.0) @db.Decimal(5, 2)
   ageMultiplier     Decimal @default(1.0) @db.Decimal(5, 2)
 
+  // Service-specific prices (in EUR)
+  inspection30k     Decimal? @db.Decimal(10, 2)
+  inspection60k     Decimal? @db.Decimal(10, 2)
+  inspection90k     Decimal? @db.Decimal(10, 2)
+  inspection120k    Decimal? @db.Decimal(10, 2)
+  oilService        Decimal? @db.Decimal(10, 2)
+  brakeServiceFront Decimal? @db.Decimal(10, 2)
+  brakeServiceRear  Decimal? @db.Decimal(10, 2)
+  tuv               Decimal? @db.Decimal(10, 2)
+  climateService    Decimal? @db.Decimal(10, 2)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -189,13 +200,22 @@ enum ServiceType {
 enum BookingStatus {
   PENDING_PAYMENT
   CONFIRMED
-  JOCKEY_ASSIGNED
-  IN_TRANSIT_TO_WORKSHOP
-  IN_WORKSHOP
-  COMPLETED
-  IN_TRANSIT_TO_CUSTOMER
-  DELIVERED
+  PICKUP_ASSIGNED     // Jockey assigned for pickup
+  PICKED_UP           // Vehicle picked up from customer
+  AT_WORKSHOP         // Vehicle arrived at workshop
+  IN_SERVICE          // Workshop actively working on vehicle
+  READY_FOR_RETURN    // Service completed, ready for return
+  RETURN_ASSIGNED     // Jockey assigned for return delivery
+  RETURNED            // Vehicle returned to customer (final state)
+  DELIVERED           // Alias for RETURNED (backward compatibility)
   CANCELLED
+
+  // DEPRECATED: Use new statuses above
+  JOCKEY_ASSIGNED     // @deprecated Use PICKUP_ASSIGNED
+  IN_TRANSIT_TO_WORKSHOP  // @deprecated Use PICKED_UP
+  IN_WORKSHOP         // @deprecated Use AT_WORKSHOP or IN_SERVICE
+  COMPLETED           // @deprecated Use READY_FOR_RETURN
+  IN_TRANSIT_TO_CUSTOMER  // @deprecated Use RETURN_ASSIGNED or RETURNED
 }
 
 model Booking {
@@ -264,6 +284,7 @@ enum ExtensionStatus {
   APPROVED
   DECLINED
   CANCELLED
+  COMPLETED
 }
 
 model Extension {
@@ -398,7 +419,7 @@ enum AssignmentStatus {
 }
 
 model JockeyAssignment {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   bookingId String
   booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   jockeyId  String

@@ -120,7 +120,7 @@ app.use(cors({ ... }));
 npm run dev
 
 # Test headers
-curl -I http://localhost:5000/health
+curl -I http://localhost:5001/health
 
 # Should see:
 # Content-Security-Policy: default-src 'self'...
@@ -603,17 +603,17 @@ After implementing fixes, verify:
 **Test Commands:**
 ```bash
 # Security headers
-curl -I http://localhost:5000/health | grep -i security
+curl -I http://localhost:5001/health | grep -i security
 
 # Password strength
-curl -X POST http://localhost:5000/api/auth/register \
+curl -X POST http://localhost:5001/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"test@test.com","password":"weak"}'
 # Should return 400 with validation errors
 
 # Rate limiting
 for i in {1..10}; do
-  curl -X POST http://localhost:5000/api/auth/login \
+  curl -X POST http://localhost:5001/api/auth/login \
     -H "Content-Type: application/json" \
     -d '{"username":"test","password":"wrong"}';
 done

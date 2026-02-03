@@ -1,16 +1,20 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { StripeCheckout } from "@/components/payment/stripe-checkout";
+import { DemoPaymentForm } from "@/components/payment/demo-payment-form";
 import { PaymentSummary } from "@/components/payment/payment-summary";
 import { Alert } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 
 export default function PaymentPage() {
   const router = useRouter();
+  const params = useParams();
   const searchParams = useSearchParams();
+  const locale = params.locale as string;
   const bookingId = searchParams.get("bookingId");
+  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
   const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -33,7 +37,7 @@ export default function PaymentPage() {
       const token = localStorage.getItem("auth_token");
 
       if (!token) {
-        router.push("/customer/login");
+        router.push(`/${locale}/customer/login`);
         return;
       }
 
@@ -61,7 +65,7 @@ export default function PaymentPage() {
 
   const handlePaymentSuccess = () => {
     // Redirect to confirmation page
-    router.push(`/customer/booking/confirmation?bookingId=${bookingId}`);
+    router.push(`/${locale}/customer/booking/confirmation?bookingId=${bookingId}`);
   };
 
   const handlePaymentError = (error: string) => {
@@ -87,7 +91,7 @@ export default function PaymentPage() {
             <h3 className="font-semibold mb-2">Error</h3>
             <p className="text-sm">{error || "Invalid booking"}</p>
             <button
-              onClick={() => router.push("/customer/dashboard")}
+              onClick={() => router.push(`/${locale}/customer/dashboard`)}
               className="mt-4 text-sm underline hover:no-underline"
             >
               Go to Dashboard
@@ -105,6 +109,20 @@ export default function PaymentPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-6xl mx-auto">
+        {/* Demo Mode Banner */}
+        {isDemoMode && (
+          <div className="mb-6 bg-yellow-400 border-2 border-yellow-600 rounded-lg p-4">
+            <div className="flex items-center justify-center space-x-3">
+              <span className="inline-flex items-center px-4 py-2 rounded-full text-base font-bold bg-yellow-600 text-white">
+                DEMO MODE
+              </span>
+              <p className="text-sm font-semibold text-yellow-900">
+                This is a demonstration environment. No real payments will be processed.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Complete Your Booking</h1>
@@ -123,11 +141,21 @@ export default function PaymentPage() {
 
           {/* Right Column - Payment Form */}
           <div>
-            <StripeCheckout
-              bookingId={bookingId}
-              onSuccess={handlePaymentSuccess}
-              onError={handlePaymentError}
-            />
+            {isDemoMode ? (
+              <DemoPaymentForm
+                amount={booking.totalPrice ? parseFloat(booking.totalPrice) : 0}
+                bookingId={bookingId}
+                type="booking"
+                onSuccess={handlePaymentSuccess}
+                onError={handlePaymentError}
+              />
+            ) : (
+              <StripeCheckout
+                bookingId={bookingId}
+                onSuccess={handlePaymentSuccess}
+                onError={handlePaymentError}
+              />
+            )}
 
             {/* Additional Information */}
             <div className="mt-6 space-y-4">

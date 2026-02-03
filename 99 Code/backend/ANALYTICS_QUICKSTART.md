@@ -68,7 +68,7 @@ All endpoints are available at `/api/analytics/*` and require admin authenticati
 ### Get Performance Dashboard
 
 ```bash
-curl -X GET "http://localhost:5000/api/analytics/performance" \
+curl -X GET "http://localhost:5001/api/analytics/performance" \
   -H "Cookie: auth_token=your_token" \
   --cookie-jar cookies.txt
 ```
@@ -76,14 +76,14 @@ curl -X GET "http://localhost:5000/api/analytics/performance" \
 ### Get Booking Statistics
 
 ```bash
-curl -X GET "http://localhost:5000/api/analytics/bookings?startDate=2026-01-01&endDate=2026-01-31" \
+curl -X GET "http://localhost:5001/api/analytics/bookings?startDate=2026-01-01&endDate=2026-01-31" \
   -H "Cookie: auth_token=your_token"
 ```
 
 ### Get Revenue Analytics
 
 ```bash
-curl -X GET "http://localhost:5000/api/analytics/revenue?startDate=2026-01-01&endDate=2026-01-31" \
+curl -X GET "http://localhost:5001/api/analytics/revenue?startDate=2026-01-01&endDate=2026-01-31" \
   -H "Cookie: auth_token=your_token"
 ```
 
@@ -191,7 +191,7 @@ npm run dev
 
 ```typescript
 // Test GET /api/analytics/performance
-const response = await fetch('http://localhost:5000/api/analytics/performance', {
+const response = await fetch('http://localhost:5001/api/analytics/performance', {
   credentials: 'include',
   headers: {
     'Cookie': 'auth_token=your_admin_token'
@@ -265,7 +265,7 @@ LIMIT 20;
 
 ```typescript
 // Login as admin first
-const response = await fetch('http://localhost:5000/api/auth/login', {
+const response = await fetch('http://localhost:5001/api/auth/login', {
   method: 'POST',
   credentials: 'include',
   headers: { 'Content-Type': 'application/json' },

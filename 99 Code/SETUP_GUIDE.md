@@ -84,7 +84,7 @@ cp .env.local.example .env.local
 The default configuration should work:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:5000
+NEXT_PUBLIC_API_URL=http://localhost:5001
 ```
 
 ### 5. Setup Database Schema
@@ -354,7 +354,7 @@ Test backend endpoints using:
 
 Example health check:
 ```bash
-curl http://localhost:5000/health
+curl http://localhost:5001/health
 ```
 
 ## Production Deployment

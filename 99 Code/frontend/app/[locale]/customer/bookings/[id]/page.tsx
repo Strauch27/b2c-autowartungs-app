@@ -150,25 +150,51 @@ export default function BookingDetailPage() {
 
   const getStatusBadge = (status: string) => {
     const statusColors: Record<string, string> = {
+      // Payment & Confirmation
       PENDING_PAYMENT: "bg-yellow-100 text-yellow-800",
       CONFIRMED: "bg-blue-100 text-blue-800",
+      // New FSM Status - Pickup
+      PICKUP_ASSIGNED: "bg-purple-100 text-purple-800",
+      PICKED_UP: "bg-indigo-100 text-indigo-800",
+      // New FSM Status - Workshop
+      AT_WORKSHOP: "bg-orange-100 text-orange-800",
+      IN_SERVICE: "bg-amber-100 text-amber-800",
+      READY_FOR_RETURN: "bg-lime-100 text-lime-800",
+      // New FSM Status - Return
+      RETURN_ASSIGNED: "bg-cyan-100 text-cyan-800",
+      RETURNED: "bg-green-100 text-green-800",
+      // Legacy Status (backward compatibility)
       JOCKEY_ASSIGNED: "bg-purple-100 text-purple-800",
       IN_TRANSIT_TO_WORKSHOP: "bg-indigo-100 text-indigo-800",
       IN_WORKSHOP: "bg-orange-100 text-orange-800",
-      COMPLETED: "bg-green-100 text-green-800",
       IN_TRANSIT_TO_CUSTOMER: "bg-cyan-100 text-cyan-800",
+      // Final States
+      COMPLETED: "bg-green-100 text-green-800",
       DELIVERED: "bg-green-100 text-green-800",
       CANCELLED: "bg-red-100 text-red-800",
     };
 
     const statusLabels: Record<string, { de: string; en: string }> = {
+      // Payment & Confirmation
       PENDING_PAYMENT: { de: "Zahlung ausstehend", en: "Payment Pending" },
       CONFIRMED: { de: "Bestätigt", en: "Confirmed" },
+      // New FSM Status - Pickup
+      PICKUP_ASSIGNED: { de: "Abholung geplant", en: "Pickup Scheduled" },
+      PICKED_UP: { de: "Wird zur Werkstatt gebracht", en: "Being Delivered to Workshop" },
+      // New FSM Status - Workshop
+      AT_WORKSHOP: { de: "In der Werkstatt angekommen", en: "Arrived at Workshop" },
+      IN_SERVICE: { de: "Wird bearbeitet", en: "Being Serviced" },
+      READY_FOR_RETURN: { de: "Bereit zur Rückgabe", en: "Ready for Return" },
+      // New FSM Status - Return
+      RETURN_ASSIGNED: { de: "Rückgabe geplant", en: "Return Scheduled" },
+      RETURNED: { de: "Zurückgegeben", en: "Returned" },
+      // Legacy Status (backward compatibility)
       JOCKEY_ASSIGNED: { de: "Fahrer zugewiesen", en: "Driver Assigned" },
       IN_TRANSIT_TO_WORKSHOP: { de: "Unterwegs zur Werkstatt", en: "In Transit to Workshop" },
       IN_WORKSHOP: { de: "In Werkstatt", en: "In Workshop" },
-      COMPLETED: { de: "Service abgeschlossen", en: "Service Completed" },
       IN_TRANSIT_TO_CUSTOMER: { de: "Unterwegs zum Kunden", en: "In Transit to Customer" },
+      // Final States
+      COMPLETED: { de: "Service abgeschlossen", en: "Service Completed" },
       DELIVERED: { de: "Zugestellt", en: "Delivered" },
       CANCELLED: { de: "Storniert", en: "Cancelled" },
     };

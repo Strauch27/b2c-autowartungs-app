@@ -236,13 +236,13 @@ All missing functionality has been implemented in the created files.
 ### Test Security Headers:
 ```bash
 npm run dev
-curl -I http://localhost:5000/health
+curl -I http://localhost:5001/health
 # Should see: Content-Security-Policy, X-Frame-Options, etc.
 ```
 
 ### Test Password Strength:
 ```bash
-curl -X POST http://localhost:5000/api/auth/register \
+curl -X POST http://localhost:5001/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"test@test.com","password":"weak"}'
 # Should return: 400 with validation errors
@@ -251,7 +251,7 @@ curl -X POST http://localhost:5000/api/auth/register \
 ### Test Rate Limiting:
 ```bash
 for i in {1..10}; do
-  curl -X POST http://localhost:5000/api/auth/login \
+  curl -X POST http://localhost:5001/api/auth/login \
     -H "Content-Type: application/json" \
     -d '{"username":"test","password":"wrong"}';
 done
@@ -263,7 +263,7 @@ done
 # Login first to get token
 TOKEN="your-jwt-token"
 
-curl -X GET http://localhost:5000/api/gdpr/export \
+curl -X GET http://localhost:5001/api/gdpr/export \
   -H "Authorization: Bearer $TOKEN"
 # Should return: JSON with all user data
 ```

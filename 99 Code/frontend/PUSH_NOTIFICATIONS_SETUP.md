@@ -305,7 +305,7 @@ if ('Notification' in window && Notification.permission === 'granted') {
 ### Backend Test Request
 
 ```bash
-curl -X POST http://localhost:5000/api/notifications/send \
+curl -X POST http://localhost:5001/api/notifications/send \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{

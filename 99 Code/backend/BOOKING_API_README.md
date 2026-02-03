@@ -102,7 +102,7 @@ npm start
 **Mit cURL:**
 
 ```bash
-curl -X POST http://localhost:5000/api/bookings \
+curl -X POST http://localhost:5001/api/bookings \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -131,7 +131,7 @@ chmod +x src/examples/booking-api-examples.sh
 
 1. Importieren Sie `postman/Booking_API.postman_collection.json`
 2. Setzen Sie die Collection Variables:
-   - `base_url`: `http://localhost:5000/api`
+   - `base_url`: `http://localhost:5001/api`
    - `jwt_token`: Ihr JWT Token
    - `vehicle_id`: Eine gültige Vehicle ID
 3. Führen Sie die Requests aus

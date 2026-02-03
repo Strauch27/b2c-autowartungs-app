@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { ServiceCard } from '@/components/customer/ServiceCard';
 import { AVAILABLE_SERVICES } from '@/lib/constants/services';
 import { ServiceType, VehicleData } from '@/lib/types/service';
@@ -10,6 +10,8 @@ import { calculateMultiplePrices } from '@/lib/api/pricing';
 export default function ServiceSelectionPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const params = useParams();
+  const locale = (params.locale as string) || 'de';
 
   // Get vehicle data from URL params (from previous step)
   const [vehicle, setVehicle] = useState<VehicleData | null>(null);
@@ -35,9 +37,9 @@ export default function ServiceSelectionPage() {
       fetchPrices(vehicleData);
     } else {
       // Redirect back to vehicle selection if missing data
-      router.push('/booking/vehicle');
+      router.push(`/${locale}/booking/vehicle`);
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, locale]);
 
   const fetchPrices = async (vehicleData: VehicleData) => {
     try {
@@ -70,7 +72,7 @@ export default function ServiceSelectionPage() {
       serviceType,
     });
 
-    router.push(`/booking/appointment?${params.toString()}`);
+    router.push(`/de/booking/appointment?${params.toString()}`);
   };
 
   if (!vehicle) {

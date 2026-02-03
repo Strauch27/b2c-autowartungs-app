@@ -67,6 +67,33 @@ Professionelle Fahrzeugwartung mit Hol- und Bringservice - Full-Stack Applicatio
 - **Logging:** Winston
 - **Validation:** Zod + express-validator
 
+## Quick Demo Walkthrough
+
+For a complete manual demo of the system, see: [DEMO_WALKTHROUGH.md](./DEMO_WALKTHROUGH.md)
+
+**Quick Start (Demo Mode):**
+```bash
+# 1. Start backend
+cd backend && npm run dev
+
+# 2. Start frontend
+cd frontend && npm run dev
+
+# 3. Run automated demo test
+cd frontend && npx playwright test e2e/01-complete-booking-journey.spec.ts --headed
+```
+
+**Demo Mode Features:**
+- Uses Stripe test cards (no real charges)
+- Complete booking-to-delivery flow in < 3 minutes
+- Auto-confirmation after test payment
+- Extension approval with payment authorization
+- Auto-capture on service completion
+
+**Test Card:** 4242 4242 4242 4242 | Expiry: 12/30 | CVC: 123
+
+---
+
 ## Getting Started
 
 ### Prerequisites
@@ -145,7 +172,7 @@ Professionelle Fahrzeugwartung mit Hol- und Bringservice - Full-Stack Applicatio
    cd backend
    npm run dev
    ```
-   Backend will run on http://localhost:5000
+   Backend will run on http://localhost:5001
 
 2. **Start Frontend** (Terminal 2)
    ```bash
@@ -164,6 +191,9 @@ Professionelle Fahrzeugwartung mit Hol- und Bringservice - Full-Stack Applicatio
 - `npm run build` - Build for production
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
+- `npx playwright test` - Run all E2E tests
+- `npx playwright test --headed` - Run E2E tests with browser visible
+- `npx playwright test e2e/01-complete-booking-journey.spec.ts --headed` - Run demo journey test
 
 #### Backend
 - `npm run dev` - Start development server with watch mode
@@ -289,7 +319,7 @@ cd backend && npm install
 
 After setup:
 1. Verify all three login pages are accessible
-2. Check health endpoint: http://localhost:5000/health
+2. Check health endpoint: http://localhost:5001/health
 3. Start implementing authentication endpoints (Sprint 1)
 4. Add shadcn/ui components as needed
 5. Implement vehicle selection flow

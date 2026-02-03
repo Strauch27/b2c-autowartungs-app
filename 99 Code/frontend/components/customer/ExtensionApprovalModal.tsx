@@ -24,7 +24,9 @@ import {
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { getStripe } from "@/lib/contexts/StripeContext";
 import { ExtensionResponse, bookingsApi } from "@/lib/api/bookings";
-import { useLanguage } from "@/lib/i18n/useLovableTranslation";
+import { DemoPaymentForm } from "@/components/payment/demo-payment-form";
+import { useTranslations } from "next-intl";
+import { useParams } from "next/navigation";
 import { toast } from "sonner";
 
 interface ExtensionApprovalModalProps {
@@ -50,30 +52,9 @@ function PaymentForm({
 }) {
   const stripe = useStripe();
   const elements = useElements();
-  const { language } = useLanguage();
+  const t = useTranslations('extensionApproval');
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
-
-  const t = {
-    de: {
-      paymentTitle: "Zahlung autorisieren",
-      paymentDescription: "Bitte geben Sie Ihre Zahlungsinformationen ein. Der Betrag wird erst nach Abschluss der Arbeiten belastet.",
-      processing: "Verarbeite...",
-      authorize: "Zahlung autorisieren",
-      cancel: "Abbrechen",
-      securityNotice: "Sichere Zahlung durch Stripe. Ihre Zahlungsinformationen sind verschlüsselt.",
-    },
-    en: {
-      paymentTitle: "Authorize Payment",
-      paymentDescription: "Please enter your payment information. The amount will only be charged after work is completed.",
-      processing: "Processing...",
-      authorize: "Authorize Payment",
-      cancel: "Cancel",
-      securityNotice: "Secure payment powered by Stripe. Your payment information is encrypted.",
-    },
-  };
-
-  const texts = t[language];
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -114,8 +95,8 @@ function PaymentForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="rounded-lg bg-muted p-4">
-        <h4 className="font-semibold mb-2">{texts.paymentTitle}</h4>
-        <p className="text-sm text-muted-foreground">{texts.paymentDescription}</p>
+        <h4 className="font-semibold mb-2">{t('paymentTitle')}</h4>
+        <p className="text-sm text-muted-foreground">{t('paymentDescription')}</p>
       </div>
 
       <div className="border rounded-lg p-4">
@@ -135,7 +116,7 @@ function PaymentForm({
 
       <div className="bg-primary/10 rounded-lg p-4">
         <div className="flex items-center justify-between">
-          <span className="text-lg font-semibold">Autorisierter Betrag:</span>
+          <span className="text-lg font-semibold">{t('authorizedAmount')}:</span>
           <span className="text-3xl font-bold text-primary flex items-center gap-1">
             {(extension.totalAmount / 100).toFixed(2)}
             <Euro className="w-6 h-6" />
@@ -151,7 +132,7 @@ function PaymentForm({
           disabled={isProcessing}
           className="flex-1"
         >
-          {texts.cancel}
+          {t('cancel')}
         </Button>
         <Button
           type="submit"
@@ -161,18 +142,18 @@ function PaymentForm({
           {isProcessing ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              {texts.processing}
+              {t('processing')}
             </>
           ) : (
             <>
               <CreditCard className="w-4 h-4 mr-2" />
-              {texts.authorize}
+              {t('authorize')}
             </>
           )}
         </Button>
       </div>
 
-      <p className="text-xs text-center text-muted-foreground">{texts.securityNotice}</p>
+      <p className="text-xs text-center text-muted-foreground">{t('securityNotice')}</p>
     </form>
   );
 }
@@ -185,7 +166,9 @@ export function ExtensionApprovalModal({
   onApproved,
   onDeclined,
 }: ExtensionApprovalModalProps) {
-  const { language } = useLanguage();
+  const t = useTranslations('extensionApproval');
+  const params = useParams();
+  const locale = (params.locale as string) || 'de';
   const [currentView, setCurrentView] = useState<ModalView>("review");
   const [isDeclining, setIsDeclining] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
@@ -196,71 +179,32 @@ export function ExtensionApprovalModal({
   const [isLoadingPayment, setIsLoadingPayment] = useState(false);
   const [isApprovingExtension, setIsApprovingExtension] = useState(false);
 
-  const t = {
-    de: {
-      title: "Auftragserweiterung prüfen",
-      description: "Bitte überprüfen Sie die vorgeschlagenen zusätzlichen Arbeiten",
-      items: "Positionen",
-      images: "Fotos als Nachweis",
-      totalAmount: "Gesamtbetrag",
-      warning: "Hinweis",
-      warningText:
-        "Diese zusätzlichen Arbeiten sind notwendig und wurden von der Werkstatt empfohlen. Die Zahlung wird erst nach Abschluss der Arbeiten belastet.",
-      approve: "Genehmigen & Bezahlen",
-      decline: "Ablehnen",
-      declineReasonLabel: "Grund der Ablehnung (optional)",
-      declineReasonPlaceholder: "z.B. Bitte erst Kostenvoranschlag...",
-      confirmDecline: "Ablehnung bestätigen",
-      cancel: "Abbrechen",
-      declining: "Lehne ab...",
-      approveSuccess: "Erweiterung genehmigt!",
-      declineSuccess: "Erweiterung abgelehnt.",
-      approveError: "Fehler beim Genehmigen der Erweiterung.",
-      declineError: "Fehler beim Ablehnen der Erweiterung.",
-      loadingPayment: "Bereite Zahlung vor...",
-    },
-    en: {
-      title: "Review Order Extension",
-      description: "Please review the proposed additional work",
-      items: "Items",
-      images: "Photo Evidence",
-      totalAmount: "Total Amount",
-      warning: "Notice",
-      warningText:
-        "These additional works are necessary and recommended by the workshop. Payment will only be charged after work is completed.",
-      approve: "Approve & Pay",
-      decline: "Decline",
-      declineReasonLabel: "Reason for declining (optional)",
-      declineReasonPlaceholder: "e.g., Please provide quote first...",
-      confirmDecline: "Confirm Decline",
-      cancel: "Cancel",
-      declining: "Declining...",
-      approveSuccess: "Extension approved!",
-      declineSuccess: "Extension declined.",
-      approveError: "Error approving extension.",
-      declineError: "Error declining extension.",
-      loadingPayment: "Preparing payment...",
-    },
-  };
-
-  const texts = t[language];
-
   const formatPrice = (amount: number) => {
     return (amount / 100).toFixed(2);
   };
 
+  // Check if we're in demo mode (no Stripe key or DEMO_MODE=true)
+  const isDemoMode = !process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
+                     process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+
   const handleApproveClick = async () => {
+    // In demo mode, skip payment creation and go directly to approval
+    if (isDemoMode) {
+      setCurrentView("payment");
+      return;
+    }
+
     try {
       setIsLoadingPayment(true);
 
-      // Step 1: Create payment authorization
+      // Step 1: Create payment authorization (Stripe)
       const paymentData = await bookingsApi.authorizeExtensionPayment(extension.id);
 
       setClientSecret(paymentData.clientSecret);
       setCurrentView("payment");
     } catch (error) {
       console.error("Error creating payment authorization:", error);
-      toast.error(texts.approveError);
+      toast.error(t('approveError'));
     } finally {
       setIsLoadingPayment(false);
     }
@@ -273,12 +217,12 @@ export function ExtensionApprovalModal({
       // Step 2: Approve extension with payment intent ID
       await bookingsApi.approveExtension(extension.id, paymentIntentId);
 
-      toast.success(texts.approveSuccess);
+      toast.success(t('approveSuccess'));
       onApproved();
       handleClose();
     } catch (error) {
       console.error("Error approving extension:", error);
-      toast.error(texts.approveError);
+      toast.error(t('approveError'));
     } finally {
       setIsApprovingExtension(false);
     }
@@ -297,12 +241,12 @@ export function ExtensionApprovalModal({
         declineReason || undefined
       );
 
-      toast.success(texts.declineSuccess);
+      toast.success(t('declineSuccess'));
       onDeclined();
       handleClose();
     } catch (error) {
       console.error("Error declining extension:", error);
-      toast.error(texts.declineError);
+      toast.error(t('declineError'));
     } finally {
       setIsDeclining(false);
     }
@@ -334,9 +278,9 @@ export function ExtensionApprovalModal({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-yellow-600" />
-              {texts.title}
+              {t('reviewTitle')}
             </DialogTitle>
-            <DialogDescription>{texts.description}</DialogDescription>
+            <DialogDescription>{t('reviewDescription')}</DialogDescription>
           </DialogHeader>
 
           {/* Review View */}
@@ -350,7 +294,7 @@ export function ExtensionApprovalModal({
 
                 {/* Items List */}
                 <div className="space-y-3">
-                  <Label className="text-base">{texts.items}</Label>
+                  <Label className="text-base">{t('items')}</Label>
                   <div className="space-y-2">
                     {extension.items.map((item, index) => (
                       <div
@@ -376,7 +320,7 @@ export function ExtensionApprovalModal({
                   <div className="space-y-3">
                     <Label className="flex items-center gap-2 text-base">
                       <ImageIcon className="h-4 w-4" />
-                      {texts.images}
+                      {t('images')}
                     </Label>
                     <div className="grid grid-cols-3 gap-3">
                       {extension.images.map((image, index) => (
@@ -399,7 +343,7 @@ export function ExtensionApprovalModal({
                 {/* Total Amount */}
                 <div className="rounded-lg bg-primary/10 p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-semibold">{texts.totalAmount}:</span>
+                    <span className="text-lg font-semibold">{t('totalAmount')}:</span>
                     <span className="text-3xl font-bold text-primary flex items-center gap-1">
                       {formatPrice(extension.totalAmount)}
                       <Euro className="w-6 h-6" />
@@ -412,8 +356,8 @@ export function ExtensionApprovalModal({
                   <div className="flex gap-3">
                     <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-medium text-yellow-900 mb-1">{texts.warning}</p>
-                      <p className="text-sm text-yellow-800">{texts.warningText}</p>
+                      <p className="font-medium text-yellow-900 mb-1">{t('warning')}</p>
+                      <p className="text-sm text-yellow-800">{t('warningText')}</p>
                     </div>
                   </div>
                 </div>
@@ -427,7 +371,7 @@ export function ExtensionApprovalModal({
                   className="text-destructive hover:text-destructive"
                 >
                   <XCircle className="w-4 h-4 mr-2" />
-                  {texts.decline}
+                  {t('decline')}
                 </Button>
                 <Button
                   onClick={handleApproveClick}
@@ -437,12 +381,12 @@ export function ExtensionApprovalModal({
                   {isLoadingPayment ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      {texts.loadingPayment}
+                      {t('loadingPayment')}
                     </>
                   ) : (
                     <>
                       <CheckCircle className="w-4 h-4 mr-2" />
-                      {texts.approve}
+                      {t('approveAndPay')}
                     </>
                   )}
                 </Button>
@@ -451,37 +395,56 @@ export function ExtensionApprovalModal({
           )}
 
           {/* Payment View */}
-          {currentView === "payment" && clientSecret && stripePromise && (
-            <Elements
-              stripe={stripePromise}
-              options={{
-                clientSecret,
-                appearance: {
-                  theme: "stripe",
-                  variables: {
-                    colorPrimary: "#0070f3",
-                    colorBackground: "#ffffff",
-                    colorText: "#1a1a1a",
-                    colorDanger: "#ef4444",
-                    fontFamily: "system-ui, sans-serif",
-                    borderRadius: "8px",
-                  },
-                },
-                locale: language === "de" ? "de" : "en",
-              }}
-            >
-              {isApprovingExtension ? (
-                <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                  <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                  <p className="text-lg font-medium">Genehmige Erweiterung...</p>
-                </div>
-              ) : (
-                <PaymentForm
-                  extension={extension}
-                  onSuccess={handlePaymentSuccess}
-                  onCancel={handleCancelPayment}
+          {/* Payment View - Demo Mode or Stripe */}
+          {currentView === "payment" && (
+            <>
+              {isDemoMode ? (
+                // Demo Mode Payment
+                <DemoPaymentForm
+                  amount={extension.totalAmount / 100}
+                  extensionId={extension.id}
+                  type="extension"
+                  onSuccess={() => {
+                    toast.success(t('approveSuccess'));
+                    onApproved();
+                    handleClose();
+                  }}
+                  onError={(error) => {
+                    toast.error(error);
+                  }}
                 />
-              )}
+              ) : clientSecret && stripePromise ? (
+                // Stripe Payment
+                <Elements
+                  stripe={stripePromise}
+                  options={{
+                    clientSecret,
+                    appearance: {
+                      theme: "stripe",
+                      variables: {
+                        colorPrimary: "#0070f3",
+                        colorBackground: "#ffffff",
+                        colorText: "#1a1a1a",
+                        colorDanger: "#ef4444",
+                        fontFamily: "system-ui, sans-serif",
+                        borderRadius: "8px",
+                      },
+                    },
+                    locale: locale === "de" ? "de" : "en",
+                  }}
+                >
+                  {isApprovingExtension ? (
+                    <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                      <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                      <p className="text-lg font-medium">{t('approvingExtension')}</p>
+                    </div>
+                  ) : (
+                    <PaymentForm
+                      extension={extension}
+                      onSuccess={handlePaymentSuccess}
+                      onCancel={handleCancelPayment}
+                    />
+                  )}
             </Elements>
           )}
 
@@ -491,11 +454,11 @@ export function ExtensionApprovalModal({
               <div className="space-y-4">
                 <div className="rounded-lg border border-red-200 bg-red-50 p-4">
                   <Label htmlFor="decline-reason" className="text-base mb-2 block">
-                    {texts.declineReasonLabel}
+                    {t('declineReasonLabel')}
                   </Label>
                   <Textarea
                     id="decline-reason"
-                    placeholder={texts.declineReasonPlaceholder}
+                    placeholder={t('declineReasonPlaceholder')}
                     value={declineReason}
                     onChange={(e) => setDeclineReason(e.target.value)}
                     rows={4}
@@ -510,7 +473,7 @@ export function ExtensionApprovalModal({
                   onClick={handleCancelDecline}
                   disabled={isDeclining}
                 >
-                  {texts.cancel}
+                  {t('cancel')}
                 </Button>
                 <Button
                   variant="destructive"
@@ -521,12 +484,12 @@ export function ExtensionApprovalModal({
                   {isDeclining ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      {texts.declining}
+                      {t('declining')}
                     </>
                   ) : (
                     <>
                       <XCircle className="w-4 h-4 mr-2" />
-                      {texts.confirmDecline}
+                      {t('confirmDecline')}
                     </>
                   )}
                 </Button>

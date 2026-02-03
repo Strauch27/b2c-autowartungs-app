@@ -3,7 +3,7 @@
 ## Overview
 This document describes the REST API endpoints for the B2C Autowartungs-App backend.
 
-Base URL: `http://localhost:5000/api`
+Base URL: `http://localhost:5001/api`
 
 ## Authentication
 Most endpoints require authentication using JWT tokens. Include the token in the Authorization header:
@@ -687,11 +687,11 @@ Use the provided authentication to get a JWT token, then include it in all reque
 
 ```bash
 # Get magic link (development mode returns link in response)
-curl -X POST http://localhost:5000/api/auth/customer/magic-link \
+curl -X POST http://localhost:5001/api/auth/customer/magic-link \
   -H "Content-Type: application/json" \
   -d '{"email": "customer@example.com"}'
 
 # Use the token from the magic link verification
-curl -X GET http://localhost:5000/api/vehicles \
+curl -X GET http://localhost:5001/api/vehicles \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```

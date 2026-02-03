@@ -64,13 +64,21 @@ const SERVICE_TYPE_LABELS: Record<ServiceType, string> = {
 const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
   PENDING_PAYMENT: 'Zahlung ausstehend',
   CONFIRMED: 'Bestätigt',
+  PICKUP_ASSIGNED: 'Abholung geplant',
+  PICKED_UP: 'Abgeholt',
+  AT_WORKSHOP: 'In Werkstatt angekommen',
+  IN_SERVICE: 'In Bearbeitung',
+  READY_FOR_RETURN: 'Bereit zur Rückgabe',
+  RETURN_ASSIGNED: 'Rückgabe geplant',
+  RETURNED: 'Zurückgegeben',
+  DELIVERED: 'Übergeben', // Alias für RETURNED
+  CANCELLED: 'Storniert',
+  // Legacy status (deprecated)
   JOCKEY_ASSIGNED: 'Jockey zugewiesen',
   IN_TRANSIT_TO_WORKSHOP: 'Auf dem Weg zur Werkstatt',
   IN_WORKSHOP: 'In der Werkstatt',
   COMPLETED: 'Abgeschlossen',
-  IN_TRANSIT_TO_CUSTOMER: 'Auf dem Rückweg',
-  DELIVERED: 'Übergeben',
-  CANCELLED: 'Storniert'
+  IN_TRANSIT_TO_CUSTOMER: 'Auf dem Rückweg'
 };
 
 /**
@@ -605,6 +613,88 @@ function getStatusUpdateData(status: BookingStatus): {
         'Sie erhalten eine Benachrichtigung sobald ein Jockey zugewiesen wurde'
       ]
     },
+    PICKUP_ASSIGNED: {
+      icon: '👤',
+      title: 'Abholung geplant',
+      description: 'Ein Jockey wurde für die Abholung zugewiesen und wird Sie vor dem Termin kontaktieren.',
+      nextSteps: [
+        'Der Jockey wird Sie kontaktieren, um die Abholung zu bestätigen',
+        'Fahrzeugschlüssel und Papiere bereithalten'
+      ]
+    },
+    PICKED_UP: {
+      icon: '🚗',
+      title: 'Fahrzeug abgeholt',
+      description: 'Ihr Fahrzeug wurde abgeholt und wird zur Werkstatt gebracht.',
+      nextSteps: [
+        'Service beginnt in Kürze',
+        'Sie erhalten Updates zum Fortschritt'
+      ]
+    },
+    AT_WORKSHOP: {
+      icon: '🏢',
+      title: 'In Werkstatt angekommen',
+      description: 'Ihr Fahrzeug ist in der Werkstatt angekommen.',
+      nextSteps: [
+        'Service beginnt in Kürze',
+        'Bei Bedarf werden Sie über zusätzliche Arbeiten informiert'
+      ]
+    },
+    IN_SERVICE: {
+      icon: '🔧',
+      title: 'Service läuft',
+      description: 'Ihr Fahrzeug wird derzeit gewartet.',
+      nextSteps: [
+        'Service wird durchgeführt',
+        'Bei Bedarf werden Sie über zusätzliche Arbeiten informiert'
+      ]
+    },
+    READY_FOR_RETURN: {
+      icon: '✓',
+      title: 'Service abgeschlossen',
+      description: 'Der Service an Ihrem Fahrzeug wurde erfolgreich abgeschlossen.',
+      nextSteps: [
+        'Fahrzeug wird in Kürze zu Ihnen zurückgebracht',
+        'Servicebericht wird erstellt'
+      ]
+    },
+    RETURN_ASSIGNED: {
+      icon: '🚗',
+      title: 'Rückgabe geplant',
+      description: 'Ein Jockey wurde für die Rückgabe zugewiesen.',
+      nextSteps: [
+        'Bitte seien Sie zur vereinbarten Zeit verfügbar',
+        'Servicebericht wird bei Übergabe erklärt'
+      ]
+    },
+    RETURNED: {
+      icon: '🎉',
+      title: 'Fahrzeug zurückgegeben',
+      description: 'Ihr Fahrzeug wurde erfolgreich zurückgegeben. Vielen Dank für Ihr Vertrauen!',
+      nextSteps: [
+        'Servicebericht prüfen',
+        'Bei Fragen kontaktieren Sie uns gerne'
+      ]
+    },
+    DELIVERED: {
+      icon: '🎉',
+      title: 'Fahrzeug übergeben',
+      description: 'Ihr Fahrzeug wurde erfolgreich zurückgegeben. Vielen Dank für Ihr Vertrauen!',
+      nextSteps: [
+        'Servicebericht prüfen',
+        'Bei Fragen kontaktieren Sie uns gerne'
+      ]
+    },
+    CANCELLED: {
+      icon: '✗',
+      title: 'Buchung storniert',
+      description: 'Ihre Buchung wurde storniert.',
+      nextSteps: [
+        'Bei Fragen zur Stornierung kontaktieren Sie uns',
+        'Rückerstattung erfolgt in 5-7 Werktagen'
+      ]
+    },
+    // Legacy statuses (deprecated)
     JOCKEY_ASSIGNED: {
       icon: '👤',
       title: 'Jockey zugewiesen',
@@ -649,24 +739,6 @@ function getStatusUpdateData(status: BookingStatus): {
         'Bitte seien Sie zur vereinbarten Zeit verfügbar',
         'Servicebericht wird bei Übergabe erklärt'
       ]
-    },
-    DELIVERED: {
-      icon: '🎉',
-      title: 'Fahrzeug übergeben',
-      description: 'Ihr Fahrzeug wurde erfolgreich zurückgegeben. Vielen Dank für Ihr Vertrauen!',
-      nextSteps: [
-        'Servicebericht prüfen',
-        'Bei Fragen kontaktieren Sie uns gerne'
-      ]
-    },
-    CANCELLED: {
-      icon: '✗',
-      title: 'Buchung storniert',
-      description: 'Ihre Buchung wurde storniert.',
-      nextSteps: [
-        'Bei Fragen zur Stornierung kontaktieren Sie uns',
-        'Rückerstattung erfolgt in 5-7 Werktagen'
-      ]
     }
   };
 
@@ -679,17 +751,25 @@ function getStatusUpdateData(status: BookingStatus): {
 function calculateProgressPercent(status: BookingStatus): number {
   const progressMap: Record<BookingStatus, number> = {
     PENDING_PAYMENT: 0,
-    CONFIRMED: 15,
-    JOCKEY_ASSIGNED: 30,
-    IN_TRANSIT_TO_WORKSHOP: 45,
-    IN_WORKSHOP: 60,
-    COMPLETED: 75,
-    IN_TRANSIT_TO_CUSTOMER: 90,
+    CONFIRMED: 10,
+    PICKUP_ASSIGNED: 20,
+    PICKED_UP: 30,
+    AT_WORKSHOP: 40,
+    IN_SERVICE: 60,
+    READY_FOR_RETURN: 75,
+    RETURN_ASSIGNED: 85,
+    RETURNED: 100,
     DELIVERED: 100,
-    CANCELLED: 0
+    CANCELLED: 0,
+    // Legacy statuses (deprecated)
+    JOCKEY_ASSIGNED: 20,
+    IN_TRANSIT_TO_WORKSHOP: 30,
+    IN_WORKSHOP: 50,
+    COMPLETED: 75,
+    IN_TRANSIT_TO_CUSTOMER: 85
   };
 
-  return progressMap[status];
+  return progressMap[status] || 0;
 }
 
 /**

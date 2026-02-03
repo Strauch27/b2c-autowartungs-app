@@ -3,6 +3,9 @@ import { prisma } from '../config/database';
 import { logger } from '../config/logger';
 import { z } from 'zod';
 import { paymentService } from '../services/payment.service';
+import { demoPaymentService } from '../services/demo-payment.service';
+import { assertTransition, Actor } from '../domain/bookingFsm';
+import { BookingStatus } from '@prisma/client';
 
 /**
  * Get all bookings/orders for the workshop
@@ -57,7 +60,7 @@ export async function getWorkshopOrders(req: Request, res: Response, next: NextF
       success: true,
       data: bookings.map(booking => ({
         ...booking,
-        totalPrice: (booking.totalPrice / 100).toFixed(2)
+        totalPrice: booking.totalPrice.toString()
       })),
       pagination: {
         page,
@@ -126,7 +129,7 @@ export async function getWorkshopOrder(req: Request, res: Response, next: NextFu
       success: true,
       data: {
         ...booking,
-        totalPrice: (booking.totalPrice / 100).toFixed(2)
+        totalPrice: booking.totalPrice.toString()
       }
     });
   } catch (error) {
@@ -245,7 +248,7 @@ export async function createExtension(req: Request, res: Response, next: NextFun
  * Update booking status
  */
 const updateStatusSchema = z.object({
-  status: z.enum(['PENDING_PAYMENT', 'CONFIRMED', 'JOCKEY_ASSIGNED', 'IN_TRANSIT_TO_WORKSHOP', 'IN_WORKSHOP', 'COMPLETED', 'IN_TRANSIT_TO_CUSTOMER', 'DELIVERED', 'CANCELLED'])
+  status: z.nativeEnum(BookingStatus)
 });
 
 export async function updateBookingStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -253,7 +256,37 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
     const { id } = req.params;
     const { status } = updateStatusSchema.parse(req.body);
 
-    // id can be either UUID or bookingNumber
+    // Get current booking to validate FSM transition
+    const currentBooking = await prisma.booking.findUnique({
+      where: { bookingNumber: id }
+    });
+
+    if (!currentBooking) {
+      res.status(404).json({
+        success: false,
+        error: {
+          code: 'BOOKING_NOT_FOUND',
+          message: 'Booking not found'
+        }
+      });
+      return;
+    }
+
+    // Validate FSM transition
+    try {
+      assertTransition(currentBooking.status, status, Actor.WORKSHOP);
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_TRANSITION',
+          message: error.message
+        }
+      });
+      return;
+    }
+
+    // Perform status update
     const booking = await prisma.booking.update({
       where: { bookingNumber: id },
       data: { status },
@@ -279,17 +312,20 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
     });
 
     logger.info('Booking status updated:', {
-      bookingId: id,
+      bookingId: currentBooking.id,
+      bookingNumber: id,
+      oldStatus: currentBooking.status,
       newStatus: status
     });
 
-    // When workshop marks service as COMPLETED, create return assignment and capture extension payments
-    if (status === 'COMPLETED') {
+    // When workshop marks service as READY_FOR_RETURN (or legacy COMPLETED), create return assignment
+    if (status === BookingStatus.READY_FOR_RETURN || status === BookingStatus.COMPLETED) {
       try {
         // Find the jockey who did the pickup (prefer same jockey for return)
+        // IMPORTANT: Use booking.id (UUID) for FK relationships, not bookingNumber
         const pickupAssignment = await prisma.jockeyAssignment.findFirst({
           where: {
-            bookingId: id,
+            bookingId: currentBooking.id,
             type: 'PICKUP',
           }
         });
@@ -314,7 +350,7 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
 
           await prisma.jockeyAssignment.create({
             data: {
-              bookingId: id,
+              bookingId: currentBooking.id, // Use booking.id (UUID), not bookingNumber
               jockeyId,
               type: 'RETURN',
               status: 'ASSIGNED',
@@ -334,14 +370,22 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
             }
           });
 
-          logger.info('Return assignment created for jockey', {
-            bookingId: id,
+          // Fix B) Update booking status to RETURN_ASSIGNED after creating return assignment
+          await prisma.booking.update({
+            where: { id: currentBooking.id },
+            data: { status: BookingStatus.RETURN_ASSIGNED }
+          });
+
+          logger.info('Return assignment created and booking status updated to RETURN_ASSIGNED', {
+            bookingId: currentBooking.id,
+            bookingNumber: id,
             jockeyId,
             scheduledTime
           });
         } else {
           logger.warn('No available jockey found for return assignment', {
-            bookingId: id
+            bookingId: currentBooking.id,
+            bookingNumber: id
           });
         }
       } catch (error) {
@@ -351,9 +395,10 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
 
       // Auto-capture approved extensions
       try {
+        // IMPORTANT: Use booking.id (UUID) for FK relationships, not bookingNumber
         const approvedExtensions = await prisma.extension.findMany({
           where: {
-            bookingId: id,
+            bookingId: currentBooking.id,
             status: 'APPROVED',
             paymentIntentId: { not: null },
           }
@@ -361,22 +406,34 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
 
         for (const extension of approvedExtensions) {
           try {
-            // Capture payment
-            await paymentService.capturePayment(extension.paymentIntentId!);
+            // Capture payment using appropriate service
+            const isDemoMode = process.env.DEMO_MODE === 'true';
 
-            // Update extension status
+            if (isDemoMode) {
+              // Use demo payment service
+              await demoPaymentService.capturePayment(extension.paymentIntentId!);
+              logger.info('[DEMO] Extension payment auto-captured', {
+                extensionId: extension.id,
+                bookingId: id,
+                amount: extension.totalAmount / 100
+              });
+            } else {
+              // Use real Stripe payment service
+              await paymentService.capturePayment(extension.paymentIntentId!);
+              logger.info('Extension payment auto-captured', {
+                extensionId: extension.id,
+                bookingId: id,
+                amount: extension.totalAmount / 100
+              });
+            }
+
+            // Update extension status to COMPLETED
             await prisma.extension.update({
               where: { id: extension.id },
               data: {
                 status: 'COMPLETED',
                 paidAt: new Date(),
               }
-            });
-
-            logger.info('Extension payment auto-captured', {
-              extensionId: extension.id,
-              bookingId: id,
-              amount: extension.totalAmount
             });
           } catch (error) {
             logger.error('Failed to capture extension payment', {
@@ -397,7 +454,7 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
       success: true,
       data: {
         ...booking,
-        totalPrice: (booking.totalPrice / 100).toFixed(2)
+        totalPrice: booking.totalPrice.toString()
       }
     });
   } catch (error) {

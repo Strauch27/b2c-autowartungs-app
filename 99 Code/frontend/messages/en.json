@@ -811,14 +811,24 @@
         "title": "Pickup",
         "subtitle": "When should we pick up your vehicle?",
         "date": "Pickup Date",
-        "time": "Pickup Time"
+        "time": "Pickup Time",
+        "quickSelect": {
+          "today": "Today",
+          "tomorrow": "Tomorrow",
+          "nextWeekday": "Next Weekday"
+        }
       },
       "return": {
         "title": "Return",
         "subtitle": "When should we return your vehicle?",
         "date": "Return Date",
         "time": "Return Time",
-        "note": "Return must be at least one day after pickup."
+        "note": "Return must be at least one day after pickup.",
+        "quickSelect": {
+          "tomorrow": "+1 Day",
+          "nextWeek": "+1 Week"
+        },
+        "validationError": "Return must be after pickup"
       },
       "address": {
         "title": "Pickup & Return Address",
@@ -948,5 +958,214 @@
     },
     "viewDetails": "Details",
     "createExtension": "Extension"
+  },
+  "payment": {
+    "summary": {
+      "title": "Booking Summary",
+      "reviewDetails": "Please review your booking details before payment",
+      "service": "Service",
+      "vehicle": "Vehicle",
+      "licensePlate": "License Plate",
+      "pickupDateTime": "Pickup Date & Time",
+      "pickupAddress": "Pickup Address",
+      "priceBreakdown": "Price Breakdown",
+      "basePrice": "Base Price",
+      "ageAdjustment": "Age Adjustment",
+      "totalAmount": "Total Amount",
+      "includesTaxes": "Includes all taxes and fees"
+    },
+    "form": {
+      "bookingId": "Booking ID",
+      "totalAmount": "Total Amount",
+      "processing": "Processing Payment...",
+      "payButton": "Pay {amount} EUR",
+      "securityNotice": "Secure payment powered by Stripe. Your payment information is encrypted and secure.",
+      "paymentFailed": "Payment failed. Please try again.",
+      "unexpectedError": "An unexpected error occurred. Please try again."
+    },
+    "checkout": {
+      "title": "Complete Your Payment",
+      "demoMode": "Demo payment mode - No real charges will be made",
+      "securePayment": "Secure payment processing powered by Stripe",
+      "initializing": "Initializing secure payment...",
+      "initFailed": "Payment Initialization Failed",
+      "tryAgain": "Try Again",
+      "authRequired": "Authentication required. Please log in.",
+      "fetchFailed": "Failed to fetch booking",
+      "stripeNotConfigured": "Stripe is not configured. Please contact support."
+    },
+    "demo": {
+      "badge": "DEMO MODE",
+      "simulationNotice": "This is a simulated payment for demonstration purposes.",
+      "noRealCharge": "No real payment will be processed. Click \"Pay with Demo\" to simulate a successful payment.",
+      "paymentMethod": "Payment Method",
+      "demoPaymentSimulated": "Demo Payment (Simulated)",
+      "processing": "Processing Demo Payment...",
+      "payButton": "Pay with Demo ({amount} EUR)",
+      "testingOnly": "Demo payment mode - No real charges will be made. This is for testing purposes only.",
+      "success": "Payment Successful!",
+      "bookingConfirmed": "Your booking has been confirmed.",
+      "extensionAuthorized": "Extension has been authorized.",
+      "invalidType": "Invalid payment type or missing ID"
+    },
+    "serviceTypes": {
+      "INSPECTION": "Inspection",
+      "OIL_SERVICE": "Oil Change",
+      "BRAKE_SERVICE": "Brake Service",
+      "TUV": "TÜV/MOT",
+      "CLIMATE_SERVICE": "Climate Service",
+      "CUSTOM": "Custom Service"
+    }
+  },
+  "bookingPayment": {
+    "loading": "Loading booking details...",
+    "error": "Error",
+    "invalidBooking": "Invalid booking",
+    "noBookingId": "No booking ID provided",
+    "goToDashboard": "Go to Dashboard",
+    "demoBanner": "This is a demonstration environment. No real payments will be processed.",
+    "title": "Complete Your Booking",
+    "subtitle": "Review your booking details and complete the payment to confirm your service appointment.",
+    "whatNext": {
+      "title": "What happens next?",
+      "step1": "Complete the payment to confirm your booking",
+      "step2": "Receive a confirmation email with all details",
+      "step3": "A jockey will be assigned to your booking",
+      "step4": "Your vehicle will be picked up at the scheduled time"
+    },
+    "cancellationPolicy": {
+      "title": "Cancellation Policy",
+      "text": "You can cancel your booking up to 24 hours before the scheduled pickup time for a full refund."
+    }
+  },
+  "bookingConfirmation": {
+    "loading": "Loading confirmation...",
+    "title": "Booking Confirmed!",
+    "subtitle": "Your booking has been successfully confirmed. We've sent a confirmation email to your registered email address.",
+    "bookingDetails": "Booking Details",
+    "bookingNumber": "Booking Number",
+    "service": "Service",
+    "vehicle": "Vehicle",
+    "pickupDateTime": "Pickup Date & Time",
+    "pickupAddress": "Pickup Address",
+    "whatNext": {
+      "title": "What happens next?",
+      "step1Title": "You'll receive a confirmation email",
+      "step1Desc": "Check your inbox for the booking details and receipt",
+      "step2Title": "A jockey will be assigned",
+      "step2Desc": "You'll be notified when a jockey is assigned to your booking",
+      "step3Title": "Vehicle pickup at scheduled time",
+      "step3Desc": "Make sure your vehicle is ready at the scheduled pickup time",
+      "step4Title": "Service completion and delivery",
+      "step4Desc": "Track your booking status in your dashboard"
+    },
+    "actions": {
+      "goToDashboard": "Go to Dashboard",
+      "printConfirmation": "Print Confirmation"
+    },
+    "support": {
+      "needHelp": "Need help?",
+      "contactSupport": "Contact our support team"
+    }
+  },
+  "protectedRoute": {
+    "loading": "Loading..."
+  },
+  "extensions": {
+    "title": "Order Extensions",
+    "noExtensions": "No order extensions available",
+    "pending": "Pending",
+    "approved": "Approved",
+    "declined": "Declined",
+    "completed": "Completed",
+    "authorized": "Authorized",
+    "paid": "Paid",
+    "viewDetails": "View Details",
+    "totalAmount": "Total Amount",
+    "items": "Items",
+    "requestedOn": "Requested on",
+    "approvedOn": "Approved on",
+    "declinedOn": "Declined on",
+    "paidOn": "Paid on",
+    "images": "Photos"
+  },
+  "extensionApproval": {
+    "reviewTitle": "Review Order Extension",
+    "reviewDescription": "Please review the proposed additional work",
+    "items": "Items",
+    "images": "Photo Evidence",
+    "totalAmount": "Total Amount",
+    "warning": "Notice",
+    "warningText": "These additional works are necessary and recommended by the workshop. Payment will only be charged after work is completed.",
+    "approveAndPay": "Approve & Pay",
+    "declineReasonLabel": "Reason for declining (optional)",
+    "declining": "Declining...",
+    "approveSuccess": "Extension approved!",
+    "approveError": "Error approving extension.",
+    "declineError": "Error declining extension.",
+    "loadingPayment": "Preparing payment...",
+    "authorizedAmount": "Authorized Amount",
+    "approvingExtension": "Approving extension...",
+    "paymentTitle": "Authorize Payment",
+    "paymentDescription": "Please enter your payment information. The amount will only be charged after work is completed.",
+    "processing": "Processing...",
+    "authorize": "Authorize Payment",
+    "cancel": "Cancel",
+    "securityNotice": "Secure payment powered by Stripe. Your payment information is encrypted.",
+    "paymentFailed": "Payment authorization failed",
+    "successMessage": "Extension approved and payment authorized!",
+    "declineTitle": "Decline Extension",
+    "declineDescription": "Are you sure you want to decline this extension?",
+    "declineReason": "Reason for declining (optional)",
+    "declineReasonPlaceholder": "e.g. Too expensive, not required...",
+    "confirmDecline": "Confirm Decline",
+    "declineSuccess": "Extension has been declined",
+    "approve": "Approve",
+    "decline": "Decline",
+    "extension": "Order Extension",
+    "description": "Description",
+    "totalCost": "Total Cost",
+    "documentation": "Documentation"
+  },
+  "workshopModal": {
+    "orderDetails": {
+      "title": "Order Details",
+      "customer": "Customer Information",
+      "vehicle": "Vehicle Information",
+      "service": "Service",
+      "timeline": "Status Timeline",
+      "address": "Pickup/Return Address",
+      "notes": "Notes",
+      "noNotes": "No notes",
+      "startWork": "Start Work",
+      "markComplete": "Mark as Completed",
+      "status": {
+        "pending": "Pending",
+        "inProgress": "In Progress",
+        "completed": "Completed"
+      },
+      "steps": {
+        "received": "Order Received",
+        "inProgress": "In Progress",
+        "completed": "Completed"
+      }
+    },
+    "extension": {
+      "title": "Create Order Extension",
+      "description": "Additional work for",
+      "addItem": "Add Item",
+      "item": "Item",
+      "itemDescription": "Description",
+      "itemDescriptionPlaceholder": "e.g., Replace rear brake pads",
+      "itemPrice": "Price",
+      "photos": "Photo Evidence",
+      "photosDesc": "Document the need with photos",
+      "addPhoto": "Add Photo",
+      "total": "Total Price",
+      "cancel": "Cancel",
+      "send": "Send to Customer",
+      "success": "Extension successfully sent to customer!",
+      "validation": "Please fill in all items."
+    }
   }
 }

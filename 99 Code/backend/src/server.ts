@@ -46,6 +46,7 @@ import analyticsRoutes from './routes/analytics.routes';
 import workshopsRoutes from './routes/workshops.routes';
 import extensionsRoutes from './routes/extensions.routes';
 import jockeysRoutes from './routes/jockeys.routes';
+import demoRoutes from './routes/demo.routes';
 
 // Initialize Firebase (optional - will only initialize if configured)
 import { initializeFirebase, isFirebaseConfigured } from './config/firebase';
@@ -71,6 +72,12 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/workshops', workshopsRoutes);
 app.use('/api/extensions', extensionsRoutes);
 app.use('/api/jockeys', jockeysRoutes);
+
+// Demo routes (only active when DEMO_MODE=true)
+if (process.env.DEMO_MODE === 'true') {
+  app.use('/api/demo', demoRoutes);
+  logger.info('Demo mode enabled - demo endpoints are active at /api/demo/*');
+}
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

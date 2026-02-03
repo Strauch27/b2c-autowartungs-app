@@ -22,29 +22,51 @@ import { useUser } from "@/lib/auth-hooks";
 import { bookingsApi, BookingResponse } from "@/lib/api/bookings";
 import { toast } from "sonner";
 import { NotificationCenter } from "@/components/customer/NotificationCenter";
+import dynamic from "next/dynamic";
+
+// Load LanguageSwitcher without SSR to avoid hydration mismatch
+const LanguageSwitcher = dynamic(() => import("@/components/LanguageSwitcher"), {
+  ssr: false,
+});
 
 const statusStyles = {
   PENDING_PAYMENT: "badge-pending",
   CONFIRMED: "badge-pending",
+  PICKUP_ASSIGNED: "badge-in-progress",
+  PICKED_UP: "badge-in-progress",
+  AT_WORKSHOP: "badge-in-progress",
+  IN_SERVICE: "badge-in-progress",
+  READY_FOR_RETURN: "badge-in-progress",
+  RETURN_ASSIGNED: "badge-in-progress",
+  RETURNED: "badge-in-progress",
+  DELIVERED: "badge-completed",
+  CANCELLED: "badge-completed",
+  // Legacy status mappings (for backward compatibility)
   JOCKEY_ASSIGNED: "badge-in-progress",
   IN_TRANSIT_TO_WORKSHOP: "badge-in-progress",
   IN_WORKSHOP: "badge-in-progress",
   COMPLETED: "badge-in-progress",
   IN_TRANSIT_TO_CUSTOMER: "badge-in-progress",
-  DELIVERED: "badge-completed",
-  CANCELLED: "badge-completed",
 };
 
 const statusLabels: Record<string, { de: string; en: string }> = {
   PENDING_PAYMENT: { de: "Zahlung ausstehend", en: "Payment Pending" },
   CONFIRMED: { de: "Bestätigt", en: "Confirmed" },
+  PICKUP_ASSIGNED: { de: "Abholung geplant", en: "Pickup Scheduled" },
+  PICKED_UP: { de: "Wird zur Werkstatt gebracht", en: "Being Delivered to Workshop" },
+  AT_WORKSHOP: { de: "In der Werkstatt angekommen", en: "Arrived at Workshop" },
+  IN_SERVICE: { de: "Wird bearbeitet", en: "Being Serviced" },
+  READY_FOR_RETURN: { de: "Bereit zur Rückgabe", en: "Ready for Return" },
+  RETURN_ASSIGNED: { de: "Rückgabe geplant", en: "Return Scheduled" },
+  RETURNED: { de: "Zurückgebracht", en: "Returned to Customer" },
+  DELIVERED: { de: "Abgeschlossen", en: "Completed" },
+  CANCELLED: { de: "Storniert", en: "Cancelled" },
+  // Legacy status mappings (for backward compatibility)
   JOCKEY_ASSIGNED: { de: "Jockey zugeteilt", en: "Jockey Assigned" },
   IN_TRANSIT_TO_WORKSHOP: { de: "Auf dem Weg zur Werkstatt", en: "In Transit to Workshop" },
   IN_WORKSHOP: { de: "In Werkstatt", en: "In Workshop" },
   COMPLETED: { de: "Abgeschlossen", en: "Completed" },
   IN_TRANSIT_TO_CUSTOMER: { de: "Auf dem Rückweg", en: "In Transit to Customer" },
-  DELIVERED: { de: "Zugestellt", en: "Delivered" },
-  CANCELLED: { de: "Storniert", en: "Cancelled" },
 };
 
 export default function CustomerDashboardPage() {
@@ -138,8 +160,11 @@ export default function CustomerDashboardPage() {
             </Link>
           </nav>
 
-          {/* Logout */}
-          <div className="border-t border-border p-4">
+          {/* Language Switcher & Logout */}
+          <div className="border-t border-border p-4 space-y-2">
+            <div className="flex justify-center">
+              <LanguageSwitcher />
+            </div>
             <button
               onClick={handleLogout}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
@@ -162,6 +187,7 @@ export default function CustomerDashboardPage() {
             <span className="font-bold">AutoConcierge</span>
           </Link>
           <div className="flex items-center gap-2">
+            <LanguageSwitcher />
             <NotificationCenter />
             <Button variant="ghost" size="icon" onClick={handleLogout}>
               <LogOut className="h-5 w-5" />
@@ -170,7 +196,8 @@ export default function CustomerDashboardPage() {
         </header>
 
         {/* Desktop Header */}
-        <header className="hidden h-16 items-center justify-end border-b border-border bg-card px-6 lg:flex">
+        <header className="hidden h-16 items-center justify-end gap-3 border-b border-border bg-card px-6 lg:flex">
+          <LanguageSwitcher />
           <NotificationCenter />
         </header>
 

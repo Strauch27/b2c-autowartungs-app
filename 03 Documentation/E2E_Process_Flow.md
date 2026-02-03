@@ -11,12 +11,13 @@
 
 1. [System Overview](#system-overview)
 2. [User Types](#user-types)
-3. [Complete Customer Journey](#complete-customer-journey)
-4. [Critical Process: Auftragserweiterung (Extension)](#critical-process-auftragserweiterung-extension)
-5. [Payment Touchpoints](#payment-touchpoints)
-6. [Notification System](#notification-system)
-7. [Status Lifecycle](#status-lifecycle)
-8. [Alternative Paths and Edge Cases](#alternative-paths-and-edge-cases)
+3. [Demo Mode Flow](#demo-mode-flow)
+4. [Complete Customer Journey](#complete-customer-journey)
+5. [Critical Process: Auftragserweiterung (Extension)](#critical-process-auftragserweiterung-extension)
+6. [Payment Touchpoints](#payment-touchpoints)
+7. [Notification System](#notification-system)
+8. [Status Lifecycle](#status-lifecycle)
+9. [Alternative Paths and Edge Cases](#alternative-paths-and-edge-cases)
 
 ---
 
@@ -40,6 +41,194 @@ The B2C Autowartungs-App is a full-service vehicle maintenance booking platform 
 
 ---
 
+## Demo Mode Flow
+
+### Overview
+
+The demo mode allows stakeholders, investors, and testers to experience the complete end-to-end flow without processing real payments or requiring production Stripe credentials. This mode is ideal for demonstrations, development, and automated testing.
+
+### Demo Mode vs Production Mode
+
+| Aspect | Demo Mode | Production Mode |
+|--------|-----------|-----------------|
+| **Payment Processing** | Uses Stripe test cards | Real payment processing |
+| **Payment Intent** | Test mode (no real charges) | Live mode (actual charges) |
+| **Auto-Confirmation** | Immediate confirmation after test payment | Confirmation after real payment |
+| **Stripe Keys** | Test publishable key (pk_test_...) | Live publishable key (pk_live_...) |
+| **Email Notifications** | Sent to test emails | Sent to real customer emails |
+| **Assignment Creation** | Automated (for demo flow) | Automated (production) |
+
+### Enabling Demo Mode
+
+Demo mode is automatically enabled when using Stripe test API keys:
+
+**Frontend (.env.local):**
+```bash
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_51...
+```
+
+**Backend (.env):**
+```bash
+STRIPE_SECRET_KEY=sk_test_51...
+```
+
+### Demo Mode Test Cards
+
+When in demo mode, use these Stripe test cards:
+
+| Card Number | Behavior | Use Case |
+|-------------|----------|----------|
+| 4242 4242 4242 4242 | Always succeeds | Standard success flow |
+| 4000 0000 0000 0002 | Always declines | Test decline handling |
+| 4000 0025 0000 3155 | Requires 3D Secure | Test authentication |
+| 4000 0000 0000 9995 | Insufficient funds | Test payment failure |
+
+**Additional test card details:**
+- **Expiry:** Any future date (e.g., 12/30)
+- **CVC:** Any 3 digits (e.g., 123)
+- **ZIP:** Any 5 digits (e.g., 12345)
+
+### Demo Mode Flow Steps
+
+The complete demo flow mirrors the production flow but uses fake payment processing:
+
+#### 1. Customer Creates Booking (Demo)
+- Navigate to `/de/booking`
+- Fill vehicle details (VW Golf, 2020, 50,000 km)
+- Select service (Inspektion)
+- Enter pickup/delivery dates and address
+- Register with demo credentials:
+  - Email: demo@test.com
+  - Password: demo123
+  - Name: Demo Customer
+- **Payment:** Enter test card `4242 4242 4242 4242`
+- Booking auto-confirms immediately (no real charge)
+
+**Result:** Booking status = CONFIRMED, pickup assignment created
+
+#### 2. Jockey Pickup (Demo)
+- Login: jockey-1 / jockey123
+- See assignment for Demo Customer
+- Complete pickup with digital handover
+
+**Result:** Booking status = IN_TRANSIT_TO_WORKSHOP
+
+#### 3. Workshop Creates Extension (Demo)
+- Login: werkstatt-witten / werkstatt123
+- Create extension:
+  - Description: "Bremsbeläge verschlissen"
+  - Items: Bremsbeläge vorne (189.99 EUR)
+  - Total: 189.99 EUR
+- Send to customer
+
+**Result:** Extension status = PENDING
+
+#### 4. Customer Approves Extension (Demo)
+- Login as customer (demo@test.com)
+- View extension in booking details
+- Click "Genehmigen & Bezahlen"
+- **Payment:** Enter test card `4242 4242 4242 4242`
+- Payment is **authorized** (not captured)
+
+**Result:** Extension status = APPROVED, payment status = AUTHORIZED
+
+#### 5. Workshop Completes Service (Demo)
+- Mark service as COMPLETED
+- **Auto-capture:** System automatically captures authorized payment
+- Extension payment changes from AUTHORIZED → CAPTURED
+
+**Result:** Extension status = COMPLETED, payment status = PAID
+
+#### 6. Jockey Return Delivery (Demo)
+- Return assignment auto-created
+- Jockey completes return delivery
+
+**Result:** Booking status = DELIVERED
+
+### Demo Mode Validation
+
+The E2E smoke test (`00-demo-smoke-test.spec.ts`) validates:
+
+- ✅ Booking auto-confirms with test payment
+- ✅ Exactly 1 pickup assignment created (checks for duplicates)
+- ✅ Extension approval with fake payment authorization
+- ✅ Auto-capture on service completion
+- ✅ Exactly 1 return assignment created (checks for duplicates)
+- ✅ Complete flow from booking to delivery (<5 minutes)
+
+### Important Notes for Demo Mode
+
+1. **No Real Charges:** Test cards never create real charges. All transactions are simulated.
+
+2. **Guest Checkout Not Supported:** Customers must register before booking (enforced in booking flow). The registration step is **required** and cannot be skipped.
+
+3. **Stripe Webhooks:** In demo mode, Stripe webhooks use test webhook endpoints. Configure test webhook secret:
+   ```bash
+   STRIPE_WEBHOOK_SECRET=whsec_test_...
+   ```
+
+4. **Database:** Demo mode can use the same database as development, but data is marked as test data.
+
+5. **Email Notifications:** Emails are sent to test addresses. Consider using email testing tools like Mailtrap or Ethereal for demo environments.
+
+6. **Time Compression:** In demo mode, you can use immediate dates (e.g., pickup tomorrow) instead of the production minimum of 2 days notice.
+
+### Switching to Production Mode
+
+To switch from demo to production:
+
+1. **Update Stripe Keys:**
+   ```bash
+   # Frontend
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
+
+   # Backend
+   STRIPE_SECRET_KEY=sk_live_...
+   STRIPE_WEBHOOK_SECRET=whsec_...
+   ```
+
+2. **Update Environment:**
+   ```bash
+   NODE_ENV=production
+   ```
+
+3. **Enable Production Payment Processing:**
+   - Remove any `SKIP_PAYMENT` flags
+   - Ensure live Stripe account is activated
+   - Configure real webhook endpoints
+
+4. **Test with Live Test Mode First:**
+   - Stripe allows "live test mode" for final validation
+   - Use live keys but with test cards
+   - Verify webhooks work correctly
+
+5. **Go Live:**
+   - Activate Stripe account fully
+   - Real payments will be processed
+   - Monitor transactions in Stripe Dashboard
+
+### Demo Environment Setup
+
+For a complete demo environment:
+
+```bash
+# 1. Start backend
+cd backend
+npm run dev
+
+# 2. Start frontend
+cd frontend
+npm run dev
+
+# 3. Run demo smoke test
+npx playwright test e2e/00-demo-smoke-test.spec.ts --headed
+
+# 4. Manual demo walkthrough
+# Follow: /99 Code/DEMO_WALKTHROUGH.md
+```
+
+---
+
 ## User Types
 
 ### 1. Customer (CUSTOMER)
@@ -47,11 +236,13 @@ The B2C Autowartungs-App is a full-service vehicle maintenance booking platform 
 **Portal:** `/customer/*`
 **Authentication:** Email + Password
 
+**Important:** Guest checkout is NOT supported. Customers must register before completing a booking. The registration step is mandatory and occurs during the booking flow (Step 1.5).
+
 **Capabilities:**
-- Book services (guest or logged in)
+- Book services (requires registration)
 - Track booking status
 - Approve/decline extensions
-- Make payments
+- Make payments (real or demo mode)
 - View service history
 - Receive notifications
 
@@ -1132,11 +1323,17 @@ Jockey: Max Mustermann
 
 ### Payment Architecture
 
+**Demo Mode vs Production Mode:**
+
+In **demo mode** (using Stripe test keys), all payments use test cards and no real charges occur. The payment flow is identical to production, but uses Stripe's test environment.
+
+In **production mode** (using Stripe live keys), real payments are processed and customers are charged.
+
 **1. Initial Booking Payment:**
 ```javascript
 // Automatic capture (immediate charge)
 const paymentIntent = await stripe.paymentIntents.create({
-  amount: 17135, // 171.35 EUR
+  amount: 17135, // 171.35 EUR in cents
   currency: 'eur',
   capture_method: 'automatic', // Charge immediately
   metadata: {
@@ -1144,13 +1341,16 @@ const paymentIntent = await stripe.paymentIntents.create({
     type: 'BOOKING'
   }
 });
+
+// In demo mode: Uses test key (sk_test_...) with test card (4242 4242 4242 4242)
+// In production: Uses live key (sk_live_...) with real card
 ```
 
 **2. Extension Payment:**
 ```javascript
 // Manual capture (authorization hold)
 const paymentIntent = await stripe.paymentIntents.create({
-  amount: 103246, // 1,032.46 EUR
+  amount: 103246, // 1,032.46 EUR in cents
   currency: 'eur',
   capture_method: 'manual', // Hold funds, charge later
   metadata: {
@@ -1162,6 +1362,9 @@ const paymentIntent = await stripe.paymentIntents.create({
 
 // Later, after work is completed:
 await stripe.paymentIntents.capture(paymentIntent.id);
+
+// In demo mode: Authorization and capture are simulated
+// In production: Real authorization hold and capture
 ```
 
 **Why Manual Capture for Extensions?**
@@ -1284,54 +1487,154 @@ await stripe.paymentIntents.capture(paymentIntent.id);
 
 ### Booking Status Flow
 
+The booking progresses through these statuses during its lifecycle:
+
 ```
-PAYMENT_PENDING (initial)
-    ↓ (payment successful)
-CONFIRMED
-    ↓ (24h before pickup)
-PICKUP_SCHEDULED
-    ↓ (jockey arrives)
-IN_TRANSIT_TO_WORKSHOP
-    ↓ (vehicle arrives)
-AT_WORKSHOP
-    ↓ (workshop starts)
-IN_SERVICE
-    ↓ (if extension needed) ←→ EXTENSION_PENDING
-    ↓ (workshop finishes)
-COMPLETED
-    ↓ (jockey delivers)
-DELIVERED
-    ↓ (after 30 days)
-ARCHIVED
+PAYMENT_PENDING (initial state after booking created)
+    ↓ (payment successful via Stripe)
+CONFIRMED (booking paid, pickup assignment auto-created)
+    ↓ (24h before scheduled pickup time)
+PICKUP_SCHEDULED (reminder sent to customer and jockey)
+    ↓ (jockey starts pickup and collects vehicle)
+IN_TRANSIT_TO_WORKSHOP (vehicle being transported)
+    ↓ (vehicle arrives at workshop location)
+AT_WORKSHOP (workshop receives vehicle)
+    ↓ (workshop technician starts service work)
+IN_SERVICE (service in progress)
+    ↓ (if extension needed) ←→ EXTENSION_PENDING (service paused)
+    ↓ (workshop marks work as complete)
+COMPLETED (service finished, return assignment auto-created)
+    ↓ (jockey completes return delivery)
+DELIVERED (vehicle returned to customer)
+    ↓ (after 30 days for archival)
+ARCHIVED (historical record)
 ```
+
+**Status Transition Details:**
+
+| From Status | To Status | Trigger | Automated? | Side Effects |
+|-------------|-----------|---------|------------|--------------|
+| PAYMENT_PENDING | CONFIRMED | Payment success webhook | Yes | Creates pickup assignment |
+| CONFIRMED | PICKUP_SCHEDULED | 24h before pickup | Yes (cron) | Sends reminders |
+| PICKUP_SCHEDULED | IN_TRANSIT_TO_WORKSHOP | Jockey starts pickup | No (manual) | Updates jockey assignment |
+| IN_TRANSIT_TO_WORKSHOP | AT_WORKSHOP | Vehicle arrives | No (manual) | Notifies workshop |
+| AT_WORKSHOP | IN_SERVICE | Workshop starts work | No (manual) | Updates estimated completion |
+| IN_SERVICE | EXTENSION_PENDING | Extension created | Yes | Pauses service, notifies customer |
+| EXTENSION_PENDING | IN_SERVICE | Extension approved/declined | No (manual) | Resumes service |
+| IN_SERVICE | COMPLETED | Workshop completes | No (manual) | Creates return assignment, captures extension payments |
+| COMPLETED | DELIVERED | Jockey completes return | No (manual) | Triggers review request (24h delay) |
+| DELIVERED | ARCHIVED | Archive cron job | Yes (cron) | Moves to archive table |
+
+**Critical Status Notes:**
+
+1. **CONFIRMED**: This is when the booking becomes "active". The pickup assignment MUST be created exactly once (check for duplicate assignment bug).
+
+2. **IN_SERVICE → EXTENSION_PENDING**: Service is paused when an extension is created. Workshop cannot mark as COMPLETED until extension is approved or declined.
+
+3. **COMPLETED**: Triggers two critical actions:
+   - Auto-captures all approved extension payments
+   - Creates exactly one return assignment (check for duplicates)
+
+4. **DELIVERED**: Final customer-facing status. After this, only internal archival happens.
 
 ### Extension Status Flow
 
+Extensions follow a simpler lifecycle focused on payment authorization and capture:
+
 ```
-PENDING (workshop created)
-    ↓ (customer decision)
-    ├─→ APPROVED (with payment authorization)
-    │       ↓ (workshop completes work)
-    │   COMPLETED (payment captured)
+PENDING (workshop created, customer notified)
+    ↓ (customer makes decision)
+    ├─→ APPROVED (payment authorized, funds held)
+    │       ↓ (workshop completes additional work)
+    │   COMPLETED (payment captured, customer charged)
     │
-    └─→ DECLINED (no payment)
+    └─→ DECLINED (no payment, workshop continues with original scope)
 ```
+
+**Extension Payment Flow:**
+
+1. **PENDING**:
+   - Workshop creates extension with itemized costs
+   - Customer receives notification with photos/details
+   - No payment action yet
+
+2. **APPROVED**:
+   - Customer approves and authorizes payment
+   - Stripe creates PaymentIntent with `capture_method: 'manual'`
+   - Funds are held (authorized) but NOT charged
+   - Workshop can now proceed with additional work
+   - Payment authorization valid for 7 days
+
+3. **COMPLETED**:
+   - Workshop marks extension work as complete
+   - System automatically captures the authorized payment
+   - Customer is now charged
+   - Extension status remains APPROVED (paid)
+   - paidAt timestamp is set
+
+4. **DECLINED**:
+   - Customer declines extension
+   - No payment authorization created
+   - Workshop continues with original booking scope only
+   - Optional decline reason stored
+
+**Extension Payment Capture Timing:**
+
+The auto-capture happens when:
+- Workshop marks booking as COMPLETED (all work done)
+- System finds all APPROVED extensions with paymentIntentId
+- Calls `stripe.paymentIntents.capture()` for each
+- Updates extension paidAt timestamp
+
+**Why Manual Capture?**
+
+1. Customer approves before seeing final work quality
+2. Workshop might find work is more/less extensive than estimated
+3. Provides flexibility to adjust or cancel before charging
+4. Captures are guaranteed (funds held) but not yet charged
+5. Better customer protection and trust
 
 ### Status Badge Colors (UI)
 
-| Status | Color | Icon |
-|--------|-------|------|
-| PAYMENT_PENDING | Yellow | Clock |
-| CONFIRMED | Green | CheckCircle |
-| PICKUP_SCHEDULED | Blue | Calendar |
-| IN_TRANSIT_TO_WORKSHOP | Blue | Truck |
-| AT_WORKSHOP | Purple | Wrench |
-| IN_SERVICE | Orange | Settings |
-| COMPLETED | Green | CheckCircle |
-| DELIVERED | Green | Check |
-| EXTENSION_PENDING | Yellow | AlertTriangle |
-| EXTENSION_APPROVED | Green | CheckCircle |
-| EXTENSION_DECLINED | Red | XCircle |
+Visual representation of booking and extension statuses in the UI:
+
+| Status | Color | Icon | Description |
+|--------|-------|------|-------------|
+| PAYMENT_PENDING | Yellow | Clock | Awaiting payment confirmation |
+| CONFIRMED | Green | CheckCircle | Booking paid and confirmed |
+| PICKUP_SCHEDULED | Blue | Calendar | Pickup reminder sent |
+| IN_TRANSIT_TO_WORKSHOP | Blue | Truck | Vehicle being transported |
+| AT_WORKSHOP | Purple | Wrench | Vehicle at workshop |
+| IN_SERVICE | Orange | Settings | Service work in progress |
+| COMPLETED | Green | CheckCircle | Service finished, ready for return |
+| DELIVERED | Green | Check | Vehicle returned to customer |
+| EXTENSION_PENDING | Yellow | AlertTriangle | Extension awaiting customer approval |
+| EXTENSION_APPROVED | Green | CheckCircle | Extension approved, payment authorized |
+| EXTENSION_DECLINED | Red | XCircle | Extension declined by customer |
+| EXTENSION_PAID | Green | Check | Extension payment captured |
+
+**Payment Status Badges:**
+
+For extensions, we show both extension status AND payment status:
+
+| Payment Status | Badge Text | Color | When Shown |
+|----------------|-----------|-------|------------|
+| AUTHORIZED | "Autorisiert" | Yellow | After customer approves, before work complete |
+| CAPTURED | "Bezahlt" | Green | After workshop completes work and payment captured |
+| FAILED | "Fehlgeschlagen" | Red | If payment authorization or capture fails |
+
+**Example UI Display:**
+
+```
+Extension #1
+-----------
+Status: [APPROVED] (Green badge)
+Payment: [Autorisiert] (Yellow badge)
+
+After work completion:
+Status: [APPROVED] (Green badge)
+Payment: [Bezahlt] (Green badge)
+```
 
 ---
 
@@ -1546,8 +1849,11 @@ PENDING (workshop created)
 
 ## Appendix: Testing Coverage
 
-The system has comprehensive E2E test coverage (168 test cases):
+### E2E Test Suite
 
+The system has comprehensive E2E test coverage using Playwright:
+
+**Test Categories:**
 - Authentication: 25 tests
 - Booking flow: 31 tests
 - Workshop dashboard: 26 tests
@@ -1556,11 +1862,166 @@ The system has comprehensive E2E test coverage (168 test cases):
 - Internationalization: 36 tests
 - Components: 29 tests
 - Visual regression: 21 tests
+- **Complete journey: 9 tests** (NEW)
 
-**Test users:**
-- Customer: kunde@kunde.de / kunde
-- Workshop: werkstatt / werkstatt
-- Jockey: jockey / jockey
+**Total: 176 test cases**
+
+### Key E2E Tests
+
+#### 1. Complete Booking Journey Test
+**File:** `/frontend/e2e/01-complete-booking-journey.spec.ts`
+
+**Purpose:** Validates the entire customer lifecycle from registration to delivery in demo mode.
+
+**Test Steps:**
+1. Customer registration (required)
+2. Booking creation (vehicle + service + scheduling)
+3. Demo payment with Stripe test card
+4. Verify booking status CONFIRMED
+5. Verify pickup assignment created (exactly 1)
+6. Jockey completes pickup
+7. Workshop creates extension
+8. Customer approves extension with payment
+9. Verify payment AUTHORIZED
+10. Workshop completes service
+11. Verify extension payment AUTO-CAPTURED
+12. Verify return assignment created (exactly 1)
+13. Jockey completes return
+14. Verify final status DELIVERED
+
+**Duration:** < 3 minutes
+**Assertions:** 14 critical checkpoints
+**Coverage:** Full customer lifecycle
+
+**Run Command:**
+```bash
+cd frontend
+npx playwright test e2e/01-complete-booking-journey.spec.ts --headed
+```
+
+#### 2. Demo Smoke Test
+**File:** `/frontend/e2e/00-demo-smoke-test.spec.ts`
+
+**Purpose:** Quick validation of demo mode functionality.
+
+**Key Validations:**
+- ✅ Booking auto-confirms with test payment
+- ✅ Exactly 1 pickup assignment (checks for duplicates)
+- ✅ Extension approval with fake payment authorization
+- ✅ Auto-capture on service completion
+- ✅ Exactly 1 return assignment (checks for duplicates)
+
+**Duration:** < 5 minutes
+
+**Run Command:**
+```bash
+npx playwright test e2e/00-demo-smoke-test.spec.ts --headed
+```
+
+### Test Users
+
+**Customer:**
+- Email: `demo-customer-{timestamp}@test.com` (generated per test)
+- Password: DemoTest123!
+- Name: Demo Customer
+- Phone: +49 170 1234567
+
+**Jockey:**
+- Username: jockey-1
+- Password: jockey123
+- Email: jockey@test.com
+
+**Workshop:**
+- Username: werkstatt-witten
+- Password: werkstatt123
+- Email: werkstatt@test.com
+
+### Test Helpers
+
+**File:** `/frontend/e2e/helpers/demo-helpers.ts`
+
+**Available Functions:**
+- `fillStripeTestCard()` - Fills Stripe payment form
+- `waitForBookingStatus()` - Polls booking status until reached
+- `waitForExtensionStatus()` - Polls extension status
+- `verifyStatusBadge()` - Verifies status badge visibility
+- `countAssignments()` - Counts pickup/return assignments (duplicate detection)
+- `demoPayBooking()` - Simulates payment via API
+- `demoAuthorizeExtension()` - Authorizes extension payment
+- `demoCaptureExtension()` - Captures extension payment
+- `getBookingDetails()` - Fetches booking from API
+
+### Running Tests
+
+**Run all tests:**
+```bash
+cd frontend
+npx playwright test
+```
+
+**Run specific test:**
+```bash
+npx playwright test e2e/01-complete-booking-journey.spec.ts
+```
+
+**Run with UI visible (headed mode):**
+```bash
+npx playwright test --headed
+```
+
+**Run with debug mode:**
+```bash
+npx playwright test --debug
+```
+
+**Generate HTML report:**
+```bash
+npx playwright show-report
+```
+
+### Test Configuration
+
+**File:** `/frontend/playwright.config.ts`
+
+**Settings:**
+- Base URL: http://localhost:3000
+- Timeout: 60 seconds per test
+- Retries: 2 on CI, 0 locally
+- Workers: 1 (sequential execution)
+- Browser: Chromium (desktop + mobile)
+- Locale: de-DE
+- Timezone: Europe/Berlin
+- Screenshots: On failure
+- Videos: On failure
+- Traces: On first retry
+
+### CI/CD Integration
+
+Tests can be integrated into CI/CD pipelines:
+
+```yaml
+# Example GitHub Actions workflow
+- name: Run E2E Tests
+  run: |
+    cd frontend
+    npx playwright install --with-deps
+    npx playwright test
+  env:
+    PLAYWRIGHT_BASE_URL: http://localhost:3000
+    PLAYWRIGHT_API_URL: http://localhost:5001
+```
+
+### Test Coverage Goals
+
+- ✅ Complete booking lifecycle
+- ✅ Payment flows (initial + extensions)
+- ✅ Status transitions
+- ✅ Assignment creation (pickup + return)
+- ✅ Multi-user interactions (customer, jockey, workshop)
+- ✅ Demo mode functionality
+- ✅ Error handling
+- ✅ Mobile responsiveness
+- ✅ Multi-language (DE/EN)
 
 See `/frontend/e2e/README.md` for complete testing documentation.
 

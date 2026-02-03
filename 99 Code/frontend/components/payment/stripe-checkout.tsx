@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Elements } from "@stripe/react-stripe-js";
 import { PaymentForm } from "./payment-form";
+import { DemoPaymentForm } from "./demo-payment-form";
 import { getStripe } from "@/lib/contexts/StripeContext";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
@@ -29,15 +30,61 @@ export function StripeCheckout({
   onSuccess,
   onError,
 }: StripeCheckoutProps) {
+  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
   const [clientSecret, setClientSecret] = useState<string>("");
   const [amount, setAmount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    // Create PaymentIntent as soon as the component loads
-    createPaymentIntent();
+    // For demo mode, we need to fetch the booking to get the amount
+    if (isDemoMode) {
+      fetchBookingAmount();
+    } else {
+      // Create PaymentIntent as soon as the component loads
+      createPaymentIntent();
+    }
   }, [bookingId]);
+
+  const fetchBookingAmount = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+      const token = localStorage.getItem("auth_token");
+
+      if (!token) {
+        throw new Error("Authentication required. Please log in.");
+      }
+
+      const response = await fetch(`${apiUrl}/api/bookings/${bookingId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Failed to fetch booking");
+      }
+
+      // Parse the totalPrice (it might be a string)
+      const totalPrice = typeof data.data.totalPrice === "string"
+        ? parseFloat(data.data.totalPrice)
+        : data.data.totalPrice;
+
+      setAmount(totalPrice);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to fetch booking details";
+      setError(errorMessage);
+      onError?.(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const createPaymentIntent = async () => {
     try {
@@ -45,7 +92,7 @@ export function StripeCheckout({
       setError("");
 
       // Get API URL from environment
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 
       // Get auth token from localStorage
       const token = localStorage.getItem("auth_token");
@@ -108,6 +155,28 @@ export function StripeCheckout({
             Try Again
           </button>
         </Alert>
+      </Card>
+    );
+  }
+
+  // Demo mode: render demo payment form directly
+  if (isDemoMode) {
+    return (
+      <Card className="p-8">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold mb-2">Complete Your Payment</h2>
+          <p className="text-gray-600">
+            Demo payment mode - No real charges will be made
+          </p>
+        </div>
+
+        <DemoPaymentForm
+          amount={amount}
+          bookingId={bookingId}
+          type="booking"
+          onSuccess={onSuccess}
+          onError={onError}
+        />
       </Card>
     );
   }

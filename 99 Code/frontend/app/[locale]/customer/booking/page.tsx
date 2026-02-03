@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useAuth } from "@/lib/auth-hooks";
 import { VehicleSelectionForm } from "@/components/customer/VehicleSelectionForm";
 import { VehicleFormData } from "@/lib/validations/vehicle-schema";
 import { Button } from "@/components/ui/button";
@@ -11,12 +13,40 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Car, ChevronRight } from "lucide-react";
+import { Alert } from "@/components/ui/alert";
+import { Car, ChevronRight, UserPlus } from "lucide-react";
 
 export default function BookingPage() {
+  const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string || 'de';
+  const { isAuthenticated, isLoading } = useAuth();
   const [isFormValid, setIsFormValid] = useState(false);
   const [vehicleData, setVehicleData] = useState<VehicleFormData | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    // Redirect to registration if not authenticated
+    if (!isLoading && !isAuthenticated) {
+      router.push(`/${locale}/customer/register`);
+    }
+  }, [isLoading, isAuthenticated, router, locale]);
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render the form if not authenticated (will redirect)
+  if (!isAuthenticated) {
+    return null;
+  }
 
   const handleVehicleSubmit = (data: VehicleFormData) => {
     console.log("Vehicle data submitted:", data);
@@ -42,6 +72,15 @@ export default function BookingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
+        {/* Registration Required Banner */}
+        <Alert className="mb-6 border-primary bg-primary/5">
+          <UserPlus className="h-4 w-4" />
+          <p className="text-sm font-medium">
+            {locale === "de"
+              ? "Bitte registrieren Sie sich, um zu buchen"
+              : "Please register to book"}
+          </p>
+        </Alert>
         {/* Step Indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-between">

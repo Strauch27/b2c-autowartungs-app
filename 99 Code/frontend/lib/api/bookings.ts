@@ -293,5 +293,33 @@ export const bookingsApi = {
       { reason }
     );
     return response.data;
+  },
+
+  /**
+   * Demo: Confirm booking payment (demo mode only)
+   */
+  async confirmDemoPayment(bookingId: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    const response = await apiClient.post<ApiResponse<any>>(
+      `/api/demo/payment/confirm`,
+      { bookingId }
+    );
+    return response.data;
+  },
+
+  /**
+   * Demo: Authorize extension payment (demo mode only)
+   */
+  async authorizeDemoExtension(extensionId: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    const response = await apiClient.post<ApiResponse<any>>(
+      `/api/demo/extension/authorize`,
+      { extensionId }
+    );
+    return response.data;
   }
 };

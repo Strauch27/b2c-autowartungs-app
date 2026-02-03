@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, FormEvent } from "react";
+import { useParams } from "next/navigation";
 import {
   PaymentElement,
   useStripe,
@@ -9,6 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { DemoPaymentForm } from "./demo-payment-form";
 
 interface PaymentFormProps {
   clientSecret: string;
@@ -25,6 +28,25 @@ export function PaymentForm({
   onSuccess,
   onError,
 }: PaymentFormProps) {
+  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+  const params = useParams();
+  const locale = (params.locale as string) || 'de';
+  const t = useTranslations('payment.form');
+
+  // If demo mode is enabled, render the demo payment form
+  if (isDemoMode) {
+    return (
+      <DemoPaymentForm
+        amount={amount}
+        bookingId={bookingId}
+        type="booking"
+        onSuccess={onSuccess}
+        onError={onError}
+      />
+    );
+  }
+
+  // Otherwise, render the Stripe payment form
   const stripe = useStripe();
   const elements = useElements();
 
@@ -43,26 +65,26 @@ export function PaymentForm({
     setErrorMessage("");
 
     try {
-      // Confirm the payment
+      // Confirm the payment with locale-aware return URL
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/customer/booking/confirmation?bookingId=${bookingId}`,
+          return_url: `${window.location.origin}/${locale}/customer/booking/confirmation?bookingId=${bookingId}`,
         },
         redirect: "if_required", // Only redirect if necessary
       });
 
       if (error) {
         // Payment failed
-        setErrorMessage(error.message || "Payment failed. Please try again.");
-        onError?.(error.message || "Payment failed");
+        setErrorMessage(error.message || t('paymentFailed'));
+        onError?.(error.message || t('paymentFailed'));
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
         // Payment succeeded
         onSuccess?.();
       }
     } catch (err) {
-      setErrorMessage("An unexpected error occurred. Please try again.");
-      onError?.("An unexpected error occurred");
+      setErrorMessage(t('unexpectedError'));
+      onError?.(t('unexpectedError'));
     } finally {
       setIsProcessing(false);
     }
@@ -90,11 +112,11 @@ export function PaymentForm({
       {/* Payment Summary */}
       <div className="bg-gray-50 rounded-lg p-4 space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-gray-600">Booking ID:</span>
+          <span className="text-gray-600">{t('bookingId')}:</span>
           <span className="font-medium">{bookingId}</span>
         </div>
         <div className="flex justify-between text-lg font-bold border-t pt-2">
-          <span>Total Amount:</span>
+          <span>{t('totalAmount')}:</span>
           <span>{amount.toFixed(2)} EUR</span>
         </div>
       </div>
@@ -109,17 +131,16 @@ export function PaymentForm({
         {isProcessing ? (
           <>
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            Processing Payment...
+            {t('processing')}
           </>
         ) : (
-          `Pay ${amount.toFixed(2)} EUR`
+          t('payButton', { amount: amount.toFixed(2) })
         )}
       </Button>
 
       {/* Security Notice */}
       <p className="text-xs text-center text-gray-500">
-        Secure payment powered by Stripe. Your payment information is encrypted
-        and secure.
+        {t('securityNotice')}
       </p>
     </form>
   );

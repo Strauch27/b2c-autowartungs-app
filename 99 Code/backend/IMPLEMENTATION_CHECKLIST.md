@@ -210,12 +210,12 @@ npm run dev
 ### 6. Test Endpoints
 ```bash
 # Test customer magic link
-curl -X POST http://localhost:5000/api/auth/customer/magic-link \
+curl -X POST http://localhost:5001/api/auth/customer/magic-link \
   -H "Content-Type: application/json" \
   -d '{"email":"customer1@example.com"}'
 
 # Test jockey login
-curl -X POST http://localhost:5000/api/auth/jockey/login \
+curl -X POST http://localhost:5001/api/auth/jockey/login \
   -H "Content-Type: application/json" \
   -d '{"username":"jockey1","password":"password123"}'
 ```

@@ -311,17 +311,17 @@ npm install chart.js react-chartjs-2
 #### Test Analytics Endpoints
 ```bash
 # Login as admin
-curl -X POST http://localhost:5000/api/auth/login \
+curl -X POST http://localhost:5001/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@example.com","password":"your_password"}' \
   -c cookies.txt
 
 # Get performance dashboard
-curl -X GET http://localhost:5000/api/analytics/performance \
+curl -X GET http://localhost:5001/api/analytics/performance \
   -b cookies.txt
 
 # Get booking statistics
-curl -X GET "http://localhost:5000/api/analytics/bookings?startDate=2026-01-01&endDate=2026-01-31" \
+curl -X GET "http://localhost:5001/api/analytics/bookings?startDate=2026-01-01&endDate=2026-01-31" \
   -b cookies.txt
 ```
 

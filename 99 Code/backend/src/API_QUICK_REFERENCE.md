@@ -2,7 +2,7 @@
 
 ## Base URL
 ```
-http://localhost:5000/api
+http://localhost:5001/api
 ```
 
 ## Authentication
@@ -145,7 +145,7 @@ Response:
 
 ### 1. Create Vehicle
 ```bash
-curl -X POST http://localhost:5000/api/vehicles \
+curl -X POST http://localhost:5001/api/vehicles \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -158,12 +158,12 @@ curl -X POST http://localhost:5000/api/vehicles \
 
 ### 2. Get Price (No Auth)
 ```bash
-curl "http://localhost:5000/api/services/INSPECTION/price?brand=VW&model=Golf%207&year=2018&mileage=65000"
+curl "http://localhost:5001/api/services/INSPECTION/price?brand=VW&model=Golf%207&year=2018&mileage=65000"
 ```
 
 ### 3. Create Booking
 ```bash
-curl -X POST http://localhost:5000/api/bookings \
+curl -X POST http://localhost:5001/api/bookings \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -179,7 +179,7 @@ curl -X POST http://localhost:5000/api/bookings \
 
 ### 4. List Bookings with Filters
 ```bash
-curl "http://localhost:5000/api/bookings?page=1&limit=10&status=CONFIRMED" \
+curl "http://localhost:5001/api/bookings?page=1&limit=10&status=CONFIRMED" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 

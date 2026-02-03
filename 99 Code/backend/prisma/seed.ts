@@ -7,34 +7,7 @@ async function main() {
   console.log('Starting database seeding...');
 
   // ============================================================================
-  // 1. WORKSHOP WITTEN
-  // ============================================================================
-  console.log('Creating Workshop Witten...');
-  const workshop = await prisma.workshop.create({
-    data: {
-      name: 'Werkstatt Witten',
-      street: 'Hauptstraße 1',
-      zip: '58452',
-      city: 'Witten',
-      phone: '+49 2302 123456',
-      email: 'info@werkstatt-witten.de',
-      openingHours: {
-        monday: '8-18',
-        tuesday: '8-18',
-        wednesday: '8-18',
-        thursday: '8-18',
-        friday: '8-18',
-        saturday: '8-14',
-        sunday: 'closed',
-      },
-      maxDailySlots: 16,
-      status: 'ACTIVE',
-    },
-  });
-  console.log(`✓ Workshop created: ${workshop.name} (ID: ${workshop.id})`);
-
-  // ============================================================================
-  // 2. PRICE MATRIX - TOP 10 VEHICLE MODELS
+  // 1. PRICE MATRIX - TOP 10 VEHICLE MODELS
   // ============================================================================
   console.log('\nCreating PriceMatrix entries...');
   const priceMatrixData = [
@@ -43,6 +16,10 @@ async function main() {
       model: 'Golf 7',
       yearFrom: 2012,
       yearTo: 2019,
+      serviceType: 'INSPECTION',
+      basePrice: 219,
+      mileageMultiplier: 1.0,
+      ageMultiplier: 1.0,
       inspection30k: 189,
       inspection60k: 219,
       inspection90k: 289,
@@ -58,6 +35,10 @@ async function main() {
       model: 'Golf 8',
       yearFrom: 2019,
       yearTo: 2026,
+      serviceType: 'INSPECTION',
+      basePrice: 229,
+      mileageMultiplier: 1.0,
+      ageMultiplier: 1.0,
       inspection30k: 199,
       inspection60k: 229,
       inspection90k: 299,
@@ -73,6 +54,10 @@ async function main() {
       model: 'Passat B8',
       yearFrom: 2014,
       yearTo: 2023,
+      serviceType: 'INSPECTION',
+      basePrice: 259,
+      mileageMultiplier: 1.0,
+      ageMultiplier: 1.0,
       inspection30k: 219,
       inspection60k: 259,
       inspection90k: 329,
@@ -88,6 +73,10 @@ async function main() {
       model: 'Polo',
       yearFrom: 2017,
       yearTo: 2026,
+      serviceType: 'INSPECTION',
+      basePrice: 199,
+      mileageMultiplier: 1.0,
+      ageMultiplier: 1.0,
       inspection30k: 169,
       inspection60k: 199,
       inspection90k: 259,
@@ -103,6 +92,10 @@ async function main() {
       model: 'A4 B9',
       yearFrom: 2015,
       yearTo: 2023,
+      serviceType: 'INSPECTION',
+      basePrice: 289,
+      mileageMultiplier: 1.0,
+      ageMultiplier: 1.0,
       inspection30k: 249,
       inspection60k: 289,
       inspection90k: 359,
@@ -118,6 +111,10 @@ async function main() {
       model: 'A3 8V',
       yearFrom: 2012,
       yearTo: 2020,
+      serviceType: 'INSPECTION',
+      basePrice: 269,
+      mileageMultiplier: 1.0,
+      ageMultiplier: 1.0,
       inspection30k: 229,
       inspection60k: 269,
       inspection90k: 339,
@@ -133,6 +130,10 @@ async function main() {
       model: '3er G20',
       yearFrom: 2019,
       yearTo: 2026,
+      serviceType: 'INSPECTION',
+      basePrice: 309,
+      mileageMultiplier: 1.0,
+      ageMultiplier: 1.0,
       inspection30k: 269,
       inspection60k: 309,
       inspection90k: 379,
@@ -148,6 +149,10 @@ async function main() {
       model: '3er F30',
       yearFrom: 2012,
       yearTo: 2019,
+      serviceType: 'INSPECTION',
+      basePrice: 299,
+      mileageMultiplier: 1.0,
+      ageMultiplier: 1.0,
       inspection30k: 259,
       inspection60k: 299,
       inspection90k: 369,
@@ -163,6 +168,10 @@ async function main() {
       model: 'C-Klasse W205',
       yearFrom: 2014,
       yearTo: 2021,
+      serviceType: 'INSPECTION',
+      basePrice: 319,
+      mileageMultiplier: 1.0,
+      ageMultiplier: 1.0,
       inspection30k: 279,
       inspection60k: 319,
       inspection90k: 389,
@@ -178,6 +187,10 @@ async function main() {
       model: 'Astra K',
       yearFrom: 2015,
       yearTo: 2026,
+      serviceType: 'INSPECTION',
+      basePrice: 209,
+      mileageMultiplier: 1.0,
+      ageMultiplier: 1.0,
       inspection30k: 179,
       inspection60k: 209,
       inspection90k: 279,
@@ -196,29 +209,104 @@ async function main() {
   console.log(`✓ Created ${priceMatrixData.length} PriceMatrix entries`);
 
   // ============================================================================
-  // 3. TEST CUSTOMER
+  // 2. WORKSHOP USER + PROFILE
   // ============================================================================
-  console.log('\nCreating test customer...');
-  const testCustomer = await prisma.customer.create({
+  console.log('\nCreating workshop user and profile...');
+  const workshopPasswordHash = await bcrypt.hash('password123', 10);
+  const workshopUser = await prisma.user.create({
     data: {
-      email: 'kunde@test.de',
-      name: 'Max Mustermann',
-      phone: '+49170123456',
-      street: 'Musterstraße 42',
-      zip: '58452',
-      city: 'Witten',
-      stripeCustomerId: 'cus_test_12345',
+      email: 'werkstatt@test.de',
+      username: 'werkstatt1',
+      passwordHash: workshopPasswordHash,
+      role: 'WORKSHOP',
+      firstName: 'Workshop',
+      lastName: 'Manager',
+      phone: '+49 2302 123456',
+      isActive: true,
+      workshopProfile: {
+        create: {
+          workshopName: 'Werkstatt Witten',
+          address: 'Hauptstraße 1',
+          city: 'Witten',
+          postalCode: '58452',
+          phone: '+49 2302 123456',
+          capacity: 16,
+        },
+      },
+    },
+    include: {
+      workshopProfile: true,
     },
   });
-  console.log(`✓ Test customer created: ${testCustomer.email} (ID: ${testCustomer.id})`);
+  console.log(`✓ Workshop user created: ${workshopUser.email} (Username: ${workshopUser.username})`);
 
   // ============================================================================
-  // 4. TEST VEHICLE
+  // 3. JOCKEY USER + PROFILE
+  // ============================================================================
+  console.log('\nCreating jockey user and profile...');
+  const jockeyPasswordHash = await bcrypt.hash('password123', 10);
+  const jockeyUser = await prisma.user.create({
+    data: {
+      email: 'jockey@test.de',
+      username: 'jockey1',
+      passwordHash: jockeyPasswordHash,
+      role: 'JOCKEY',
+      firstName: 'Hans',
+      lastName: 'Fahrer',
+      phone: '+49170234567',
+      isActive: true,
+      jockeyProfile: {
+        create: {
+          licenseNumber: 'DL123456',
+          vehicleType: 'VW Golf',
+          isAvailable: true,
+          rating: 5.0,
+        },
+      },
+    },
+    include: {
+      jockeyProfile: true,
+    },
+  });
+  console.log(`✓ Jockey user created: ${jockeyUser.email} (Username: ${jockeyUser.username})`);
+
+  // ============================================================================
+  // 4. TEST CUSTOMER USER + PROFILE
+  // ============================================================================
+  console.log('\nCreating test customer user and profile...');
+  const customerPasswordHash = await bcrypt.hash('password123', 10);
+  const customerUser = await prisma.user.create({
+    data: {
+      email: 'kunde@test.de',
+      passwordHash: customerPasswordHash,
+      role: 'CUSTOMER',
+      firstName: 'Max',
+      lastName: 'Mustermann',
+      phone: '+49170123456',
+      isActive: true,
+      customerProfile: {
+        create: {
+          street: 'Musterstraße 42',
+          city: 'Witten',
+          postalCode: '58452',
+          stripeCustomerId: 'cus_test_12345',
+          preferredContactMethod: 'EMAIL',
+        },
+      },
+    },
+    include: {
+      customerProfile: true,
+    },
+  });
+  console.log(`✓ Customer user created: ${customerUser.email}`);
+
+  // ============================================================================
+  // 5. TEST VEHICLE
   // ============================================================================
   console.log('\nCreating test vehicle...');
   const testVehicle = await prisma.vehicle.create({
     data: {
-      customerId: testCustomer.id,
+      customerId: customerUser.id,
       brand: 'VW',
       model: 'Golf 7',
       year: 2016,
@@ -229,88 +317,17 @@ async function main() {
   console.log(`✓ Test vehicle created: ${testVehicle.brand} ${testVehicle.model} (ID: ${testVehicle.id})`);
 
   // ============================================================================
-  // 5. TEST JOCKEY
-  // ============================================================================
-  console.log('\nCreating test jockey...');
-  const passwordHash = await bcrypt.hash('password123', 10);
-  const testJockey = await prisma.jockey.create({
-    data: {
-      username: 'jockey1',
-      passwordHash: passwordHash,
-      name: 'Hans Fahrer',
-      phone: '+49170234567',
-      workshopId: workshop.id,
-      status: 'AVAILABLE',
-    },
-  });
-  console.log(`✓ Test jockey created: ${testJockey.name} (Username: ${testJockey.username})`);
-
-  // ============================================================================
-  // 6. TEST WORKSHOP USER
-  // ============================================================================
-  console.log('\nCreating test workshop user...');
-  const workshopPasswordHash = await bcrypt.hash('password123', 10);
-  const workshopUser = await prisma.user.create({
-    data: {
-      email: 'werkstatt@test.de',
-      username: 'werkstatt1',
-      passwordHash: workshopPasswordHash,
-      role: 'WORKSHOP',
-      firstName: 'Workshop',
-      lastName: 'Manager',
-      phone: '+49170345678',
-      isActive: true,
-      workshopProfile: {
-        create: {
-          workshopId: workshop.id,
-        },
-      },
-    },
-  });
-  console.log(`✓ Test workshop user created: ${workshopUser.email} (Username: ${workshopUser.username})`);
-
-  // ============================================================================
-  // 7. REPLACEMENT CARS
-  // ============================================================================
-  console.log('\nCreating replacement cars...');
-  const replacementCars = [
-    {
-      brand: 'VW',
-      model: 'Polo',
-      licensePlate: 'EN-MW-9001',
-      status: 'AVAILABLE' as const,
-    },
-    {
-      brand: 'VW',
-      model: 'Golf',
-      licensePlate: 'EN-MW-9002',
-      status: 'AVAILABLE' as const,
-    },
-    {
-      brand: 'Opel',
-      model: 'Corsa',
-      licensePlate: 'EN-MW-9003',
-      status: 'AVAILABLE' as const,
-    },
-  ];
-
-  await prisma.replacementCar.createMany({
-    data: replacementCars,
-  });
-  console.log(`✓ Created ${replacementCars.length} replacement cars`);
-
-  // ============================================================================
-  // 8. TIME SLOTS FOR NEXT 7 DAYS
+  // 6. TIME SLOTS FOR NEXT 7 DAYS
   // ============================================================================
   console.log('\nCreating time slots for next 7 days...');
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const timeSlots = [
-    { start: 8, end: 10 },
-    { start: 10, end: 12 },
-    { start: 13, end: 15 },
-    { start: 15, end: 17 },
+    '08:00-10:00',
+    '10:00-12:00',
+    '13:00-15:00',
+    '15:00-17:00',
   ];
 
   let slotsCreated = 0;
@@ -322,21 +339,14 @@ async function main() {
     if (slotDate.getDay() === 0) continue;
 
     for (const timeSlot of timeSlots) {
-      const timeStart = new Date(slotDate);
-      timeStart.setHours(timeSlot.start, 0, 0, 0);
-
-      const timeEnd = new Date(slotDate);
-      timeEnd.setHours(timeSlot.end, 0, 0, 0);
-
-      await prisma.slot.create({
+      await prisma.timeSlot.create({
         data: {
-          workshopId: workshop.id,
+          workshopUserId: workshopUser.workshopProfile!.id,
           date: slotDate,
-          timeStart: timeStart,
-          timeEnd: timeEnd,
+          timeSlot: timeSlot,
+          isAvailable: true,
           maxCapacity: 4,
           currentBookings: 0,
-          available: true,
         },
       });
       slotsCreated++;
@@ -344,51 +354,15 @@ async function main() {
   }
   console.log(`✓ Created ${slotsCreated} time slots`);
 
-  // ============================================================================
-  // 8. TEST BOOKING (Optional - uncomment if needed)
-  // ============================================================================
-  /*
-  console.log('\nCreating test booking...');
-  const firstSlot = await prisma.slot.findFirst({
-    where: { workshopId: workshop.id },
-    orderBy: { timeStart: 'asc' },
-  });
-
-  if (firstSlot) {
-    const testBooking = await prisma.booking.create({
-      data: {
-        customerId: testCustomer.id,
-        vehicleId: testVehicle.id,
-        workshopId: workshop.id,
-        serviceType: 'INSPECTION',
-        mileageAtBooking: 75000,
-        price: 219,
-        status: 'CONFIRMED',
-        pickupSlotStart: firstSlot.timeStart,
-        pickupSlotEnd: firstSlot.timeEnd,
-        pickupAddress: {
-          street: 'Musterstraße 42',
-          zip: '58452',
-          city: 'Witten',
-        },
-        stripePaymentId: 'pi_test_12345',
-      },
-    });
-    console.log(`✓ Test booking created: ${testBooking.bookingNumber}`);
-  }
-  */
-
   console.log('\n========================================');
   console.log('✓ Seeding completed successfully!');
   console.log('========================================');
   console.log('\nSummary:');
-  console.log(`- Workshop: ${workshop.name}`);
-  console.log(`- PriceMatrix entries: ${priceMatrixData.length}`);
-  console.log(`- Test customer: ${testCustomer.email}`);
+  console.log(`- Workshop user: ${workshopUser.email} (username: ${workshopUser.username}, password: password123)`);
+  console.log(`- Jockey user: ${jockeyUser.email} (username: ${jockeyUser.username}, password: password123)`);
+  console.log(`- Customer user: ${customerUser.email} (password: password123)`);
   console.log(`- Test vehicle: ${testVehicle.brand} ${testVehicle.model}`);
-  console.log(`- Test jockey: ${testJockey.username} (password: password123)`);
-  console.log(`- Test workshop user: ${workshopUser.username} (password: password123)`);
-  console.log(`- Replacement cars: ${replacementCars.length}`);
+  console.log(`- PriceMatrix entries: ${priceMatrixData.length}`);
   console.log(`- Time slots: ${slotsCreated}`);
 }
 

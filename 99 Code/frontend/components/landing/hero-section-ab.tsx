@@ -37,7 +37,7 @@ export function HeroSectionAB() {
         cta_type: 'plz_search',
         plz
       });
-      router.push(`/workshops?plz=${plz}`);
+      router.push(`/de/workshops?plz=${plz}`);
     }
   };
 
@@ -48,7 +48,7 @@ export function HeroSectionAB() {
     trackABTestConversion('cta-copy', AB_TEST_EVENTS.CTA_CLICK, {
       cta_type: 'primary_button'
     });
-    router.push('/buchen/fahrzeugklasse');
+    router.push('/de/buchen/fahrzeugklasse');
   };
 
   // Social proof component

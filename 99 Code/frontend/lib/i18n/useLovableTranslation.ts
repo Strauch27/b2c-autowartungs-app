@@ -371,8 +371,13 @@ export function useLovableTranslation() {
     // Build new path with new locale
     const newPath = segments.length > 0 ? `/${newLocale}/${segments.join('/')}` : `/${newLocale}`;
 
+    // Preserve query parameters and hash from current URL
+    const search = window.location.search;
+    const hash = window.location.hash;
+    const fullPath = `${newPath}${search}${hash}`;
+
     // Navigate to the new path
-    router.push(newPath);
+    router.push(fullPath);
   };
 
   return {

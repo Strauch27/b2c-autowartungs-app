@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { PaymentStatus } from "@/components/payment/payment-status";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,9 @@ import {
 
 export default function ConfirmationPage() {
   const router = useRouter();
+  const params = useParams();
   const searchParams = useSearchParams();
+  const locale = params.locale as string;
   const bookingId = searchParams.get("bookingId");
 
   const [booking, setBooking] = useState<any>(null);
@@ -41,7 +43,7 @@ export default function ConfirmationPage() {
       const token = localStorage.getItem("auth_token");
 
       if (!token) {
-        router.push("/customer/login");
+        router.push(`/${locale}/customer/login`);
         return;
       }
 
@@ -96,7 +98,7 @@ export default function ConfirmationPage() {
             <h3 className="font-semibold mb-2">Error</h3>
             <p className="text-sm">{error || "Invalid booking"}</p>
             <button
-              onClick={() => router.push("/customer/dashboard")}
+              onClick={() => router.push(`/${locale}/customer/dashboard`)}
               className="mt-4 text-sm underline hover:no-underline"
             >
               Go to Dashboard
@@ -251,7 +253,7 @@ export default function ConfirmationPage() {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4">
           <Button
-            onClick={() => router.push("/customer/dashboard")}
+            onClick={() => router.push(`/${locale}/customer/dashboard`)}
             className="flex-1"
             size="lg"
           >

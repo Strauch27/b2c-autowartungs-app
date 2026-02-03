@@ -288,7 +288,7 @@ res.cookie('authToken', token, {
 
 ```javascript
 // Using Fetch API
-fetch('http://localhost:5000/api/protected', {
+fetch('http://localhost:5001/api/protected', {
   headers: {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json'
@@ -296,7 +296,7 @@ fetch('http://localhost:5000/api/protected', {
 });
 
 // Using Axios
-axios.get('http://localhost:5000/api/protected', {
+axios.get('http://localhost:5001/api/protected', {
   headers: {
     'Authorization': `Bearer ${token}`
   }
@@ -372,24 +372,24 @@ export function useAuth() {
 **Customer Magic Link:**
 ```bash
 # Request magic link
-curl -X POST http://localhost:5000/api/auth/customer/magic-link \
+curl -X POST http://localhost:5001/api/auth/customer/magic-link \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com"}'
 
 # Verify magic link (use token from email)
-curl http://localhost:5000/api/auth/customer/verify?token=YOUR_TOKEN
+curl http://localhost:5001/api/auth/customer/verify?token=YOUR_TOKEN
 ```
 
 **Jockey Login:**
 ```bash
-curl -X POST http://localhost:5000/api/auth/jockey/login \
+curl -X POST http://localhost:5001/api/auth/jockey/login \
   -H "Content-Type: application/json" \
   -d '{"username":"jockey1","password":"password123"}'
 ```
 
 **Protected Route:**
 ```bash
-curl http://localhost:5000/api/auth/me \
+curl http://localhost:5001/api/auth/me \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 

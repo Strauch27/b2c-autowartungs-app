@@ -227,7 +227,7 @@ npm run db:seed
 ```bash
 cd backend
 npm run dev
-# Runs on http://localhost:5000
+# Runs on http://localhost:5001
 ```
 
 **Terminal 2 - Frontend:**

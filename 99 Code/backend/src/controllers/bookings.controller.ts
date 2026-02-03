@@ -6,6 +6,7 @@ import { VehiclesService } from '../services/vehicles.service';
 import { PricingService } from '../services/pricing.service';
 import { PriceMatrixRepository } from '../repositories/price-matrix.repository';
 import { paymentService } from '../services/payment.service';
+import { demoPaymentService } from '../services/demo-payment.service';
 import { sendNotification } from '../services/notification.service';
 import { NotificationType } from '@prisma/client';
 import { prisma } from '../config/database';
@@ -171,61 +172,21 @@ export async function getBooking(req: Request, res: Response, next: NextFunction
 /**
  * Create new booking
  * POST /api/bookings
- * Supports both authenticated users and guest checkout
+ * Requires authentication - no guest checkout
  */
 export async function createBooking(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    let customerId: string;
-    let isNewUser = false;
+    // Require authentication
+    if (!req.user) {
+      throw new ApiError(401, 'Authentication required. Please register or login to create a booking.');
+    }
+
+    const customerId = req.user.userId;
 
     // Check if this is the new DTO format or legacy format
     if (req.body.vehicle && req.body.services) {
       // New DTO format from frontend
       const validatedDto = createBookingDtoSchema.parse(req.body);
-
-      // Determine customer ID
-      if (req.user) {
-        // Authenticated user
-        customerId = req.user.userId;
-      } else if (validatedDto.customer) {
-        // Guest checkout - find or create user
-        const { email, firstName, lastName, phone } = validatedDto.customer;
-
-        // Check if user already exists
-        const existingUser = await prisma.user.findUnique({
-          where: { email }
-        });
-
-        if (existingUser) {
-          customerId = existingUser.id;
-        } else {
-          // Create new user account
-          const crypto = await import('crypto');
-          const bcrypt = await import('bcrypt');
-          const temporaryPassword = crypto.randomBytes(12).toString('base64').replace(/[^a-zA-Z0-9]/g, '').substring(0, 12);
-          const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
-
-          const newUser = await prisma.user.create({
-            data: {
-              email,
-              firstName,
-              lastName,
-              phone,
-              passwordHash: hashedPassword,
-              role: 'CUSTOMER'
-            }
-          });
-
-          customerId = newUser.id;
-          isNewUser = true;
-
-          // TODO: Send welcome email with login credentials
-          console.log(`New user created: ${email}, temporary password: ${temporaryPassword}`);
-        }
-      } else {
-        // Neither authenticated nor customer data provided
-        throw new ApiError(400, 'Customer information is required for guest checkout');
-      }
 
       // Create booking
       const booking = await bookingsService.createBookingFromDto(customerId, validatedDto);
@@ -233,11 +194,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       // Continue with payment and notifications...
       await handleBookingPaymentAndNotifications(booking, customerId, req, res);
     } else {
-      // Legacy format - requires authentication
-      if (!req.user) {
-        throw new ApiError(401, 'Authentication required for legacy booking format');
-      }
-
+      // Legacy format
       const validatedData = createBookingSchema.parse(req.body);
       const booking = await bookingsService.createBooking({
         ...validatedData,
@@ -256,48 +213,9 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
 }
 
 /**
- * Helper function to handle payment and notifications after booking creation
+ * Helper function to create pickup assignment for a confirmed booking
  */
-async function handleBookingPaymentAndNotifications(
-  booking: any,
-  customerId: string,
-  req: Request,
-  res: Response
-): Promise<void> {
-  const bookingsRepository = new BookingsRepository(prisma);
-
-  // Create payment intent (Skip if STRIPE is out of scope, but keep code for future)
-  const totalPriceInCents = Math.round(parseFloat(booking.totalPrice.toString()) * 100);
-
-  let paymentIntent;
-  try {
-    paymentIntent = await paymentService.createPaymentIntent({
-      amount: totalPriceInCents,
-      bookingId: booking.id,
-      customerId: customerId,
-      customerEmail: booking.customer.email,
-      metadata: {
-        bookingNumber: booking.bookingNumber,
-        serviceType: booking.serviceType
-      }
-    });
-
-    // Update booking with payment intent
-    await bookingsRepository.update(booking.id, {
-      paymentIntentId: paymentIntent.id
-    });
-  } catch (error) {
-    // If payment service is not configured, log and continue
-    console.warn('Payment service not available:', error instanceof Error ? error.message : 'Unknown error');
-
-    // For now, mark booking as CONFIRMED instead of PENDING_PAYMENT
-    // This allows testing without Stripe integration
-    await bookingsRepository.update(booking.id, {
-      status: BookingStatus.CONFIRMED
-    });
-  }
-
-  // Auto-create pickup assignment for jockey
+async function createPickupAssignment(booking: any): Promise<void> {
   try {
     // Find first available jockey
     const jockey = await prisma.user.findFirst({
@@ -333,17 +251,125 @@ async function handleBookingPaymentAndNotifications(
         }
       });
 
-      // Update booking status to JOCKEY_ASSIGNED
-      await bookingsRepository.update(booking.id, {
-        status: BookingStatus.JOCKEY_ASSIGNED
+      // Update booking status to PICKUP_ASSIGNED (new FSM status)
+      await prisma.booking.update({
+        where: { id: booking.id },
+        data: { status: BookingStatus.PICKUP_ASSIGNED }
       });
 
-      console.log(`Pickup assignment created for booking ${booking.bookingNumber}`);
+      logger.info('Pickup assignment created', {
+        bookingId: booking.id,
+        bookingNumber: booking.bookingNumber,
+        jockeyId: jockey.id,
+        newStatus: 'PICKUP_ASSIGNED'
+      });
+    } else {
+      logger.warn('Could not create pickup assignment - no available jockey or incomplete booking data', {
+        bookingId: booking.id,
+        hasJockey: !!jockey,
+        hasCustomer: !!booking.customer,
+        hasVehicle: !!booking.vehicle
+      });
     }
   } catch (error) {
-    console.error('Failed to create jockey assignment:', error instanceof Error ? error.message : 'Unknown error');
-    // Continue even if assignment creation fails
+    logger.error('Failed to create jockey assignment', {
+      bookingId: booking.id,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+    // Don't throw - allow booking creation to succeed even if assignment fails
   }
+}
+
+/**
+ * Helper function to handle payment and notifications after booking creation
+ */
+async function handleBookingPaymentAndNotifications(
+  booking: any,
+  customerId: string,
+  req: Request,
+  res: Response
+): Promise<void> {
+  const bookingsRepository = new BookingsRepository(prisma);
+
+  // Check if we're in demo mode
+  const isDemoMode = process.env.DEMO_MODE === 'true';
+
+  // Create payment intent (totalPrice is already in EUR)
+  const totalPriceInCents = Math.round(parseFloat(booking.totalPrice.toString()) * 100);
+
+  let paymentIntent;
+  try {
+    if (isDemoMode) {
+      // Use demo payment service - no Stripe required
+      logger.info('[DEMO MODE] Creating demo payment intent for booking', {
+        bookingId: booking.id,
+        amount: totalPriceInCents / 100
+      });
+
+      paymentIntent = await demoPaymentService.createPaymentIntent({
+        amount: totalPriceInCents,
+        bookingId: booking.id,
+        customerId: customerId,
+        customerEmail: booking.customer.email,
+        metadata: {
+          bookingNumber: booking.bookingNumber,
+          serviceType: booking.serviceType
+        }
+      });
+
+      // In demo mode, auto-confirm the payment immediately
+      await demoPaymentService.confirmPayment(paymentIntent.id);
+
+      // Update booking with payment intent and mark as CONFIRMED
+      await bookingsRepository.update(booking.id, {
+        paymentIntentId: paymentIntent.id,
+        paidAt: new Date(),
+        status: BookingStatus.CONFIRMED
+      });
+
+      // Create pickup assignment after successful payment
+      const confirmedBooking = await bookingsService.getBookingById(booking.id);
+      await createPickupAssignment(confirmedBooking);
+
+      logger.info('[DEMO MODE] Payment confirmed and pickup assignment created', {
+        bookingId: booking.id,
+        bookingNumber: booking.bookingNumber
+      });
+    } else {
+      // Use real Stripe payment service
+      paymentIntent = await paymentService.createPaymentIntent({
+        amount: totalPriceInCents,
+        bookingId: booking.id,
+        customerId: customerId,
+        customerEmail: booking.customer.email,
+        metadata: {
+          bookingNumber: booking.bookingNumber,
+          serviceType: booking.serviceType
+        }
+      });
+
+      // Update booking with payment intent (status stays PENDING_PAYMENT until payment webhook)
+      await bookingsRepository.update(booking.id, {
+        paymentIntentId: paymentIntent.id
+      });
+    }
+  } catch (error) {
+    // If payment service is not configured, log and continue
+    console.warn('Payment service not available:', error instanceof Error ? error.message : 'Unknown error');
+
+    // For development/testing: mark booking as CONFIRMED and auto-create pickup assignment
+    await bookingsRepository.update(booking.id, {
+      status: BookingStatus.CONFIRMED,
+      paidAt: new Date()
+    });
+
+    // Auto-create pickup assignment (normally done after payment success)
+    await createPickupAssignment(booking);
+  }
+
+  // NOTE: Pickup assignment creation has been moved to payment success webhook/confirmation
+  // This ensures assignments are only created AFTER successful payment
+  // For demo mode (above), we create it immediately since payment is auto-confirmed
 
   // Send booking confirmation notification
   try {
@@ -362,65 +388,6 @@ async function handleBookingPaymentAndNotifications(
   } catch (error) {
     // Log but don't fail the request if notification fails
     console.error('Failed to send notification:', error);
-  }
-
-  // Create pickup assignment for jockey
-  // For demo: assign to first available jockey
-  try {
-    const jockey = await prisma.user.findFirst({
-      where: {
-        role: 'JOCKEY',
-        isActive: true,
-      }
-    });
-
-    if (jockey) {
-      // Get customer details for assignment
-      const customer = booking.customer || await prisma.user.findUnique({
-        where: { id: customerId }
-      });
-
-      if (customer) {
-        await prisma.jockeyAssignment.create({
-          data: {
-            bookingId: booking.id,
-            jockeyId: jockey.id,
-            type: 'PICKUP',
-            status: 'ASSIGNED',
-            scheduledTime: booking.pickupDate,
-
-            // Customer info
-            customerName: `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || customer.email,
-            customerPhone: customer.phone || 'N/A',
-            customerAddress: booking.pickupAddress,
-            customerCity: booking.pickupCity,
-            customerPostalCode: booking.pickupPostalCode,
-
-            // Vehicle info
-            vehicleBrand: booking.vehicle.brand,
-            vehicleModel: booking.vehicle.model,
-            vehicleLicensePlate: booking.vehicle.licensePlate || '',
-          }
-        });
-
-        // Update booking status to JOCKEY_ASSIGNED
-        await bookingsRepository.update(booking.id, {
-          status: BookingStatus.JOCKEY_ASSIGNED
-        });
-
-        logger.info('Pickup assignment created for jockey', {
-          bookingId: booking.id,
-          jockeyId: jockey.id
-        });
-      }
-    } else {
-      logger.warn('No active jockey found for assignment', {
-        bookingId: booking.id
-      });
-    }
-  } catch (error) {
-    // Log error but don't fail the booking
-    logger.error('Failed to create jockey assignment:', error);
   }
 
   // Fetch updated booking with all relations

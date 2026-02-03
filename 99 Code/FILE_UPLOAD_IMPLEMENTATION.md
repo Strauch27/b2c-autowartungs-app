@@ -43,7 +43,7 @@ Complete file upload service with AWS S3 integration, including drag & drop UI, 
 
 2. **Configure API URL** (already in `.env.local`):
    ```env
-   NEXT_PUBLIC_API_URL=http://localhost:5000
+   NEXT_PUBLIC_API_URL=http://localhost:5001
    ```
 
 3. **Start Frontend**:
@@ -368,10 +368,10 @@ AWS_S3_BUCKET=your-bucket-name
 
 ```bash
 # Test health check
-curl http://localhost:5000/health
+curl http://localhost:5001/health
 
 # Test single upload (requires auth token)
-curl -X POST http://localhost:5000/api/upload/single \
+curl -X POST http://localhost:5001/api/upload/single \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -F "file=@/path/to/image.jpg" \
   -F "folder=temp"

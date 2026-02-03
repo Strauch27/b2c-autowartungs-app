@@ -13,7 +13,7 @@ export function HeroSection() {
 
   const handleGetStarted = () => {
     // Route to Express Flow (simplified 3-step booking)
-    router.push('/buchen/express');
+    router.push('/de/buchen/express');
   };
 
   return (

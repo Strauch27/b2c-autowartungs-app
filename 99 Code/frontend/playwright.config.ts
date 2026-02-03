@@ -75,7 +75,20 @@ export default defineConfig({
 
     /* Viewport size for consistent screenshots */
     viewport: { width: 1280, height: 720 },
+
+    /* Environment variables for demo mode */
+    extraHTTPHeaders: {
+      // Demo mode flag (can be used by backend to skip certain validations)
+      'X-Demo-Mode': process.env.PLAYWRIGHT_DEMO_MODE || 'false',
+    },
   },
+
+  /* Environment variables */
+  // These can be set via command line or .env file
+  // Example: PLAYWRIGHT_DEMO_MODE=true npx playwright test
+  // PLAYWRIGHT_BASE_URL: Base URL for tests (default: http://localhost:3000)
+  // PLAYWRIGHT_DEMO_MODE: Enable demo mode features (default: false)
+  // PLAYWRIGHT_API_URL: Backend API URL (default: http://localhost:5001)
 
   /* Configure projects for major browsers and device types */
   projects: [

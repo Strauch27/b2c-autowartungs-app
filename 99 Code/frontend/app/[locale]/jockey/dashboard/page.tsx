@@ -25,6 +25,12 @@ import { useLanguage } from "@/lib/i18n/useLovableTranslation";
 import HandoverModal from "@/components/jockey/HandoverModal";
 import { jockeysApi, JockeyAssignment } from "@/lib/api/jockeys";
 import { toast } from "sonner";
+import dynamic from "next/dynamic";
+
+// Load LanguageSwitcher without SSR to avoid hydration mismatch
+const LanguageSwitcher = dynamic(() => import("@/components/LanguageSwitcher"), {
+  ssr: false,
+});
 
 interface Assignment {
   id: string;
@@ -203,11 +209,14 @@ function DashboardContent() {
               </div>
             </Link>
             <div>
-              <p className="text-sm font-medium">{t.dashboard.welcome}, {user.name}</p>
+              <p className="text-sm font-medium">{t.dashboard.welcome}, {user.name || user.email}</p>
               <p className="text-xs text-jockey-foreground/70">{today}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <div className="[&_button]:text-jockey-foreground [&_button:hover]:bg-jockey-foreground/10">
+              <LanguageSwitcher />
+            </div>
             <Button variant="ghost" size="icon" className="text-jockey-foreground hover:bg-jockey-foreground/10">
               <Bell className="h-5 w-5" />
             </Button>
@@ -215,7 +224,7 @@ function DashboardContent() {
               variant="ghost"
               size="icon"
               className="text-jockey-foreground hover:bg-jockey-foreground/10"
-              onClick={() => router.push("/")}
+              onClick={() => router.push(`/${language}`)}
             >
               <LogOut className="h-5 w-5" />
             </Button>

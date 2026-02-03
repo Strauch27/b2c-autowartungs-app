@@ -16,6 +16,7 @@ import { ApiError } from '../middleware/errorHandler';
 import { logger } from '../config/logger';
 import { prisma } from '../config/database';
 import { CreateBookingDto, BookingService as BookingServiceType } from '../types/booking.types';
+import { assertTransition, Actor, getNextPossibleStates, isCancellable } from '../domain/bookingFsm';
 
 export interface CreateBookingInput {
   customerId: string;
@@ -472,30 +473,46 @@ export class BookingsService {
   }
 
   /**
-   * Validate booking status transitions
+   * Validate booking status transitions using FSM
+   * @deprecated Use transitionStatus method instead for full FSM support
    */
   private validateStatusTransition(currentStatus: BookingStatus, newStatus: BookingStatus): void {
-    // Define valid transitions
-    const validTransitions: Record<BookingStatus, BookingStatus[]> = {
-      PENDING_PAYMENT: [BookingStatus.CONFIRMED, BookingStatus.CANCELLED],
-      CONFIRMED: [BookingStatus.JOCKEY_ASSIGNED, BookingStatus.CANCELLED],
-      JOCKEY_ASSIGNED: [BookingStatus.IN_TRANSIT_TO_WORKSHOP, BookingStatus.CANCELLED],
-      IN_TRANSIT_TO_WORKSHOP: [BookingStatus.IN_WORKSHOP],
-      IN_WORKSHOP: [BookingStatus.COMPLETED],
-      COMPLETED: [BookingStatus.IN_TRANSIT_TO_CUSTOMER],
-      IN_TRANSIT_TO_CUSTOMER: [BookingStatus.DELIVERED],
-      DELIVERED: [],
-      CANCELLED: []
-    };
+    // Use FSM for validation
+    assertTransition(currentStatus, newStatus);
+  }
 
-    const allowedTransitions = validTransitions[currentStatus];
-
-    if (!allowedTransitions.includes(newStatus)) {
-      throw new ApiError(
-        400,
-        `Invalid status transition from ${currentStatus} to ${newStatus}`
-      );
+  /**
+   * Transition booking status with FSM validation
+   * This is the recommended method for changing booking status
+   */
+  async transitionStatus(
+    bookingId: string,
+    newStatus: BookingStatus,
+    actor: Actor = Actor.SYSTEM
+  ): Promise<BookingWithRelations> {
+    // Get current booking
+    const booking = await this.bookingsRepository.findById(bookingId);
+    if (!booking) {
+      throw new ApiError(404, 'Booking not found');
     }
+
+    // Validate transition using FSM
+    assertTransition(booking.status, newStatus, actor);
+
+    // Perform the transition
+    const updatedBooking = await this.bookingsRepository.update(bookingId, {
+      status: newStatus
+    });
+
+    logger.info({
+      message: 'Booking status transitioned',
+      bookingId,
+      from: booking.status,
+      to: newStatus,
+      actor
+    });
+
+    return updatedBooking;
   }
 
   /**
@@ -509,19 +526,16 @@ export class BookingsService {
     // Get existing booking
     const existingBooking = await this.getBookingById(bookingId, customerId);
 
-    // Check if booking can be cancelled
-    const cancellableStatuses: BookingStatus[] = [
-      BookingStatus.PENDING_PAYMENT,
-      BookingStatus.CONFIRMED,
-      BookingStatus.JOCKEY_ASSIGNED
-    ];
-
-    if (!cancellableStatuses.includes(existingBooking.status)) {
+    // Check if booking can be cancelled using FSM
+    if (!isCancellable(existingBooking.status)) {
       throw new ApiError(
         400,
         `Cannot cancel booking with status ${existingBooking.status}`
       );
     }
+
+    // Validate transition using FSM
+    assertTransition(existingBooking.status, BookingStatus.CANCELLED, Actor.CUSTOMER);
 
     // Process refund if payment was made
     if (existingBooking.paymentIntentId && existingBooking.paidAt) {

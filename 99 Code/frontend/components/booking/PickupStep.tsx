@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,8 +11,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, Car, Clock, MapPin, RotateCcw, Check } from "lucide-react";
-import { format, addDays } from "date-fns";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CalendarIcon, Car, Clock, MapPin, RotateCcw, Check, AlertCircle } from "lucide-react";
+import { format, addDays, isWeekend, nextMonday, isBefore, startOfDay } from "date-fns";
 import { de, enUS } from "date-fns/locale";
 
 interface PickupStepProps {
@@ -38,6 +39,11 @@ interface PickupStepProps {
       subtitle: string;
       date: string;
       time: string;
+      quickSelect?: {
+        today: string;
+        tomorrow: string;
+        nextWeekday: string;
+      };
     };
     return: {
       title: string;
@@ -45,6 +51,11 @@ interface PickupStepProps {
       date: string;
       time: string;
       note: string;
+      quickSelect?: {
+        tomorrow: string;
+        nextWeek: string;
+      };
+      validationError?: string;
     };
     address: {
       title: string;
@@ -66,6 +77,70 @@ export function PickupStep({ formData, onUpdate, translations, language }: Picku
   const dateLocale = language === "de" ? de : enUS;
   const [pickupCalendarOpen, setPickupCalendarOpen] = useState(false);
   const [returnCalendarOpen, setReturnCalendarOpen] = useState(false);
+  const [dateValidationError, setDateValidationError] = useState<string>("");
+
+  // Smart Default: Auto-set return date to pickup +1 day when pickup is selected
+  useEffect(() => {
+    if (formData.date && !formData.returnDate) {
+      const suggestedReturnDate = addDays(formData.date, 1);
+      onUpdate({ returnDate: suggestedReturnDate });
+    }
+  }, [formData.date]);
+
+  // Validate return date whenever dates change
+  useEffect(() => {
+    setDateValidationError("");
+    if (formData.date && formData.returnDate) {
+      const pickupDay = startOfDay(formData.date);
+      const returnDay = startOfDay(formData.returnDate);
+
+      if (isBefore(returnDay, pickupDay) || returnDay.getTime() === pickupDay.getTime()) {
+        setDateValidationError(
+          translations.return.validationError ||
+          (language === "de"
+            ? "Rückgabe muss nach der Abholung liegen"
+            : "Return must be after pickup")
+        );
+      }
+    }
+  }, [formData.date, formData.returnDate, language]);
+
+  // Format date with custom format for better readability
+  const formatDateDisplay = (date: Date) => {
+    // Format: "Di, 03.02.2026" (DE) or "Tue, Feb 3, 2026" (EN)
+    const dayOfWeek = new Intl.DateTimeFormat(language === 'de' ? 'de-DE' : 'en-US', {
+      weekday: 'short'
+    }).format(date);
+
+    const dateStr = new Intl.DateTimeFormat(language === 'de' ? 'de-DE' : 'en-US', {
+      day: '2-digit',
+      month: language === 'de' ? '2-digit' : 'short',
+      year: 'numeric'
+    }).format(date);
+
+    return `${dayOfWeek}, ${dateStr}`;
+  };
+
+  // Quick select helpers
+  const getNextWeekday = () => {
+    const tomorrow = addDays(new Date(), 1);
+    return isWeekend(tomorrow) ? nextMonday(tomorrow) : tomorrow;
+  };
+
+  const handlePickupQuickSelect = (days: number) => {
+    const selectedDate = addDays(new Date(), days);
+    onUpdate({ date: selectedDate });
+
+    // Also update return date smartly
+    if (!formData.returnDate || (formData.returnDate && isBefore(formData.returnDate, addDays(selectedDate, 1)))) {
+      onUpdate({ returnDate: addDays(selectedDate, 1) });
+    }
+  };
+
+  const handleReturnQuickSelect = (date: Date) => {
+    onUpdate({ returnDate: date });
+    setReturnCalendarOpen(false);
+  };
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -84,6 +159,7 @@ export function PickupStep({ formData, onUpdate, translations, language }: Picku
         </CardContent>
       </Card>
 
+      {/* Pickup Date/Time Card */}
       <Card className="card-premium">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -92,13 +168,60 @@ export function PickupStep({ formData, onUpdate, translations, language }: Picku
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>{translations.pickup.date}</Label>
+
+            {/* Quick Select Buttons */}
+            {translations.pickup.quickSelect && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePickupQuickSelect(0)}
+                  className="text-xs"
+                >
+                  {translations.pickup.quickSelect.today}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePickupQuickSelect(1)}
+                  className="text-xs"
+                >
+                  {translations.pickup.quickSelect.tomorrow}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onUpdate({ date: getNextWeekday() })}
+                  className="text-xs"
+                >
+                  {translations.pickup.quickSelect.nextWeekday}
+                </Button>
+              </div>
+            )}
+
             <Popover open={pickupCalendarOpen} onOpenChange={setPickupCalendarOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left font-normal">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                  type="button"
+                >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.date ? format(formData.date, "PPP", { locale: dateLocale }) : translations.pickup.date}
+                  {formData.date ? (
+                    <span>
+                      <span className="font-medium">
+                        {language === "de" ? "Abholung am" : "Pickup on"}:
+                      </span>{" "}
+                      {formatDateDisplay(formData.date)}
+                    </span>
+                  ) : (
+                    translations.pickup.date
+                  )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -123,6 +246,7 @@ export function PickupStep({ formData, onUpdate, translations, language }: Picku
               {timeSlots.map((time) => (
                 <Button
                   key={time}
+                  type="button"
                   variant={formData.time === time ? "default" : "outline"}
                   size="sm"
                   onClick={() => onUpdate({ time })}
@@ -144,13 +268,51 @@ export function PickupStep({ formData, onUpdate, translations, language }: Picku
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>{translations.return.date}</Label>
+
+            {/* Quick Select Buttons for Return */}
+            {translations.return.quickSelect && formData.date && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleReturnQuickSelect(addDays(formData.date!, 1))}
+                  className="text-xs"
+                >
+                  {translations.return.quickSelect.tomorrow}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleReturnQuickSelect(addDays(formData.date!, 7))}
+                  className="text-xs"
+                >
+                  {translations.return.quickSelect.nextWeek}
+                </Button>
+              </div>
+            )}
+
             <Popover open={returnCalendarOpen} onOpenChange={setReturnCalendarOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left font-normal">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                  type="button"
+                >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.returnDate ? format(formData.returnDate, "PPP", { locale: dateLocale }) : translations.return.date}
+                  {formData.returnDate ? (
+                    <span>
+                      <span className="font-medium">
+                        {language === "de" ? "Rückgabe am" : "Return on"}:
+                      </span>{" "}
+                      {formatDateDisplay(formData.returnDate)}
+                    </span>
+                  ) : (
+                    translations.return.date
+                  )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -167,6 +329,15 @@ export function PickupStep({ formData, onUpdate, translations, language }: Picku
                 />
               </PopoverContent>
             </Popover>
+
+            {/* Validation Error */}
+            {dateValidationError && (
+              <Alert variant="destructive" className="mt-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{dateValidationError}</AlertDescription>
+              </Alert>
+            )}
+
             <p className="text-xs text-muted-foreground">
               {translations.return.note}
             </p>
@@ -178,6 +349,7 @@ export function PickupStep({ formData, onUpdate, translations, language }: Picku
               {returnTimeSlots.map((time) => (
                 <Button
                   key={time}
+                  type="button"
                   variant={formData.returnTime === time ? "default" : "outline"}
                   size="sm"
                   onClick={() => onUpdate({ returnTime: time })}
@@ -190,6 +362,7 @@ export function PickupStep({ formData, onUpdate, translations, language }: Picku
         </CardContent>
       </Card>
 
+      {/* Address Card */}
       <Card className="card-premium">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

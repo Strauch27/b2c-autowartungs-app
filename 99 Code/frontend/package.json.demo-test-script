@@ -1,0 +1,9 @@
+{
+  "comment": "Add these scripts to your package.json file",
+  "scripts": {
+    "test:demo": "PLAYWRIGHT_DEMO_MODE=true playwright test e2e/00-demo-smoke-test.spec.ts",
+    "test:demo:headed": "PLAYWRIGHT_DEMO_MODE=true playwright test e2e/00-demo-smoke-test.spec.ts --headed",
+    "test:demo:debug": "PLAYWRIGHT_DEMO_MODE=true playwright test e2e/00-demo-smoke-test.spec.ts --debug",
+    "test:demo:ui": "PLAYWRIGHT_DEMO_MODE=true playwright test e2e/00-demo-smoke-test.spec.ts --ui"
+  }
+}

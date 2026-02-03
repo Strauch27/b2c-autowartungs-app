@@ -235,7 +235,7 @@ async function handleLogin(token: string) {
 
 ### Register FCM Token
 ```bash
-curl -X POST http://localhost:5000/api/notifications/register-token \
+curl -X POST http://localhost:5001/api/notifications/register-token \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{"fcmToken": "firebase-token"}'
@@ -243,13 +243,13 @@ curl -X POST http://localhost:5000/api/notifications/register-token \
 
 ### Get Notification History
 ```bash
-curl -X GET "http://localhost:5000/api/notifications/history?page=1&limit=20" \
+curl -X GET "http://localhost:5001/api/notifications/history?page=1&limit=20" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
 ### Send Notification (Admin)
 ```bash
-curl -X POST http://localhost:5000/api/notifications/send \
+curl -X POST http://localhost:5001/api/notifications/send \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer ADMIN_TOKEN" \
   -d '{

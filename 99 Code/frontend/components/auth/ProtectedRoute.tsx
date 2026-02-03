@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useRequireAuth } from '@/lib/auth-hooks';
 import type { UserRole } from '@/lib/auth/types';
 
@@ -21,6 +22,9 @@ export function ProtectedRoute({
   redirectTo,
 }: ProtectedRouteProps) {
   const router = useRouter();
+  const params = useParams();
+  const locale = (params.locale as string) || 'de';
+  const t = useTranslations('protectedRoute');
   const { isLoading, user, isAuthorized } = useRequireAuth(requiredRole);
 
   useEffect(() => {
@@ -28,17 +32,17 @@ export function ProtectedRoute({
 
     if (!user) {
       // Not authenticated - redirect to appropriate login
-      const loginPath = requiredRole ? `/${requiredRole}/login` : '/';
+      const loginPath = requiredRole ? `/${locale}/${requiredRole}/login` : `/${locale}`;
       router.push(redirectTo || loginPath);
       return;
     }
 
     if (requiredRole && !isAuthorized) {
       // Wrong role - redirect to their dashboard or home
-      const dashboardPath = `/${user.role}/dashboard`;
+      const dashboardPath = `/${locale}/${user.role}/dashboard`;
       router.push(dashboardPath);
     }
-  }, [isLoading, user, isAuthorized, requiredRole, redirectTo, router]);
+  }, [isLoading, user, isAuthorized, requiredRole, redirectTo, router, locale]);
 
   // Show loading state
   if (isLoading) {
@@ -46,7 +50,7 @@ export function ProtectedRoute({
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-slate-600">Laden...</p>
+          <p className="mt-4 text-slate-600">{t('loading')}</p>
         </div>
       </div>
     );

@@ -20,7 +20,7 @@ import {
   Camera,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useLanguage } from "@/lib/i18n/useLovableTranslation";
+import { useTranslations } from "next-intl";
 
 interface ExtensionItem {
   id: string;
@@ -43,49 +43,12 @@ const ExtensionModal = ({
   customerName,
   onSubmit,
 }: ExtensionModalProps) => {
-  const { language } = useLanguage();
+  const t = useTranslations('workshopModal.extension');
   const [items, setItems] = useState<ExtensionItem[]>([
     { id: "1", description: "", price: "" },
   ]);
   const [photos, setPhotos] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const t = {
-    de: {
-      title: "Auftragserweiterung erstellen",
-      description: "Zusätzliche Arbeiten für",
-      addItem: "Position hinzufügen",
-      itemDescription: "Beschreibung",
-      itemDescriptionPlaceholder: "z.B. Bremsbeläge hinten erneuern",
-      itemPrice: "Preis",
-      photos: "Fotos als Nachweis",
-      photosDesc: "Dokumentieren Sie den Bedarf mit Fotos",
-      addPhoto: "Foto hinzufügen",
-      total: "Gesamtpreis",
-      cancel: "Abbrechen",
-      send: "An Kunden senden",
-      success: "Erweiterung erfolgreich an Kunden gesendet!",
-      validation: "Bitte füllen Sie alle Positionen aus.",
-    },
-    en: {
-      title: "Create Order Extension",
-      description: "Additional work for",
-      addItem: "Add Item",
-      itemDescription: "Description",
-      itemDescriptionPlaceholder: "e.g., Replace rear brake pads",
-      itemPrice: "Price",
-      photos: "Photo Evidence",
-      photosDesc: "Document the need with photos",
-      addPhoto: "Add Photo",
-      total: "Total Price",
-      cancel: "Cancel",
-      send: "Send to Customer",
-      success: "Extension sent to customer successfully!",
-      validation: "Please fill in all items.",
-    },
-  };
-
-  const texts = t[language];
 
   const addItem = () => {
     setItems([
@@ -136,11 +99,11 @@ const ExtensionModal = ({
 
   const handleSubmit = () => {
     if (!isValid) {
-      toast.error(texts.validation);
+      toast.error(t('validation'));
       return;
     }
     onSubmit(items, photos);
-    toast.success(texts.success);
+    toast.success(t('success'));
     onOpenChange(false);
     // Reset form
     setItems([{ id: "1", description: "", price: "" }]);
@@ -153,10 +116,10 @@ const ExtensionModal = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5 text-workshop" />
-            {texts.title}
+            {t('title')}
           </DialogTitle>
           <DialogDescription>
-            {texts.description} {orderId} - {customerName}
+            {t('description')} {orderId} - {customerName}
           </DialogDescription>
         </DialogHeader>
 
@@ -170,7 +133,7 @@ const ExtensionModal = ({
               >
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-muted-foreground">
-                    {language === "de" ? "Position" : "Item"} {index + 1}
+                    {t('item')} {index + 1}
                   </span>
                   {items.length > 1 && (
                     <Button
@@ -184,16 +147,16 @@ const ExtensionModal = ({
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label>{texts.itemDescription}</Label>
+                  <Label>{t('itemDescription')}</Label>
                   <Textarea
-                    placeholder={texts.itemDescriptionPlaceholder}
+                    placeholder={t('itemDescriptionPlaceholder')}
                     value={item.description}
                     onChange={(e) => updateItem(item.id, "description", e.target.value)}
                     rows={2}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>{texts.itemPrice}</Label>
+                  <Label>{t('itemPrice')}</Label>
                   <div className="relative">
                     <Input
                       type="number"
@@ -214,7 +177,7 @@ const ExtensionModal = ({
               className="w-full"
             >
               <Plus className="mr-2 h-4 w-4" />
-              {texts.addItem}
+              {t('addItem')}
             </Button>
           </div>
 
@@ -222,10 +185,10 @@ const ExtensionModal = ({
           <div className="space-y-3">
             <Label className="flex items-center gap-2">
               <Camera className="h-4 w-4" />
-              {texts.photos}
+              {t('photos')}
             </Label>
-            <p className="text-sm text-muted-foreground">{texts.photosDesc}</p>
-            
+            <p className="text-sm text-muted-foreground">{t('photosDesc')}</p>
+
             <div className="grid grid-cols-4 gap-2">
               {photos.map((photo, index) => (
                 <div key={index} className="relative aspect-square">
@@ -247,7 +210,7 @@ const ExtensionModal = ({
                 className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-border text-muted-foreground transition-colors hover:border-workshop hover:text-workshop"
               >
                 <Upload className="h-5 w-5" />
-                <span className="text-xs">{texts.addPhoto}</span>
+                <span className="text-xs">{t('addPhoto')}</span>
               </button>
             </div>
             <input
@@ -263,7 +226,7 @@ const ExtensionModal = ({
           {/* Total */}
           <div className="rounded-lg bg-workshop/10 p-4">
             <div className="flex items-center justify-between">
-              <span className="font-medium">{texts.total}</span>
+              <span className="font-medium">{t('total')}</span>
               <span className="text-2xl font-bold text-workshop">{totalPrice.toFixed(2)}€</span>
             </div>
           </div>
@@ -275,7 +238,7 @@ const ExtensionModal = ({
               className="flex-1"
               onClick={() => onOpenChange(false)}
             >
-              {texts.cancel}
+              {t('cancel')}
             </Button>
             <Button
               variant="workshop"
@@ -284,7 +247,7 @@ const ExtensionModal = ({
               disabled={!isValid}
             >
               <Send className="mr-2 h-4 w-4" />
-              {texts.send}
+              {t('send')}
             </Button>
           </div>
         </div>

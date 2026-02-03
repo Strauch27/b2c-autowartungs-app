@@ -22,19 +22,16 @@ const router = Router();
 
 /**
  * POST /api/bookings
- * Create new booking (public route - supports guest checkout)
+ * Create new booking (requires authentication)
  * Body:
- * - customer: { email, firstName, lastName, phone } (required for guests)
+ * - customer: { email, firstName, lastName, phone } (optional - uses auth user if not provided)
  * - vehicle: { brand, model, year, mileage } (required)
  * - services: string[] (required)
  * - pickup: { date, timeSlot, street, city, postalCode } (required)
  * - delivery: { date, timeSlot } (required)
  * - customerNotes: string (optional)
- *
- * If user is authenticated, customer data is optional (uses authenticated user)
- * If not authenticated, creates new account and sends credentials via email
  */
-router.post('/', createBooking);
+router.post('/', authenticate, requireCustomer, createBooking);
 
 /**
  * All other routes require authentication and customer role

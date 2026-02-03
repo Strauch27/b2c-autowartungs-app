@@ -33,6 +33,12 @@ import OrderDetailsModal from "@/components/workshop/OrderDetailsModal";
 import ExtensionModal from "@/components/workshop/ExtensionModal";
 import { workshopsApi, WorkshopOrder, CreateExtensionData } from "@/lib/api/workshops";
 import { toast } from "sonner";
+import dynamic from "next/dynamic";
+
+// Load LanguageSwitcher without SSR to avoid hydration mismatch
+const LanguageSwitcher = dynamic(() => import("@/components/LanguageSwitcher"), {
+  ssr: false,
+});
 
 interface Order {
   id: string;
@@ -43,6 +49,7 @@ interface Order {
   vehiclePlate: string;
   service: string;
   status: "pending" | "inProgress" | "completed";
+  backendStatus?: string; // Original backend BookingStatus for FSM transitions
   date: string;
   pickupAddress: string;
   notes?: string;
@@ -93,9 +100,16 @@ function DashboardContent() {
   });
 
   // Map booking status to workshop order status
+  // FSM Flow: PICKED_UP -> AT_WORKSHOP -> IN_SERVICE -> READY_FOR_RETURN
   const mapStatus = (bookingStatus: string): "pending" | "inProgress" | "completed" => {
-    if (['DELIVERED', 'CANCELLED'].includes(bookingStatus)) return "completed";
-    if (['IN_WORKSHOP', 'COMPLETED'].includes(bookingStatus)) return "inProgress";
+    // Completed states (service done, ready for return)
+    if (['DELIVERED', 'CANCELLED', 'COMPLETED', 'READY_FOR_RETURN', 'RETURN_ASSIGNED', 'RETURNED'].includes(bookingStatus)) return "completed";
+    // In progress states (workshop actively working)
+    if (['IN_SERVICE', 'IN_WORKSHOP'].includes(bookingStatus)) return "inProgress";
+    // Pending states (vehicle arrived or in transit)
+    // PICKED_UP = Jockey has vehicle, en route to workshop
+    // AT_WORKSHOP = Vehicle physically at workshop, awaiting service start
+    if (['AT_WORKSHOP', 'PICKED_UP'].includes(bookingStatus)) return "pending";
     return "pending";
   };
 
@@ -111,6 +125,7 @@ function DashboardContent() {
       ? `${o.services.length} ${language === "de" ? "Leistungen" : "Services"}`
       : o.serviceType,
     status: mapStatus(o.status),
+    backendStatus: o.status, // Keep original backend status for FSM transitions
     date: new Date(o.pickupDate).toLocaleDateString(language === "de" ? "de-DE" : "en-US"),
     pickupAddress: `${o.pickupAddress}, ${o.pickupPostalCode} ${o.pickupCity}`,
     notes: o.customerNotes,
@@ -141,16 +156,32 @@ function DashboardContent() {
     completed: orders.filter((o) => o.status === "completed").length,
   };
 
-  const handleStatusChange = async (orderId: string, newStatus: "pending" | "inProgress" | "completed") => {
+  const handleStatusChange = async (orderId: string, newStatus: "pending" | "inProgress" | "completed", currentBackendStatus?: string) => {
     try {
-      // Map frontend status to backend BookingStatus enum
-      const statusMap = {
-        pending: 'PENDING_PAYMENT' as const,
-        inProgress: 'IN_WORKSHOP' as const,
-        completed: 'COMPLETED' as const,
-      };
+      // Intelligent status mapping based on current backend status
+      // FSM Flow: PICKED_UP -> AT_WORKSHOP -> IN_SERVICE -> READY_FOR_RETURN
+      let targetStatus: string;
 
-      await workshopsApi.updateStatus(orderId, statusMap[newStatus]);
+      if (newStatus === "pending") {
+        // This transition shouldn't normally happen, but handle it
+        targetStatus = 'AT_WORKSHOP';
+      } else if (newStatus === "inProgress") {
+        // From pending (PICKED_UP or AT_WORKSHOP) -> IN_SERVICE
+        if (currentBackendStatus === 'PICKED_UP') {
+          // Special case: vehicle arrived, mark as AT_WORKSHOP first
+          targetStatus = 'AT_WORKSHOP';
+        } else {
+          // Normal case: AT_WORKSHOP -> IN_SERVICE
+          targetStatus = 'IN_SERVICE';
+        }
+      } else if (newStatus === "completed") {
+        // From inProgress (IN_SERVICE) -> READY_FOR_RETURN
+        targetStatus = 'READY_FOR_RETURN';
+      } else {
+        targetStatus = 'AT_WORKSHOP'; // Fallback
+      }
+
+      await workshopsApi.updateStatus(orderId, targetStatus);
 
       toast.success(
         language === "de"
@@ -221,19 +252,22 @@ function DashboardContent() {
               </div>
             </Link>
             <div>
-              <p className="font-semibold">{user.name}</p>
+              <p className="font-semibold">{user.name || user.email}</p>
               <p className="text-xs text-muted-foreground">{today}</p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push("/")}
-            className="text-muted-foreground"
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            {t.dashboard.logout}
-          </Button>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push(`/${language}`)}
+              className="text-muted-foreground"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              {t.dashboard.logout}
+            </Button>
+          </div>
         </div>
       </header>
 

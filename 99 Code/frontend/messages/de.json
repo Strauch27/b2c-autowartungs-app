@@ -826,14 +826,24 @@
         "title": "Abholung",
         "subtitle": "Wann sollen wir Ihr Fahrzeug abholen?",
         "date": "Abholdatum",
-        "time": "Abholzeit"
+        "time": "Abholzeit",
+        "quickSelect": {
+          "today": "Heute",
+          "tomorrow": "Morgen",
+          "nextWeekday": "Nächster Werktag"
+        }
       },
       "return": {
         "title": "Rückgabe",
         "subtitle": "Wann sollen wir Ihr Fahrzeug zurückbringen?",
         "date": "Rückgabedatum",
         "time": "Rückgabezeit",
-        "note": "Die Rückgabe muss mindestens einen Tag nach der Abholung erfolgen."
+        "note": "Die Rückgabe muss mindestens einen Tag nach der Abholung erfolgen.",
+        "quickSelect": {
+          "tomorrow": "+1 Tag",
+          "nextWeek": "+1 Woche"
+        },
+        "validationError": "Rückgabe muss nach der Abholung liegen"
       },
       "address": {
         "title": "Abhol- & Rückgabeadresse",
@@ -963,5 +973,214 @@
     },
     "viewDetails": "Details",
     "createExtension": "Erweiterung"
+  },
+  "payment": {
+    "summary": {
+      "title": "Buchungs-Zusammenfassung",
+      "reviewDetails": "Bitte überprüfen Sie Ihre Buchungsdetails vor der Zahlung",
+      "service": "Service",
+      "vehicle": "Fahrzeug",
+      "licensePlate": "Kennzeichen",
+      "pickupDateTime": "Abholdatum & -zeit",
+      "pickupAddress": "Abholadresse",
+      "priceBreakdown": "Preisaufschlüsselung",
+      "basePrice": "Grundpreis",
+      "ageAdjustment": "Altersanpassung",
+      "totalAmount": "Gesamtbetrag",
+      "includesTaxes": "Inkl. aller Steuern und Gebühren"
+    },
+    "form": {
+      "bookingId": "Buchungs-ID",
+      "totalAmount": "Gesamtbetrag",
+      "processing": "Zahlung wird verarbeitet...",
+      "payButton": "Bezahlen {amount} EUR",
+      "securityNotice": "Sichere Zahlung durch Stripe. Ihre Zahlungsinformationen sind verschlüsselt und sicher.",
+      "paymentFailed": "Zahlung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+    },
+    "checkout": {
+      "title": "Schließen Sie Ihre Zahlung ab",
+      "demoMode": "Demo-Modus: Keine echten Zahlungen werden verarbeitet",
+      "securePayment": "Sichere Zahlungsabwicklung durch Stripe",
+      "initializing": "Sichere Zahlung wird initialisiert...",
+      "initFailed": "Zahlungsinitialisierung fehlgeschlagen",
+      "tryAgain": "Erneut versuchen",
+      "authRequired": "Authentifizierung erforderlich. Bitte melden Sie sich an.",
+      "fetchFailed": "Buchung konnte nicht geladen werden",
+      "stripeNotConfigured": "Stripe ist nicht konfiguriert. Bitte kontaktieren Sie den Support."
+    },
+    "demo": {
+      "badge": "DEMO-MODUS",
+      "simulationNotice": "Dies ist eine simulierte Zahlung zu Demonstrationszwecken.",
+      "noRealCharge": "Es wird keine echte Zahlung durchgeführt. Klicken Sie auf \"Mit Demo bezahlen\", um eine erfolgreiche Zahlung zu simulieren.",
+      "paymentMethod": "Zahlungsmethode",
+      "demoPaymentSimulated": "Demo-Zahlung (Simuliert)",
+      "processing": "Demo-Zahlung wird verarbeitet...",
+      "payButton": "Mit Demo bezahlen ({amount} EUR)",
+      "testingOnly": "Demo-Zahlungsmodus - Es werden keine echten Gebühren erhoben. Dies dient nur zu Testzwecken.",
+      "success": "Zahlung erfolgreich!",
+      "bookingConfirmed": "Ihre Buchung wurde bestätigt.",
+      "extensionAuthorized": "Erweiterung wurde autorisiert.",
+      "invalidType": "Ungültiger Zahlungstyp oder fehlende ID"
+    },
+    "serviceTypes": {
+      "INSPECTION": "Inspektion",
+      "OIL_SERVICE": "Ölwechsel",
+      "BRAKE_SERVICE": "Bremsendienst",
+      "TUV": "TÜV/HU",
+      "CLIMATE_SERVICE": "Klimaservice",
+      "CUSTOM": "Sonderleistung"
+    }
+  },
+  "bookingPayment": {
+    "loading": "Buchungsdetails werden geladen...",
+    "error": "Fehler",
+    "invalidBooking": "Ungültige Buchung",
+    "noBookingId": "Keine Buchungs-ID angegeben",
+    "goToDashboard": "Zum Dashboard",
+    "demoBanner": "Dies ist eine Demonstrationsumgebung. Es werden keine echten Zahlungen verarbeitet.",
+    "title": "Schließen Sie Ihre Buchung ab",
+    "subtitle": "Überprüfen Sie Ihre Buchungsdetails und schließen Sie die Zahlung ab, um Ihren Service-Termin zu bestätigen.",
+    "whatNext": {
+      "title": "Was passiert als nächstes?",
+      "step1": "Schließen Sie die Zahlung ab, um Ihre Buchung zu bestätigen",
+      "step2": "Erhalten Sie eine Bestätigungs-E-Mail mit allen Details",
+      "step3": "Ein Jockey wird Ihrer Buchung zugewiesen",
+      "step4": "Ihr Fahrzeug wird zur geplanten Zeit abgeholt"
+    },
+    "cancellationPolicy": {
+      "title": "Stornierungsbedingungen",
+      "text": "Sie können Ihre Buchung bis zu 24 Stunden vor der geplanten Abholzeit kostenlos stornieren und erhalten eine volle Rückerstattung."
+    }
+  },
+  "bookingConfirmation": {
+    "loading": "Bestätigung wird geladen...",
+    "title": "Buchung bestätigt!",
+    "subtitle": "Ihre Buchung wurde erfolgreich bestätigt. Wir haben Ihnen eine Bestätigungs-E-Mail an Ihre registrierte E-Mail-Adresse gesendet.",
+    "bookingDetails": "Buchungsdetails",
+    "bookingNumber": "Buchungsnummer",
+    "service": "Service",
+    "vehicle": "Fahrzeug",
+    "pickupDateTime": "Abholdatum & -zeit",
+    "pickupAddress": "Abholadresse",
+    "whatNext": {
+      "title": "Was passiert als nächstes?",
+      "step1Title": "Sie erhalten eine Bestätigungs-E-Mail",
+      "step1Desc": "Überprüfen Sie Ihren Posteingang für die Buchungsdetails und Quittung",
+      "step2Title": "Ein Jockey wird zugewiesen",
+      "step2Desc": "Sie werden benachrichtigt, wenn ein Jockey Ihrer Buchung zugewiesen wird",
+      "step3Title": "Fahrzeugabholung zur geplanten Zeit",
+      "step3Desc": "Stellen Sie sicher, dass Ihr Fahrzeug zur geplanten Abholzeit bereit ist",
+      "step4Title": "Service-Abschluss und Lieferung",
+      "step4Desc": "Verfolgen Sie Ihren Buchungsstatus in Ihrem Dashboard"
+    },
+    "actions": {
+      "goToDashboard": "Zum Dashboard",
+      "printConfirmation": "Bestätigung drucken"
+    },
+    "support": {
+      "needHelp": "Brauchen Sie Hilfe?",
+      "contactSupport": "Kontaktieren Sie unser Support-Team"
+    }
+  },
+  "protectedRoute": {
+    "loading": "Wird geladen..."
+  },
+  "extensions": {
+    "title": "Auftragserweiterungen",
+    "noExtensions": "Keine Auftragserweiterungen vorhanden",
+    "pending": "Ausstehend",
+    "approved": "Genehmigt",
+    "declined": "Abgelehnt",
+    "completed": "Abgeschlossen",
+    "authorized": "Autorisiert",
+    "paid": "Bezahlt",
+    "viewDetails": "Details anzeigen",
+    "totalAmount": "Gesamtbetrag",
+    "items": "Positionen",
+    "requestedOn": "Angefragt am",
+    "approvedOn": "Genehmigt am",
+    "declinedOn": "Abgelehnt am",
+    "paidOn": "Bezahlt am",
+    "images": "Fotos"
+  },
+  "extensionApproval": {
+    "reviewTitle": "Auftragserweiterung prüfen",
+    "reviewDescription": "Bitte überprüfen Sie die vorgeschlagenen zusätzlichen Arbeiten",
+    "items": "Positionen",
+    "images": "Fotos als Nachweis",
+    "totalAmount": "Gesamtbetrag",
+    "warning": "Hinweis",
+    "warningText": "Diese zusätzlichen Arbeiten sind notwendig und wurden von der Werkstatt empfohlen. Die Zahlung wird erst nach Abschluss der Arbeiten belastet.",
+    "approveAndPay": "Genehmigen & Bezahlen",
+    "declineReasonLabel": "Grund der Ablehnung (optional)",
+    "declining": "Lehne ab...",
+    "approveSuccess": "Erweiterung genehmigt!",
+    "approveError": "Fehler beim Genehmigen der Erweiterung.",
+    "declineError": "Fehler beim Ablehnen der Erweiterung.",
+    "loadingPayment": "Bereite Zahlung vor...",
+    "authorizedAmount": "Autorisierter Betrag",
+    "approvingExtension": "Genehmige Erweiterung...",
+    "paymentTitle": "Zahlung autorisieren",
+    "paymentDescription": "Bitte geben Sie Ihre Zahlungsinformationen ein. Der Betrag wird erst nach Abschluss der Arbeiten belastet.",
+    "processing": "Verarbeite...",
+    "authorize": "Zahlung autorisieren",
+    "cancel": "Abbrechen",
+    "securityNotice": "Sichere Zahlung durch Stripe. Ihre Zahlungsinformationen sind verschlüsselt.",
+    "paymentFailed": "Zahlungsautorisierung fehlgeschlagen",
+    "successMessage": "Erweiterung wurde genehmigt und Zahlung autorisiert!",
+    "declineTitle": "Erweiterung ablehnen",
+    "declineDescription": "Sind Sie sicher, dass Sie diese Erweiterung ablehnen möchten?",
+    "declineReason": "Grund für Ablehnung (optional)",
+    "declineReasonPlaceholder": "z.B. Zu teuer, nicht erforderlich...",
+    "confirmDecline": "Ablehnen bestätigen",
+    "declineSuccess": "Erweiterung wurde abgelehnt",
+    "approve": "Genehmigen",
+    "decline": "Ablehnen",
+    "extension": "Auftragserweiterung",
+    "description": "Beschreibung",
+    "totalCost": "Gesamtkosten",
+    "documentation": "Dokumentation"
+  },
+  "workshopModal": {
+    "orderDetails": {
+      "title": "Auftragsdetails",
+      "customer": "Kundeninformationen",
+      "vehicle": "Fahrzeuginformationen",
+      "service": "Service",
+      "timeline": "Status-Verlauf",
+      "address": "Abhol-/Rückgabeadresse",
+      "notes": "Anmerkungen",
+      "noNotes": "Keine Anmerkungen",
+      "startWork": "Bearbeitung starten",
+      "markComplete": "Als abgeschlossen markieren",
+      "status": {
+        "pending": "Ausstehend",
+        "inProgress": "In Bearbeitung",
+        "completed": "Abgeschlossen"
+      },
+      "steps": {
+        "received": "Auftrag eingegangen",
+        "inProgress": "In Bearbeitung",
+        "completed": "Abgeschlossen"
+      }
+    },
+    "extension": {
+      "title": "Auftragserweiterung erstellen",
+      "description": "Zusätzliche Arbeiten für",
+      "addItem": "Position hinzufügen",
+      "item": "Position",
+      "itemDescription": "Beschreibung",
+      "itemDescriptionPlaceholder": "z.B. Bremsbeläge hinten erneuern",
+      "itemPrice": "Preis",
+      "photos": "Fotos als Nachweis",
+      "photosDesc": "Dokumentieren Sie den Bedarf mit Fotos",
+      "addPhoto": "Foto hinzufügen",
+      "total": "Gesamtpreis",
+      "cancel": "Abbrechen",
+      "send": "An Kunden senden",
+      "success": "Erweiterung erfolgreich an Kunden gesendet!",
+      "validation": "Bitte füllen Sie alle Positionen aus."
+    }
   }
 }

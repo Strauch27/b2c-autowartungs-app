@@ -23,7 +23,7 @@ cd backend
 npm run dev
 ```
 
-Server should start on `http://localhost:5000`
+Server should start on `http://localhost:5001`
 
 ### 3. Start Frontend Server
 ```bash
@@ -107,7 +107,7 @@ Navigate to `Booking` table and verify:
 # Get auth token first (replace with your token)
 TOKEN="your-jwt-token-here"
 
-curl -X POST http://localhost:5000/api/bookings \
+curl -X POST http://localhost:5001/api/bookings \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{
@@ -136,13 +136,13 @@ curl -X POST http://localhost:5000/api/bookings \
 
 ### Get All Bookings
 ```bash
-curl -X GET http://localhost:5000/api/bookings \
+curl -X GET http://localhost:5001/api/bookings \
   -H "Authorization: Bearer $TOKEN"
 ```
 
 ### Get Single Booking
 ```bash
-curl -X GET http://localhost:5000/api/bookings/{booking-id} \
+curl -X GET http://localhost:5001/api/bookings/{booking-id} \
   -H "Authorization: Bearer $TOKEN"
 ```
 

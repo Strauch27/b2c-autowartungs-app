@@ -238,7 +238,7 @@ JWT_EXPIRES_IN="24h"
 Required in `/frontend/.env.local`:
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:5000
+NEXT_PUBLIC_API_URL=http://localhost:5001
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxxxx
 ```
 

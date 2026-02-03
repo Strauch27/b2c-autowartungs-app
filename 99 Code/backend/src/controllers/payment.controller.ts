@@ -273,14 +273,97 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent): Prom
       amount: paymentIntent.amount / 100,
     });
 
+    // Create pickup assignment after successful payment
+    await createPickupAssignmentForBooking(bookingId);
+
     // TODO: Send confirmation email to customer
-    // TODO: Notify workshop/jockey system
   } catch (error) {
     logger.error({
       message: 'Error handling payment succeeded',
       error: error instanceof Error ? error.message : 'Unknown error',
       paymentIntentId: paymentIntent.id,
     });
+  }
+}
+
+/**
+ * Helper function to create pickup assignment for a confirmed booking
+ */
+async function createPickupAssignmentForBooking(bookingId: string): Promise<void> {
+  try {
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        customer: true,
+        vehicle: true,
+      }
+    });
+
+    if (!booking) {
+      logger.error('Booking not found for pickup assignment', { bookingId });
+      return;
+    }
+
+    // Find first available jockey
+    const jockey = await prisma.user.findFirst({
+      where: {
+        role: 'JOCKEY',
+        isActive: true,
+      }
+    });
+
+    if (jockey && booking.customer && booking.vehicle) {
+      // Parse pickup date and time
+      const pickupDateTime = new Date(`${booking.pickupDate}T${booking.pickupTimeSlot}:00`);
+
+      await prisma.jockeyAssignment.create({
+        data: {
+          bookingId: booking.id,
+          jockeyId: jockey.id,
+          type: 'PICKUP',
+          status: 'ASSIGNED',
+          scheduledTime: pickupDateTime,
+
+          // Customer info
+          customerName: `${booking.customer.firstName} ${booking.customer.lastName}`,
+          customerPhone: booking.customer.phone || '',
+          customerAddress: booking.pickupAddress,
+          customerCity: booking.pickupCity,
+          customerPostalCode: booking.pickupPostalCode,
+
+          // Vehicle info
+          vehicleBrand: booking.vehicle.brand,
+          vehicleModel: booking.vehicle.model,
+          vehicleLicensePlate: booking.vehicle.licensePlate || '',
+        }
+      });
+
+      // Update booking status to PICKUP_ASSIGNED
+      await prisma.booking.update({
+        where: { id: booking.id },
+        data: { status: BookingStatus.PICKUP_ASSIGNED }
+      });
+
+      logger.info('Pickup assignment created after payment success', {
+        bookingId: booking.id,
+        bookingNumber: booking.bookingNumber,
+        jockeyId: jockey.id,
+        newStatus: 'PICKUP_ASSIGNED'
+      });
+    } else {
+      logger.warn('Could not create pickup assignment - no available jockey or incomplete booking data', {
+        bookingId: booking.id,
+        hasJockey: !!jockey,
+        hasCustomer: !!booking.customer,
+        hasVehicle: !!booking.vehicle
+      });
+    }
+  } catch (error) {
+    logger.error('Failed to create pickup assignment', {
+      bookingId,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+    // Don't throw - allow payment confirmation to succeed even if assignment fails
   }
 }
 

@@ -39,8 +39,9 @@ const Hero = () => {
           </p>
 
           {/* CTA Buttons */}
+          {/* Auth-aware CTA: /customer/booking auto-redirects to login if not authenticated */}
           <div className="mb-10 flex flex-col items-center justify-center gap-4 sm:flex-row animate-fade-in-up animate-delay-200">
-            <Link href={`/${locale}/booking`}>
+            <Link href={`/${locale}/customer/booking`}>
               <Button variant="hero" size="xl" data-testid="hero-booking-cta">
                 {t.hero.cta}
               </Button>

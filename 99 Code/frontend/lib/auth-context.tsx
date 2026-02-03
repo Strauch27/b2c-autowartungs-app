@@ -31,10 +31,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        const user = await authApi.getCurrentUser();
+        // Create a timeout promise that rejects after 3 seconds
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Auth check timeout')), 3000);
+        });
+
+        // Race between getCurrentUser and timeout
+        const user = await Promise.race([
+          authApi.getCurrentUser(),
+          timeoutPromise
+        ]);
+
         setState({ user, isAuthenticated: true, isLoading: false });
       } catch (error) {
-        console.error('Failed to load user:', error);
+        // Check if error is due to timeout or network issue
+        if (error instanceof Error && error.message.includes('timeout')) {
+          console.warn('Failed to verify auth token (timeout). Continuing without authentication.');
+        } else if (error instanceof Error && (error.message.includes('fetch') || error.message.includes('Network'))) {
+          console.warn('Failed to verify auth token (network error). Continuing without authentication.');
+        } else {
+          console.error('Failed to load user:', error);
+        }
+
+        // Remove invalid token and continue - page will load without auth
         tokenStorage.removeToken();
         setState({ user: null, isAuthenticated: false, isLoading: false });
       }
@@ -72,7 +91,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(() => {
     tokenStorage.removeToken();
     setState({ user: null, isAuthenticated: false, isLoading: false });
-    router.push('/');
+
+    // Extract current locale from URL or default to 'de'
+    const currentPath = window.location.pathname;
+    const locale = currentPath.split('/')[1] === 'en' ? 'en' : 'de';
+
+    router.push(`/${locale}`);
   }, [router]);
 
   const value: AuthContextType = {
