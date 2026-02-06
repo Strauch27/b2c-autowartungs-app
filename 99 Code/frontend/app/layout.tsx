@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "sonner";
 import { DemoBanner } from "@/components/demo/DemoBanner";
+import { DebugLogger } from "@/components/debug/DebugLogger";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -22,11 +23,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="de" suppressHydrationWarning>
+    <html suppressHydrationWarning>
       <body className={`${inter.variable} ${inter.className} antialiased`}>
         <DemoBanner />
         <AuthProvider>{children}</AuthProvider>
         <Toaster position="top-right" richColors />
+        <DebugLogger />
       </body>
     </html>
   );

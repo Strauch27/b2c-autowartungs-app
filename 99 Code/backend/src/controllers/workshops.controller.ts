@@ -6,6 +6,7 @@ import { paymentService } from '../services/payment.service';
 import { demoPaymentService } from '../services/demo-payment.service';
 import { assertTransition, Actor } from '../domain/bookingFsm';
 import { BookingStatus } from '@prisma/client';
+import { sendServiceExtension } from '../services/notification.service';
 
 /**
  * Get all bookings/orders for the workshop
@@ -16,9 +17,30 @@ export async function getWorkshopOrders(req: Request, res: Response, next: NextF
     const limit = parseInt(req.query.limit as string) || 50;
     const skip = (page - 1) * limit;
 
-    // Get all bookings (in a real app, filter by workshop location/assignment)
+    // NOTE: The Booking model does not have a direct workshopId FK, so we cannot
+    // filter by workshop assignment yet. As a practical workaround, we filter by
+    // statuses that are relevant to workshop operations (i.e., bookings that have
+    // progressed past payment/confirmation and have not been cancelled before
+    // reaching the workshop). When a workshopId column is added to Booking,
+    // this filter should be combined with a workshop-specific WHERE clause.
+    const workshopRelevantStatuses: BookingStatus[] = [
+      BookingStatus.PICKUP_ASSIGNED,
+      BookingStatus.PICKED_UP,
+      BookingStatus.AT_WORKSHOP,
+      BookingStatus.IN_WORKSHOP,
+      BookingStatus.IN_SERVICE,
+      BookingStatus.READY_FOR_RETURN,
+      BookingStatus.RETURN_ASSIGNED,
+      BookingStatus.COMPLETED,
+      BookingStatus.RETURNED,
+      BookingStatus.DELIVERED,
+    ];
+
+    const statusFilter = { status: { in: workshopRelevantStatuses } };
+
     const [bookings, total] = await Promise.all([
       prisma.booking.findMany({
+        where: statusFilter,
         skip,
         take: limit,
         include: {
@@ -53,7 +75,7 @@ export async function getWorkshopOrders(req: Request, res: Response, next: NextF
           pickupDate: 'desc'
         }
       }),
-      prisma.booking.count()
+      prisma.booking.count({ where: statusFilter })
     ]);
 
     res.json({
@@ -80,7 +102,7 @@ export async function getWorkshopOrders(req: Request, res: Response, next: NextF
  */
 export async function getWorkshopOrder(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const booking = await prisma.booking.findUnique({
       where: { id },
@@ -154,7 +176,7 @@ const createExtensionSchema = z.object({
 
 export async function createExtension(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { bookingId } = req.params;
+    const bookingId = req.params.bookingId as string;
     const validatedData = createExtensionSchema.parse(req.body);
 
     // Check if booking exists
@@ -208,18 +230,24 @@ export async function createExtension(req: Request, res: Response, next: NextFun
       totalAmount
     });
 
-    // TODO: Send notification to customer
-    // await sendNotification({
-    //   userId: booking.customer.id,
-    //   type: NotificationType.SERVICE_EXTENSION,
-    //   title: 'Auftragserweiterung vorgeschlagen',
-    //   body: `Für Ihre Buchung ${booking.bookingNumber} wurde eine Erweiterung vorgeschlagen.`,
-    //   bookingId,
-    //   data: {
-    //     extensionId: extension.id,
-    //     totalAmount
-    //   }
-    // });
+    // Send notification to customer about the new extension
+    try {
+      await sendServiceExtension(
+        booking.customer.id,
+        booking.id,
+        booking.bookingNumber,
+        validatedData.description,
+        totalAmount / 100 // Convert cents to EUR for display
+      );
+    } catch (notificationError) {
+      // Log but don't fail the extension creation if notification fails
+      logger.error('Failed to send extension notification to customer:', {
+        extensionId: extension.id,
+        bookingId,
+        customerId: booking.customer.id,
+        error: notificationError instanceof Error ? notificationError.message : 'Unknown error'
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -254,7 +282,7 @@ const updateStatusSchema = z.object({
 export async function updateBookingStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     // Note: :id route param is the bookingNumber, not the internal UUID
-    const { id: bookingNumber } = req.params;
+    const bookingNumber = req.params.id as string;
     const { status } = updateStatusSchema.parse(req.body);
 
     // Get current booking to validate FSM transition
@@ -287,7 +315,7 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
       return;
     }
 
-    // Perform status update
+    // Perform status update and fetch full booking data for the response
     const booking = await prisma.booking.update({
       where: { bookingNumber },
       data: { status },
@@ -319,10 +347,11 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
       newStatus: status
     });
 
-    // When workshop marks service as READY_FOR_RETURN (or legacy COMPLETED), create return assignment
+    // When workshop marks service as READY_FOR_RETURN (or legacy COMPLETED),
+    // wrap the return assignment creation + RETURN_ASSIGNED update in a transaction.
     if (status === BookingStatus.READY_FOR_RETURN || status === BookingStatus.COMPLETED) {
       try {
-        // Find the jockey who did the pickup (prefer same jockey for return)
+        // Find jockey for return assignment (read, before transaction)
         // IMPORTANT: Use booking.id (UUID) for FK relationships, not bookingNumber
         const pickupAssignment = await prisma.jockeyAssignment.findFirst({
           where: {
@@ -331,7 +360,6 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
           }
         });
 
-        // Get jockey ID (prefer pickup jockey, otherwise find any available jockey)
         let jockeyId = pickupAssignment?.jockeyId;
         if (!jockeyId) {
           const availableJockey = await prisma.user.findFirst({
@@ -349,48 +377,38 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
             ? new Date(booking.deliveryDate)
             : new Date(Date.now() + 24 * 60 * 60 * 1000); // Tomorrow
 
-          await prisma.jockeyAssignment.create({
-            data: {
-              bookingId: currentBooking.id, // Use booking.id (UUID), not bookingNumber
-              jockeyId,
-              type: 'RETURN',
-              status: 'ASSIGNED',
-              scheduledTime,
+          // Transaction: create return assignment + update status to RETURN_ASSIGNED
+          await prisma.$transaction(async (tx) => {
+            // 1. Create return assignment
+            await tx.jockeyAssignment.create({
+              data: {
+                bookingId: currentBooking.id,
+                jockeyId: jockeyId!,
+                type: 'RETURN',
+                status: 'ASSIGNED',
+                scheduledTime,
 
-              // Customer info
-              customerName: `${booking.customer.firstName || ''} ${booking.customer.lastName || ''}`.trim() || booking.customer.email,
-              customerPhone: booking.customer.phone || 'N/A',
-              customerAddress: booking.pickupAddress,
-              customerCity: booking.pickupCity,
-              customerPostalCode: booking.pickupPostalCode,
+                // Customer info
+                customerName: `${booking.customer.firstName || ''} ${booking.customer.lastName || ''}`.trim() || booking.customer.email,
+                customerPhone: booking.customer.phone || 'N/A',
+                customerAddress: booking.pickupAddress,
+                customerCity: booking.pickupCity,
+                customerPostalCode: booking.pickupPostalCode,
 
-              // Vehicle info
-              vehicleBrand: booking.vehicle.brand,
-              vehicleModel: booking.vehicle.model,
-              vehicleLicensePlate: booking.vehicle.licensePlate || '',
-            }
-          });
-
-          // Update booking status to RETURN_ASSIGNED with FSM validation
-          try {
-            // Re-read current status since it was just updated to READY_FOR_RETURN
-            const refreshedBooking = await prisma.booking.findUnique({
-              where: { id: currentBooking.id },
-              select: { status: true }
+                // Vehicle info
+                vehicleBrand: booking.vehicle.brand,
+                vehicleModel: booking.vehicle.model,
+                vehicleLicensePlate: booking.vehicle.licensePlate || '',
+              }
             });
-            if (refreshedBooking) {
-              assertTransition(refreshedBooking.status, BookingStatus.RETURN_ASSIGNED, Actor.SYSTEM);
-            }
-            await prisma.booking.update({
+
+            // 2. Update booking status to RETURN_ASSIGNED with FSM validation
+            assertTransition(status, BookingStatus.RETURN_ASSIGNED, Actor.SYSTEM);
+            await tx.booking.update({
               where: { id: currentBooking.id },
               data: { status: BookingStatus.RETURN_ASSIGNED }
             });
-          } catch (fsmError: any) {
-            logger.warn('FSM transition to RETURN_ASSIGNED not allowed', {
-              bookingId: currentBooking.id,
-              error: fsmError.message
-            });
-          }
+          });
 
           logger.info('Return assignment created and booking status updated to RETURN_ASSIGNED', {
             bookingId: currentBooking.id,
@@ -404,14 +422,16 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
             bookingNumber
           });
         }
-      } catch (error) {
-        // Log error but don't fail the status update
-        logger.error('Failed to create return assignment:', error);
+      } catch (error: any) {
+        // Log error but don't fail the status update (booking is already READY_FOR_RETURN)
+        logger.error('Failed to create return assignment:', {
+          bookingId: currentBooking.id,
+          error: error.message || error
+        });
       }
 
-      // Auto-capture approved extensions
+      // Auto-capture approved extensions (best-effort, outside main transaction)
       try {
-        // IMPORTANT: Use booking.id (UUID) for FK relationships, not bookingNumber
         const approvedExtensions = await prisma.extension.findMany({
           where: {
             bookingId: currentBooking.id,
@@ -426,7 +446,6 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
             const isDemoMode = process.env.DEMO_MODE === 'true';
 
             if (isDemoMode) {
-              // Use demo payment service
               await demoPaymentService.capturePayment(extension.paymentIntentId!);
               logger.info('[DEMO] Extension payment auto-captured', {
                 extensionId: extension.id,
@@ -434,7 +453,6 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
                 amount: extension.totalAmount / 100
               });
             } else {
-              // Use real Stripe payment service
               await paymentService.capturePayment(extension.paymentIntentId!);
               logger.info('Extension payment auto-captured', {
                 extensionId: extension.id,

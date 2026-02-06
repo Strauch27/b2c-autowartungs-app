@@ -18,8 +18,9 @@ import {
   CheckCircle,
   Circle,
   ArrowRight,
+  X,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 interface Order {
   id: string;
@@ -29,7 +30,7 @@ interface Order {
   vehicle: string;
   vehiclePlate: string;
   service: string;
-  status: "pending" | "inProgress" | "completed";
+  status: "pending" | "inProgress" | "completed" | "cancelled";
   backendStatus?: string; // Original backend BookingStatus for FSM transitions
   date: string;
   pickupAddress: string;
@@ -40,7 +41,7 @@ interface OrderDetailsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   order: Order;
-  onStatusChange: (orderId: string, newStatus: "pending" | "inProgress" | "completed", currentBackendStatus?: string) => void;
+  onStatusChange: (orderId: string, newStatus: "pending" | "inProgress" | "completed" | "cancelled", currentBackendStatus?: string) => void;
 }
 
 const OrderDetailsModal = ({
@@ -50,6 +51,7 @@ const OrderDetailsModal = ({
   onStatusChange,
 }: OrderDetailsModalProps) => {
   const t = useTranslations('workshopModal.orderDetails');
+  const language = useLocale();
 
   const statusConfig = {
     pending: {
@@ -63,6 +65,10 @@ const OrderDetailsModal = ({
     completed: {
       label: t('status.completed'),
       class: "badge-completed",
+    },
+    cancelled: {
+      label: language === "de" ? "Storniert" : "Cancelled",
+      class: "badge-destructive",
     },
   };
 
@@ -189,7 +195,7 @@ const OrderDetailsModal = ({
 
           {/* Actions - FSM-aware transitions */}
           {/* FSM Flow: PICKED_UP -> AT_WORKSHOP -> IN_SERVICE -> READY_FOR_RETURN */}
-          {order.status !== "completed" && (
+          {order.status !== "completed" && order.status !== "cancelled" && (
             <div className="flex gap-3">
               {/* If vehicle is picked up (en route), allow marking as arrived */}
               {order.backendStatus === "PICKED_UP" && (
@@ -199,11 +205,11 @@ const OrderDetailsModal = ({
                   onClick={() => onStatusChange(order.id, "inProgress", order.backendStatus)}
                 >
                   <CheckCircle className="mr-2 h-4 w-4" />
-                  Mark as Arrived
+                  {language === "de" ? "Als angekommen markieren" : "Mark as Arrived"}
                 </Button>
               )}
               {/* If vehicle is at workshop, allow starting work */}
-              {(order.backendStatus === "AT_WORKSHOP" || (order.status === "pending" && order.backendStatus !== "PICKED_UP")) && (
+              {order.backendStatus === "AT_WORKSHOP" && (
                 <Button
                   variant="workshop"
                   className="flex-1"
@@ -224,6 +230,14 @@ const OrderDetailsModal = ({
                   {t('markComplete')}
                 </Button>
               )}
+            </div>
+          )}
+
+          {/* Cancelled notice */}
+          {order.status === "cancelled" && (
+            <div className="flex items-center justify-center gap-2 rounded-lg bg-destructive/10 py-3 text-sm font-medium text-destructive">
+              <X className="h-4 w-4" />
+              {language === "de" ? "Dieser Auftrag wurde storniert" : "This order has been cancelled"}
             </div>
           )}
         </div>

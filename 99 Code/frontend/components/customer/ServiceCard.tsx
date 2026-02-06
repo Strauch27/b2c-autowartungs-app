@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatEuro } from '@/lib/utils/currency';
+import { useLanguage } from '@/lib/i18n/useLovableTranslation';
 import {
   Wrench,
   Droplet,
@@ -42,6 +43,7 @@ export function ServiceCard({
   selected = false,
   onSelect,
 }: ServiceCardProps) {
+  const { t } = useLanguage();
   const IconComponent = iconMap[icon] || Wrench;
 
   return (
@@ -53,7 +55,7 @@ export function ServiceCard({
       {featured && (
         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
           <Badge variant="default" className="text-xs">
-            Hauptprodukt
+            {t.serviceCard.featured}
           </Badge>
         </div>
       )}
@@ -78,19 +80,19 @@ export function ServiceCard({
           <div className="flex items-center gap-2">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
             <span className="text-sm text-muted-foreground">
-              Preis wird berechnet...
+              {t.serviceCard.calculating}
             </span>
           </div>
         ) : price !== undefined ? (
           <div className="space-y-1">
             <p className="text-2xl font-bold text-primary">{formatEuro(price)}</p>
             <p className="text-xs text-muted-foreground">
-              für Ihr Fahrzeug
+              {t.serviceCard.forYourVehicle}
             </p>
           </div>
         ) : (
           <p className="text-sm text-muted-foreground italic">
-            Preis auf Anfrage
+            {t.serviceCard.priceOnRequest}
           </p>
         )}
       </CardContent>
@@ -102,7 +104,7 @@ export function ServiceCard({
           onClick={onSelect}
           disabled={loading}
         >
-          {selected ? 'Ausgewählt' : 'Auswählen'}
+          {selected ? t.serviceCard.selected : t.serviceCard.select}
         </Button>
       </CardFooter>
     </Card>

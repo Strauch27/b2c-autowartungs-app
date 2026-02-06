@@ -6,12 +6,14 @@ import { ServiceCard } from '@/components/customer/ServiceCard';
 import { AVAILABLE_SERVICES } from '@/lib/constants/services';
 import { ServiceType, VehicleData } from '@/lib/types/service';
 import { calculateMultiplePrices } from '@/lib/api/pricing';
+import { useLanguage } from '@/lib/i18n/useLovableTranslation';
 
 export default function ServiceSelectionPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams();
   const locale = (params.locale as string) || 'de';
+  const { t } = useLanguage();
 
   // Get vehicle data from URL params (from previous step)
   const [vehicle, setVehicle] = useState<VehicleData | null>(null);
@@ -37,7 +39,7 @@ export default function ServiceSelectionPage() {
       fetchPrices(vehicleData);
     } else {
       // Redirect back to vehicle selection if missing data
-      router.push(`/${locale}/booking/vehicle`);
+      router.push(`/${locale}/customer/booking`);
     }
   }, [searchParams, router, locale]);
 
@@ -72,7 +74,7 @@ export default function ServiceSelectionPage() {
       serviceType,
     });
 
-    router.push(`/de/booking/appointment?${params.toString()}`);
+    router.push(`/${locale}/customer/booking/appointment?${params.toString()}`);
   };
 
   if (!vehicle) {
@@ -90,9 +92,12 @@ export default function ServiceSelectionPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Wählen Sie Ihren Service</h1>
+          <h1 className="text-3xl font-bold mb-2">{t.serviceSelectionPage.title}</h1>
           <p className="text-muted-foreground">
-            für Ihren {vehicle.brand} {vehicle.model} ({vehicle.year})
+            {t.serviceSelectionPage.vehicleInfo
+              .replace('__brand__', vehicle.brand)
+              .replace('__model__', vehicle.model)
+              .replace('__year__', String(vehicle.year))}
           </p>
         </div>
 
@@ -101,8 +106,8 @@ export default function ServiceSelectionPage() {
           {AVAILABLE_SERVICES.map((service) => (
             <ServiceCard
               key={service.type}
-              name={service.name}
-              description={service.description}
+              name={(t.services as any)[service.nameKey] || service.nameKey}
+              description={(t.services as any)[service.descriptionKey] || service.descriptionKey}
               icon={service.icon}
               price={prices[service.type]}
               featured={service.featured}
@@ -116,13 +121,10 @@ export default function ServiceSelectionPage() {
         {/* Info Box */}
         <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <h3 className="font-semibold text-blue-900 mb-2">
-            Garantierter Festpreis
+            {t.serviceSelectionPage.infoTitle}
           </h3>
           <p className="text-sm text-blue-800">
-            Alle Preise sind fahrzeugspezifisch kalkuliert und garantiert.
-            Zusätzliche Arbeiten werden Ihnen digital angeboten und erst nach
-            Ihrer Freigabe durchgeführt. Der Hol- und Bringservice ist bereits
-            im Preis enthalten.
+            {t.serviceSelectionPage.infoText}
           </p>
         </div>
       </div>

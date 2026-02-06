@@ -2,8 +2,8 @@ import { ServiceType } from '../types/service';
 
 export interface ServiceCardData {
   type: ServiceType;
-  name: string;
-  description: string;
+  nameKey: string;
+  descriptionKey: string;
   icon: string;
   featured?: boolean;
 }
@@ -11,38 +11,33 @@ export interface ServiceCardData {
 export const AVAILABLE_SERVICES: ServiceCardData[] = [
   {
     type: ServiceType.INSPECTION,
-    name: 'Inspektion/Wartung',
-    description:
-      'Umfassende Inspektion nach Herstellervorgaben inkl. Ölwechsel, Filterwechsel und Fahrzeugprüfung',
+    nameKey: 'inspection',
+    descriptionKey: 'inspectionDesc',
     icon: 'wrench',
     featured: true,
   },
   {
     type: ServiceType.OIL_SERVICE,
-    name: 'Ölservice',
-    description:
-      'Motoröl ablassen und erneuern, Ölfilter wechseln, Service-Intervall zurücksetzen',
+    nameKey: 'oilService',
+    descriptionKey: 'oilServiceDesc',
     icon: 'droplet',
   },
   {
     type: ServiceType.BRAKE_SERVICE,
-    name: 'Bremsservice',
-    description:
-      'Bremsbeläge und Bremsscheiben prüfen und wechseln, Bremssystem kontrollieren',
+    nameKey: 'brakeService',
+    descriptionKey: 'brakeServiceDesc',
     icon: 'disc',
   },
   {
     type: ServiceType.TUV,
-    name: 'TÜV/HU',
-    description:
-      'Hauptuntersuchung durch zertifizierte Prüforganisation, inkl. Vorbereitung',
+    nameKey: 'tuv',
+    descriptionKey: 'tuvDesc',
     icon: 'shield-check',
   },
   {
     type: ServiceType.CLIMATE_SERVICE,
-    name: 'Klimaservice',
-    description:
-      'Klimaanlage desinfizieren, Kältemittel auffüllen, Funktion prüfen',
+    nameKey: 'climateService',
+    descriptionKey: 'climateServiceDesc',
     icon: 'snowflake',
   },
 ];

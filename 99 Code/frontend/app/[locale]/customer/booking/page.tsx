@@ -15,12 +15,14 @@ import {
 } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import { Car, ChevronRight, UserPlus } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/useLovableTranslation";
 
 export default function BookingPage() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string || 'de';
   const { isAuthenticated, isLoading } = useAuth();
+  const { t } = useLanguage();
   const [isFormValid, setIsFormValid] = useState(false);
   const [vehicleData, setVehicleData] = useState<VehicleFormData | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -52,11 +54,14 @@ export default function BookingPage() {
     console.log("Vehicle data submitted:", data);
     setVehicleData(data);
 
-    // TODO: Navigate to next step (service selection)
-    // For now, just log the data
-    alert(
-      `Fahrzeug gespeichert:\n${data.brand} ${data.model}\nBaujahr: ${data.year}\nKM: ${data.mileage.toLocaleString("de-DE")}`
-    );
+    // Navigate to service selection with vehicle params
+    const params = new URLSearchParams({
+      brand: data.brand,
+      model: data.model,
+      year: data.year.toString(),
+      mileage: data.mileage.toString(),
+    });
+    router.push(`/${locale}/customer/booking/service?${params.toString()}`);
   };
 
   const handleContinue = () => {
@@ -79,21 +84,21 @@ export default function BookingPage() {
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
                 1
               </div>
-              <span className="text-sm font-medium">Fahrzeug auswählen</span>
+              <span className="text-sm font-medium">{t.bookingPage.step1Label}</span>
             </div>
             <div className="flex-1 mx-4 border-t-2 border-gray-300" />
             <div className="flex items-center space-x-2 opacity-50">
               <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-gray-300 font-semibold">
                 2
               </div>
-              <span className="text-sm font-medium">Service wählen</span>
+              <span className="text-sm font-medium">{t.bookingPage.step2Label}</span>
             </div>
             <div className="flex-1 mx-4 border-t-2 border-gray-300" />
             <div className="flex items-center space-x-2 opacity-50">
               <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-gray-300 font-semibold">
                 3
               </div>
-              <span className="text-sm font-medium">Termin buchen</span>
+              <span className="text-sm font-medium">{t.bookingPage.step3Label}</span>
             </div>
           </div>
         </div>
@@ -106,9 +111,9 @@ export default function BookingPage() {
                 <Car className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-2xl">Fahrzeug auswählen</CardTitle>
+                <CardTitle className="text-2xl">{t.bookingPage.title}</CardTitle>
                 <CardDescription>
-                  Bitte geben Sie die Daten Ihres Fahrzeugs ein
+                  {t.bookingPage.subtitle}
                 </CardDescription>
               </div>
             </div>
@@ -124,28 +129,25 @@ export default function BookingPage() {
             {/* Information Box */}
             <div className="mt-6 rounded-lg bg-blue-50 p-4 border border-blue-200">
               <h4 className="text-sm font-semibold text-blue-900 mb-2">
-                Warum diese Daten?
+                {t.bookingPage.whyTitle}
               </h4>
               <ul className="text-sm text-blue-800 space-y-1">
                 <li className="flex items-start">
                   <span className="mr-2">•</span>
                   <span>
-                    <strong>Marke & Modell:</strong> Für präzise
-                    Preiskalkulation nach Ihrem Fahrzeug
+                    <strong>{t.bookingPage.whyBrand}</strong> {t.bookingPage.whyBrandDesc}
                   </span>
                 </li>
                 <li className="flex items-start">
                   <span className="mr-2">•</span>
                   <span>
-                    <strong>Baujahr:</strong> Zur Berücksichtigung
-                    fahrzeugspezifischer Wartungsintervalle
+                    <strong>{t.bookingPage.whyYear}</strong> {t.bookingPage.whyYearDesc}
                   </span>
                 </li>
                 <li className="flex items-start">
                   <span className="mr-2">•</span>
                   <span>
-                    <strong>Kilometerstand:</strong> Bestimmt den
-                    Wartungsumfang (30k, 60k, 90k km Inspektion)
+                    <strong>{t.bookingPage.whyMileage}</strong> {t.bookingPage.whyMileageDesc}
                   </span>
                 </li>
               </ul>
@@ -156,7 +158,7 @@ export default function BookingPage() {
         {/* Continue Button */}
         <div className="mt-6 flex justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            Schritt 1 von 3: Fahrzeugdaten
+            {t.bookingPage.stepProgress}
           </p>
           <Button
             size="lg"
@@ -164,7 +166,7 @@ export default function BookingPage() {
             disabled={!isFormValid}
             className="gap-2"
           >
-            Weiter
+            {t.bookingPage.next}
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
@@ -172,12 +174,11 @@ export default function BookingPage() {
         {/* Privacy Notice */}
         <div className="mt-8 text-center">
           <p className="text-xs text-muted-foreground">
-            Ihre Daten werden sicher verarbeitet und nicht an Dritte
-            weitergegeben.
+            {t.bookingPage.privacyNotice}
             <br />
-            Weitere Informationen in unserer{" "}
-            <a href="/datenschutz" className="underline hover:text-primary">
-              Datenschutzerklärung
+            {t.bookingPage.privacyLinkPrefix}{" "}
+            <a href={`/${locale}/privacy`} className="underline hover:text-primary">
+              {t.bookingPage.privacyLink}
             </a>
             .
           </p>

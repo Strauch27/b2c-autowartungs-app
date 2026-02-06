@@ -107,22 +107,28 @@ export default defineConfig({
       },
     },
 
-    // Uncomment for cross-browser testing
-    // {
-    //   name: 'firefox-desktop',
-    //   use: {
-    //     ...devices['Desktop Firefox'],
-    //     viewport: { width: 1280, height: 720 },
-    //   },
-    // },
+    {
+      name: 'firefox-desktop',
+      use: {
+        ...devices['Desktop Firefox'],
+        viewport: { width: 1280, height: 720 },
+      },
+    },
 
-    // {
-    //   name: 'webkit-desktop',
-    //   use: {
-    //     ...devices['Desktop Safari'],
-    //     viewport: { width: 1280, height: 720 },
-    //   },
-    // },
+    {
+      name: 'webkit-desktop',
+      use: {
+        ...devices['Desktop Safari'],
+        viewport: { width: 1280, height: 720 },
+      },
+    },
+
+    {
+      name: 'tablet',
+      use: {
+        ...devices['iPad (gen 7)'],
+      },
+    },
   ],
 
   /* Output folder for test artifacts */

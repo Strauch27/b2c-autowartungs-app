@@ -10,6 +10,7 @@ import { VehiclesRepository } from '../repositories/vehicles.repository';
 import { VehiclesService } from './vehicles.service';
 import { PricingService, PriceCalculationInput } from './pricing.service';
 import { paymentService } from './payment.service';
+import { demoPaymentService } from './demo-payment.service';
 import { sendNotification } from './notification.service';
 import { NotificationType } from '@prisma/client';
 import { ApiError } from '../middleware/errorHandler';
@@ -733,17 +734,36 @@ export class BookingsService {
       throw new ApiError(400, `Extension is already ${extension.status.toLowerCase()}`);
     }
 
-    // Create payment intent for extension
-    const paymentIntent = await paymentService.createPaymentIntent({
-      amount: extension.totalAmount,
-      bookingId,
-      customerId,
-      customerEmail: booking.customer.email,
-      metadata: {
-        extensionId: extension.id,
-        type: 'extension'
-      }
-    });
+    // Create payment intent for extension (demo or real)
+    const isDemoMode = process.env.DEMO_MODE === 'true';
+    let paymentIntentId: string;
+    let clientSecret: string | null = null;
+    let amount: number;
+
+    if (isDemoMode) {
+      const demoIntent = await demoPaymentService.createPaymentIntent({
+        amount: extension.totalAmount,
+        bookingId,
+        customerId,
+        customerEmail: booking.customer.email,
+        metadata: { extensionId: extension.id, type: 'extension' }
+      });
+      await demoPaymentService.confirmPayment(demoIntent.id);
+      paymentIntentId = demoIntent.id;
+      clientSecret = demoIntent.client_secret;
+      amount = demoIntent.amount;
+    } else {
+      const paymentIntent = await paymentService.createPaymentIntent({
+        amount: extension.totalAmount,
+        bookingId,
+        customerId,
+        customerEmail: booking.customer.email,
+        metadata: { extensionId: extension.id, type: 'extension' }
+      });
+      paymentIntentId = paymentIntent.id;
+      clientSecret = paymentIntent.client_secret;
+      amount = paymentIntent.amount;
+    }
 
     // Update extension with payment intent
     const updatedExtension = await prisma.extension.update({
@@ -751,7 +771,7 @@ export class BookingsService {
       data: {
         status: ExtensionStatus.APPROVED,
         approvedAt: new Date(),
-        paymentIntentId: paymentIntent.id
+        paymentIntentId
       }
     });
 
@@ -759,15 +779,15 @@ export class BookingsService {
       message: 'Extension approved',
       extensionId,
       bookingId,
-      paymentIntentId: paymentIntent.id
+      paymentIntentId
     });
 
     return {
       extension: updatedExtension,
       paymentIntent: {
-        id: paymentIntent.id,
-        clientSecret: paymentIntent.client_secret,
-        amount: paymentIntent.amount
+        id: paymentIntentId,
+        clientSecret,
+        amount
       }
     };
   }

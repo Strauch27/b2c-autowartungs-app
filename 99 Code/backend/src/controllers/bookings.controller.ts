@@ -249,17 +249,22 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
  */
 async function createPickupAssignment(booking: any): Promise<void> {
   try {
-    // Find first available jockey
+    // Find most recently active jockey (prefer jockeys who are online)
     const jockey = await prisma.user.findFirst({
       where: {
         role: 'JOCKEY',
         isActive: true,
-      }
+      },
+      orderBy: { lastLoginAt: { sort: 'desc', nulls: 'last' } },
     });
 
     if (jockey && booking.customer && booking.vehicle) {
       // Parse pickup date and time
-      const pickupDateTime = new Date(`${booking.pickupDate}T${booking.pickupTimeSlot}:00`);
+      // pickupDate from Prisma is a Date object - use toISOString() to get the date part
+      const dateStr = booking.pickupDate instanceof Date
+        ? booking.pickupDate.toISOString().split('T')[0]
+        : String(booking.pickupDate).split('T')[0];
+      const pickupDateTime = new Date(`${dateStr}T${booking.pickupTimeSlot}:00`);
 
       await prisma.jockeyAssignment.create({
         data: {

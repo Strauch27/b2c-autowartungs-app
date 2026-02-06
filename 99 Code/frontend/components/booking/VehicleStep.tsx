@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { VEHICLE_BRANDS, VEHICLE_MODELS } from "@/lib/constants/vehicles";
 
 interface VehicleStepProps {
   formData: {
@@ -34,15 +35,9 @@ interface VehicleStepProps {
   };
 }
 
-const carBrands = [
-  { id: "bmw", name: "BMW", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/BMW.svg/600px-BMW.svg.png" },
-  { id: "mercedes", name: "Mercedes-Benz", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Mercedes-Logo.svg/600px-Mercedes-Logo.svg.png" },
-  { id: "audi", name: "Audi", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Audi-Logo_2016.svg/600px-Audi-Logo_2016.svg.png" },
-  { id: "vw", name: "Volkswagen", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Volkswagen_logo_2019.svg/600px-Volkswagen_logo_2019.svg.png" },
-  { id: "porsche", name: "Porsche", logo: "https://upload.wikimedia.org/wikipedia/de/thumb/6/60/Porsche_Logo.svg/600px-Porsche_Logo.svg.png" },
-];
-
 export function VehicleStep({ formData, onUpdate, translations }: VehicleStepProps) {
+  const models = formData.brand ? (VEHICLE_MODELS[formData.brand] || []) : [];
+
   return (
     <Card className="card-premium animate-fade-in">
       <CardHeader>
@@ -54,31 +49,32 @@ export function VehicleStep({ formData, onUpdate, translations }: VehicleStepPro
             <Label>{translations.brand}</Label>
             <Select
               value={formData.brand}
-              onValueChange={(v) => onUpdate({ brand: v })}
+              onValueChange={(v) => onUpdate({ brand: v, model: "" })}
             >
               <SelectTrigger>
                 <SelectValue placeholder={translations.selectBrand}>
-                  {formData.brand && (
-                    <div className="flex items-center gap-2">
-                      <img
-                        src={carBrands.find((b) => b.id === formData.brand)?.logo}
-                        alt=""
-                        className="h-5 w-5 object-contain"
-                      />
-                      <span>{carBrands.find((b) => b.id === formData.brand)?.name}</span>
-                    </div>
-                  )}
+                  {formData.brand && (() => {
+                    const selected = VEHICLE_BRANDS.find((b) => b.id === formData.brand);
+                    return selected ? (
+                      <div className="flex items-center gap-2">
+                        {selected.logo && (
+                          <img src={selected.logo} alt="" className="h-5 w-5 object-contain" />
+                        )}
+                        <span>{selected.name}</span>
+                      </div>
+                    ) : null;
+                  })()}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                {carBrands.map((brand) => (
+                {VEHICLE_BRANDS.map((brand) => (
                   <SelectItem key={brand.id} value={brand.id}>
                     <div className="flex items-center gap-2">
-                      <img
-                        src={brand.logo}
-                        alt=""
-                        className="h-5 w-5 object-contain"
-                      />
+                      {brand.logo ? (
+                        <img src={brand.logo} alt="" className="h-5 w-5 object-contain" />
+                      ) : (
+                        <span className="inline-block h-5 w-5" />
+                      )}
                       <span>{brand.name}</span>
                     </div>
                   </SelectItem>
@@ -91,14 +87,17 @@ export function VehicleStep({ formData, onUpdate, translations }: VehicleStepPro
             <Select
               value={formData.model}
               onValueChange={(v) => onUpdate({ model: v })}
+              disabled={!formData.brand}
             >
               <SelectTrigger>
                 <SelectValue placeholder={translations.selectModel} />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="320i">320i</SelectItem>
-                <SelectItem value="520d">520d</SelectItem>
-                <SelectItem value="x3">X3</SelectItem>
+                {models.map((model) => (
+                  <SelectItem key={model.id} value={model.id}>
+                    {model.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

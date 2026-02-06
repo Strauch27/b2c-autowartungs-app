@@ -160,6 +160,32 @@ h1, h2, h3, h4, h5, h6 {
   color: hsl(var(--success));
 }
 
+/* Phase-specific status badges */
+.badge-pickup {
+  background: hsl(262 83% 58% / 0.1);
+  color: hsl(262 83% 58%);
+}
+
+.badge-transit {
+  background: hsl(234 89% 60% / 0.1);
+  color: hsl(234 89% 60%);
+}
+
+.badge-ready {
+  background: hsl(158 64% 42% / 0.1);
+  color: hsl(158 64% 42%);
+}
+
+.badge-return {
+  background: hsl(187 92% 35% / 0.1);
+  color: hsl(187 92% 35%);
+}
+
+.badge-destructive {
+  background: hsl(var(--destructive) / 0.1);
+  color: hsl(var(--destructive));
+}
+
 /* Section Spacing */
 .section-spacing {
   padding-top: 4rem;

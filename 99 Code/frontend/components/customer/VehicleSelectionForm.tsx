@@ -19,6 +19,7 @@ import {
   checkPlausibility,
 } from "@/lib/validations/vehicle-schema";
 import { getBrands, getModelsByBrand, Brand, Model } from "@/lib/api/vehicles";
+import { VEHICLE_BRANDS } from "@/lib/constants/vehicles";
 import { useLanguage } from "@/lib/i18n/useLovableTranslation";
 
 interface VehicleSelectionFormProps {
@@ -41,8 +42,6 @@ export function VehicleSelectionForm({
   // Data state
   const [brands, setBrands] = useState<Brand[]>([]);
   const [models, setModels] = useState<Model[]>([]);
-  const [brandSearch, setBrandSearch] = useState<string>("");
-
   // UI state
   const [isLoadingBrands, setIsLoadingBrands] = useState(false);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
@@ -178,52 +177,55 @@ export function VehicleSelectionForm({
     }
   };
 
-  // Filter brands based on search
-  const filteredBrands = brandSearch
-    ? brands.filter((b) =>
-        b.name.toLowerCase().includes(brandSearch.toLowerCase())
-      )
-    : brands;
+  // Find logo for a brand name
+  const getBrandLogo = (brandName: string) =>
+    VEHICLE_BRANDS.find((b) => b.name === brandName || b.id === brandName)?.logo;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Brand Selection with Autocomplete */}
+      {/* Brand Selection */}
       <div className="space-y-2">
         <Label htmlFor="brand">
           {t.vehicleForm.brand} <span className="text-red-500">{t.vehicleForm.required}</span>
         </Label>
-        <div className="space-y-2">
-          <Input
-            id="brand-search"
-            type="text"
-            placeholder={t.vehicleForm.brandSearch}
-            value={brandSearch}
-            onChange={(e) => setBrandSearch(e.target.value)}
-            disabled={isLoadingBrands}
-          />
-          <Select
-            value={brand}
-            onValueChange={setBrand}
-            disabled={isLoadingBrands}
-          >
-            <SelectTrigger id="brand" className={errors.brand ? "border-red-500" : ""}>
-              <SelectValue placeholder={t.vehicleForm.brandPlaceholder} />
-            </SelectTrigger>
-            <SelectContent>
-              {filteredBrands.length === 0 ? (
-                <div className="p-2 text-sm text-muted-foreground">
-                  {isLoadingBrands ? t.vehicleForm.loading : t.vehicleForm.noBrandsFound}
+        <Select
+          value={brand}
+          onValueChange={setBrand}
+          disabled={isLoadingBrands}
+        >
+          <SelectTrigger id="brand" className={errors.brand ? "border-red-500" : ""}>
+            <SelectValue placeholder={t.vehicleForm.brandPlaceholder}>
+              {brand && (
+                <div className="flex items-center gap-2">
+                  {getBrandLogo(brand) && (
+                    <img src={getBrandLogo(brand)} alt="" className="h-5 w-5 object-contain" />
+                  )}
+                  <span>{brand}</span>
                 </div>
-              ) : (
-                filteredBrands.map((b) => (
-                  <SelectItem key={b.id} value={b.name}>
-                    {b.name}
-                  </SelectItem>
-                ))
               )}
-            </SelectContent>
-          </Select>
-        </div>
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {brands.length === 0 ? (
+              <div className="p-2 text-sm text-muted-foreground">
+                {isLoadingBrands ? t.vehicleForm.loading : t.vehicleForm.noBrandsFound}
+              </div>
+            ) : (
+              brands.map((b) => (
+                <SelectItem key={b.id} value={b.name}>
+                  <div className="flex items-center gap-2">
+                    {getBrandLogo(b.name) ? (
+                      <img src={getBrandLogo(b.name)} alt="" className="h-5 w-5 object-contain" />
+                    ) : (
+                      <span className="inline-block h-5 w-5" />
+                    )}
+                    <span>{b.name}</span>
+                  </div>
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
         {errors.brand && (
           <p className="text-sm text-red-500">{errors.brand}</p>
         )}

@@ -445,7 +445,9 @@ export function ExtensionApprovalModal({
                       onCancel={handleCancelPayment}
                     />
                   )}
-            </Elements>
+                </Elements>
+              ) : null}
+            </>
           )}
 
           {/* Decline View */}

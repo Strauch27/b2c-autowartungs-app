@@ -87,6 +87,7 @@ export interface BookingResponse {
     email: string;
     firstName?: string;
     lastName?: string;
+    phone?: string;
   };
   vehicle?: {
     id: string;
@@ -94,6 +95,7 @@ export interface BookingResponse {
     model: string;
     year: number;
     mileage: number;
+    licensePlate?: string;
   };
   jockey?: {
     id: string;

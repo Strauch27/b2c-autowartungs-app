@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 import {
   Car,
   Wrench,
@@ -25,6 +26,8 @@ import {
   Plus,
   Eye,
   Loader2,
+  X,
+  Search,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -48,7 +51,7 @@ interface Order {
   vehicle: string;
   vehiclePlate: string;
   service: string;
-  status: "pending" | "inProgress" | "completed";
+  status: "pending" | "inProgress" | "completed" | "cancelled";
   backendStatus?: string; // Original backend BookingStatus for FSM transitions
   date: string;
   pickupAddress: string;
@@ -70,26 +73,34 @@ function DashboardContent() {
     orderId: string;
     customerName: string;
   }>({ open: false, orderId: "", customerName: "" });
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'inProgress' | 'completed'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    async function fetchOrders() {
+    async function fetchOrders(isRefresh = false) {
       try {
-        setIsLoading(true);
+        if (!isRefresh) setIsLoading(true);
         const result = await workshopsApi.getOrders({ limit: 50 });
         setWorkshopOrders(result.orders);
       } catch (error) {
         console.error('Failed to fetch orders:', error);
-        toast.error(
-          language === "de"
-            ? "Aufträge konnten nicht geladen werden"
-            : "Failed to load orders"
-        );
+        if (!isRefresh) {
+          toast.error(
+            language === "de"
+              ? "Aufträge konnten nicht geladen werden"
+              : "Failed to load orders"
+          );
+        }
       } finally {
-        setIsLoading(false);
+        if (!isRefresh) setIsLoading(false);
       }
     }
 
     fetchOrders();
+
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(() => fetchOrders(true), 30000);
+    return () => clearInterval(interval);
   }, [language]);
 
   const today = new Date().toLocaleDateString(language === "de" ? "de-DE" : "en-US", {
@@ -101,9 +112,11 @@ function DashboardContent() {
 
   // Map booking status to workshop order status
   // FSM Flow: PICKED_UP -> AT_WORKSHOP -> IN_SERVICE -> READY_FOR_RETURN
-  const mapStatus = (bookingStatus: string): "pending" | "inProgress" | "completed" => {
+  const mapStatus = (bookingStatus: string): "pending" | "inProgress" | "completed" | "cancelled" => {
+    // Cancelled state (separate from completed)
+    if (bookingStatus === 'CANCELLED') return "cancelled";
     // Completed states (service done, ready for return)
-    if (['DELIVERED', 'CANCELLED', 'COMPLETED', 'READY_FOR_RETURN', 'RETURN_ASSIGNED', 'RETURNED'].includes(bookingStatus)) return "completed";
+    if (['DELIVERED', 'COMPLETED', 'READY_FOR_RETURN', 'RETURN_ASSIGNED', 'RETURNED'].includes(bookingStatus)) return "completed";
     // In progress states (workshop actively working)
     if (['IN_SERVICE', 'IN_WORKSHOP'].includes(bookingStatus)) return "inProgress";
     // Pending states (vehicle arrived or in transit)
@@ -118,7 +131,7 @@ function DashboardContent() {
     id: o.bookingNumber,
     customer: o.customer ? `${o.customer.firstName || ''} ${o.customer.lastName || ''}`.trim() : 'Customer',
     customerEmail: o.customer?.email || '',
-    customerPhone: '',
+    customerPhone: o.customer?.phone || '',
     vehicle: o.vehicle ? `${o.vehicle.brand} ${o.vehicle.model}` : 'Vehicle',
     vehiclePlate: o.vehicle?.licensePlate || '',
     service: Array.isArray(o.services) && o.services.length > 0
@@ -130,6 +143,24 @@ function DashboardContent() {
     pickupAddress: `${o.pickupAddress}, ${o.pickupPostalCode} ${o.pickupCity}`,
     notes: o.customerNotes,
   })) as Order[];
+
+  // Sort by status priority: pending first, then inProgress, then completed
+  const statusPriority: Record<string, number> = { pending: 0, inProgress: 1, completed: 2, cancelled: 3 };
+  orders.sort((a, b) => (statusPriority[a.status] ?? 9) - (statusPriority[b.status] ?? 9));
+
+  // Filter orders
+  const filteredOrders = orders
+    .filter(o => {
+      if (statusFilter !== 'all' && o.status !== statusFilter) return false;
+      return true;
+    })
+    .filter(o => {
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return o.id.toLowerCase().includes(q)
+        || o.customer.toLowerCase().includes(q)
+        || o.vehicle.toLowerCase().includes(q);
+    });
 
   const statusConfig = {
     pending: {
@@ -147,6 +178,11 @@ function DashboardContent() {
       class: "badge-completed",
       icon: CheckCircle,
     },
+    cancelled: {
+      label: language === "de" ? "Storniert" : "Cancelled",
+      class: "badge-destructive",
+      icon: X,
+    },
   };
 
   const todayStr = new Date().toLocaleDateString(language === "de" ? "de-DE" : "en-US");
@@ -156,7 +192,7 @@ function DashboardContent() {
     completed: orders.filter((o) => o.status === "completed").length,
   };
 
-  const handleStatusChange = async (orderId: string, newStatus: "pending" | "inProgress" | "completed", currentBackendStatus?: string) => {
+  const handleStatusChange = async (orderId: string, newStatus: "pending" | "inProgress" | "completed" | "cancelled", currentBackendStatus?: string) => {
     try {
       // Intelligent status mapping based on current backend status
       // FSM Flow: PICKED_UP -> AT_WORKSHOP -> IN_SERVICE -> READY_FOR_RETURN
@@ -311,25 +347,49 @@ function DashboardContent() {
 
         {/* Orders Table */}
         <Card className="card-premium">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-border">
-            <CardTitle>{t.workshopDashboard.orders}</CardTitle>
-            <Button variant="outline" size="sm">
-              Filter
-              <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
+          <CardHeader className="border-b border-border">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle>{t.workshopDashboard.orders}</CardTitle>
+              <div className="flex flex-wrap gap-2">
+                {([
+                  { key: 'all', de: 'Alle', en: 'All' },
+                  { key: 'pending', de: 'Wartend', en: 'Pending' },
+                  { key: 'inProgress', de: 'In Arbeit', en: 'In Progress' },
+                  { key: 'completed', de: 'Erledigt', en: 'Completed' },
+                ] as const).map(({ key, de, en }) => (
+                  <Button
+                    key={key}
+                    variant={statusFilter === key ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setStatusFilter(key)}
+                  >
+                    {language === "de" ? de : en}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className="relative mt-3 sm:max-w-xs">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={language === "de" ? "Auftrag, Kunde oder Fahrzeug suchen..." : "Search order, customer or vehicle..."}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
-            ) : orders.length === 0 ? (
+            ) : filteredOrders.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Car className="mb-4 h-12 w-12 text-muted-foreground" />
                 <p className="text-muted-foreground">
-                  {language === "de"
-                    ? "Keine Aufträge vorhanden"
-                    : "No orders available"}
+                  {searchQuery || statusFilter !== 'all'
+                    ? (language === "de" ? "Keine passenden Aufträge" : "No matching orders")
+                    : (language === "de" ? "Keine Aufträge vorhanden" : "No orders available")}
                 </p>
               </div>
             ) : (
@@ -345,7 +405,7 @@ function DashboardContent() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {orders.map((order) => {
+                  {filteredOrders.map((order) => {
                   const config = statusConfig[order.status];
                   const StatusIcon = config.icon;
                   return (

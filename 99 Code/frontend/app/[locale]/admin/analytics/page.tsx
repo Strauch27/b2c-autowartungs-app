@@ -8,7 +8,6 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
 import {
   TrendingUp,
   TrendingDown,
@@ -140,8 +139,6 @@ function ErrorMessage({ message }: { message: string }) {
 // ============================================================================
 
 export default function AdminAnalyticsPage() {
-  const t = useTranslations('admin.analytics');
-
   const [dashboard, setDashboard] = useState<PerformanceDashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -14,12 +14,15 @@ import {
   Car,
   Download,
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/useLovableTranslation";
+import { bookingsApi } from "@/lib/api/bookings";
 
 export default function ConfirmationPage() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
   const locale = params.locale as string;
+  const { language } = useLanguage();
   const bookingId = searchParams.get("bookingId");
 
   const [booking, setBooking] = useState<any>(null);
@@ -28,7 +31,7 @@ export default function ConfirmationPage() {
 
   useEffect(() => {
     if (!bookingId) {
-      setError("No booking ID provided");
+      setError(language === "de" ? "Keine Buchungs-ID angegeben" : "No booking ID provided");
       setLoading(false);
       return;
     }
@@ -39,30 +42,11 @@ export default function ConfirmationPage() {
   const fetchBooking = async () => {
     try {
       setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
-      const token = localStorage.getItem("auth_token");
-
-      if (!token) {
-        router.push(`/${locale}/customer/login`);
-        return;
-      }
-
-      const response = await fetch(`${apiUrl}/api/bookings/${bookingId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Failed to fetch booking");
-      }
-
-      setBooking(data.data);
+      const data = await bookingsApi.getById(bookingId!);
+      setBooking(data);
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to fetch booking";
+        err instanceof Error ? err.message : (language === "de" ? "Buchung konnte nicht geladen werden" : "Failed to fetch booking");
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -71,7 +55,7 @@ export default function ConfirmationPage() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat("de-DE", {
+    return new Intl.DateTimeFormat(language === "de" ? "de-DE" : "en-US", {
       weekday: "long",
       year: "numeric",
       month: "long",
@@ -84,7 +68,7 @@ export default function ConfirmationPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="text-gray-600">Loading confirmation...</p>
+          <p className="text-gray-600">{language === "de" ? "Bestätigung wird geladen..." : "Loading confirmation..."}</p>
         </div>
       </div>
     );
@@ -95,13 +79,13 @@ export default function ConfirmationPage() {
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           <Alert variant="destructive">
-            <h3 className="font-semibold mb-2">Error</h3>
-            <p className="text-sm">{error || "Invalid booking"}</p>
+            <h3 className="font-semibold mb-2">{language === "de" ? "Fehler" : "Error"}</h3>
+            <p className="text-sm">{error || (language === "de" ? "Ungültige Buchung" : "Invalid booking")}</p>
             <button
               onClick={() => router.push(`/${locale}/customer/dashboard`)}
               className="mt-4 text-sm underline hover:no-underline"
             >
-              Go to Dashboard
+              {language === "de" ? "Zum Dashboard" : "Go to Dashboard"}
             </button>
           </Alert>
         </div>
@@ -118,10 +102,11 @@ export default function ConfirmationPage() {
             <CheckCircle2 className="h-10 w-10 text-green-600" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold mb-2">Booking Confirmed!</h1>
+            <h1 className="text-3xl font-bold mb-2">{language === "de" ? "Buchung bestätigt!" : "Booking Confirmed!"}</h1>
             <p className="text-gray-600">
-              Your booking has been successfully confirmed. We've sent a
-              confirmation email to your registered email address.
+              {language === "de"
+                ? "Ihre Buchung wurde erfolgreich bestätigt. Wir haben Ihnen eine Bestätigungs-E-Mail an Ihre registrierte E-Mail-Adresse gesendet."
+                : "Your booking has been successfully confirmed. We've sent a confirmation email to your registered email address."}
             </p>
           </div>
         </div>
@@ -133,12 +118,12 @@ export default function ConfirmationPage() {
 
         {/* Booking Details */}
         <Card className="p-6">
-          <h2 className="text-xl font-bold mb-4">Booking Details</h2>
+          <h2 className="text-xl font-bold mb-4">{language === "de" ? "Buchungsdetails" : "Booking Details"}</h2>
 
           <div className="space-y-4">
             {/* Booking Number */}
             <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm text-gray-600 mb-1">Booking Number</p>
+              <p className="text-sm text-gray-600 mb-1">{language === "de" ? "Buchungsnummer" : "Booking Number"}</p>
               <p className="text-2xl font-bold">{booking.bookingNumber}</p>
             </div>
 
@@ -146,7 +131,7 @@ export default function ConfirmationPage() {
             <div className="flex items-start space-x-3">
               <Car className="h-5 w-5 text-primary mt-1" />
               <div>
-                <p className="font-medium">Service</p>
+                <p className="font-medium">{language === "de" ? "Service" : "Service"}</p>
                 <p className="text-sm text-gray-600">{booking.serviceType}</p>
               </div>
             </div>
@@ -155,7 +140,7 @@ export default function ConfirmationPage() {
             <div className="flex items-start space-x-3">
               <Car className="h-5 w-5 text-primary mt-1" />
               <div>
-                <p className="font-medium">Vehicle</p>
+                <p className="font-medium">{language === "de" ? "Fahrzeug" : "Vehicle"}</p>
                 <p className="text-sm text-gray-600">
                   {booking.vehicle.brand} {booking.vehicle.model} (
                   {booking.vehicle.year})
@@ -167,7 +152,7 @@ export default function ConfirmationPage() {
             <div className="flex items-start space-x-3">
               <Calendar className="h-5 w-5 text-primary mt-1" />
               <div>
-                <p className="font-medium">Pickup Date & Time</p>
+                <p className="font-medium">{language === "de" ? "Abholdatum & -zeit" : "Pickup Date & Time"}</p>
                 <p className="text-sm text-gray-600">
                   {formatDate(booking.pickupDate)}
                 </p>
@@ -181,7 +166,7 @@ export default function ConfirmationPage() {
             <div className="flex items-start space-x-3">
               <MapPin className="h-5 w-5 text-primary mt-1" />
               <div>
-                <p className="font-medium">Pickup Address</p>
+                <p className="font-medium">{language === "de" ? "Abholadresse" : "Pickup Address"}</p>
                 <p className="text-sm text-gray-600">{booking.pickupAddress}</p>
                 <p className="text-xs text-gray-500 mt-1">
                   {booking.pickupPostalCode} {booking.pickupCity}
@@ -193,7 +178,7 @@ export default function ConfirmationPage() {
 
         {/* Next Steps */}
         <Card className="p-6 bg-blue-50 border-blue-200">
-          <h3 className="font-semibold text-blue-900 mb-4">What happens next?</h3>
+          <h3 className="font-semibold text-blue-900 mb-4">{language === "de" ? "Was passiert als Nächstes?" : "What happens next?"}</h3>
           <ol className="space-y-3">
             <li className="flex items-start space-x-3">
               <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
@@ -201,10 +186,10 @@ export default function ConfirmationPage() {
               </span>
               <div>
                 <p className="font-medium text-blue-900">
-                  You'll receive a confirmation email
+                  {language === "de" ? "Sie erhalten eine Bestätigungs-E-Mail" : "You'll receive a confirmation email"}
                 </p>
                 <p className="text-sm text-blue-800">
-                  Check your inbox for the booking details and receipt
+                  {language === "de" ? "Überprüfen Sie Ihren Posteingang für die Buchungsdetails und Quittung" : "Check your inbox for the booking details and receipt"}
                 </p>
               </div>
             </li>
@@ -214,10 +199,10 @@ export default function ConfirmationPage() {
               </span>
               <div>
                 <p className="font-medium text-blue-900">
-                  A jockey will be assigned
+                  {language === "de" ? "Ein Jockey wird zugewiesen" : "A jockey will be assigned"}
                 </p>
                 <p className="text-sm text-blue-800">
-                  You'll be notified when a jockey is assigned to your booking
+                  {language === "de" ? "Sie werden benachrichtigt, wenn ein Jockey Ihrer Buchung zugewiesen wird" : "You'll be notified when a jockey is assigned to your booking"}
                 </p>
               </div>
             </li>
@@ -227,10 +212,10 @@ export default function ConfirmationPage() {
               </span>
               <div>
                 <p className="font-medium text-blue-900">
-                  Vehicle pickup at scheduled time
+                  {language === "de" ? "Fahrzeugabholung zur geplanten Zeit" : "Vehicle pickup at scheduled time"}
                 </p>
                 <p className="text-sm text-blue-800">
-                  Make sure your vehicle is ready at the scheduled pickup time
+                  {language === "de" ? "Stellen Sie sicher, dass Ihr Fahrzeug zur geplanten Abholzeit bereit ist" : "Make sure your vehicle is ready at the scheduled pickup time"}
                 </p>
               </div>
             </li>
@@ -240,10 +225,10 @@ export default function ConfirmationPage() {
               </span>
               <div>
                 <p className="font-medium text-blue-900">
-                  Service completion and delivery
+                  {language === "de" ? "Service-Abschluss und Lieferung" : "Service completion and delivery"}
                 </p>
                 <p className="text-sm text-blue-800">
-                  Track your booking status in your dashboard
+                  {language === "de" ? "Verfolgen Sie Ihren Buchungsstatus in Ihrem Dashboard" : "Track your booking status in your dashboard"}
                 </p>
               </div>
             </li>
@@ -257,7 +242,7 @@ export default function ConfirmationPage() {
             className="flex-1"
             size="lg"
           >
-            Go to Dashboard
+            {language === "de" ? "Zum Dashboard" : "Go to Dashboard"}
           </Button>
           <Button
             variant="outline"
@@ -266,16 +251,16 @@ export default function ConfirmationPage() {
             size="lg"
           >
             <Download className="mr-2 h-4 w-4" />
-            Print Confirmation
+            {language === "de" ? "Bestätigung drucken" : "Print Confirmation"}
           </Button>
         </div>
 
         {/* Support */}
         <div className="text-center text-sm text-gray-600">
           <p>
-            Need help?{" "}
+            {language === "de" ? "Brauchen Sie Hilfe?" : "Need help?"}{" "}
             <a href={`/${locale}/support`} className="text-primary hover:underline">
-              Contact our support team
+              {language === "de" ? "Kontaktieren Sie unser Support-Team" : "Contact our support team"}
             </a>
           </p>
         </div>

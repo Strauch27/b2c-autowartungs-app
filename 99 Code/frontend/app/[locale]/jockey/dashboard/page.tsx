@@ -19,6 +19,10 @@ import {
   Camera,
   Loader2,
   X,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  MapPinCheck,
+  Filter,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -39,7 +43,7 @@ interface Assignment {
   address: string;
   time: string;
   vehicle: string;
-  status: "upcoming" | "inProgress" | "completed" | "cancelled";
+  status: "upcoming" | "inProgress" | "atLocation" | "completed" | "cancelled";
   type: "pickup" | "return";
 }
 
@@ -53,6 +57,8 @@ function DashboardContent() {
   }>({ open: false, assignment: null });
   const [assignments, setAssignments] = useState<JockeyAssignment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [typeFilter, setTypeFilter] = useState<'all' | 'pickup' | 'return'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'active' | 'completed'>('all');
 
   useEffect(() => {
     async function fetchAssignments() {
@@ -86,10 +92,11 @@ function DashboardContent() {
   });
 
   // Map assignment status to display status
-  const mapStatus = (assignmentStatus: string): "upcoming" | "inProgress" | "completed" | "cancelled" => {
+  const mapStatus = (assignmentStatus: string): "upcoming" | "inProgress" | "atLocation" | "completed" | "cancelled" => {
     if (assignmentStatus === 'COMPLETED') return "completed";
     if (assignmentStatus === 'CANCELLED') return "cancelled";
-    if (assignmentStatus === 'EN_ROUTE' || assignmentStatus === 'AT_LOCATION' || assignmentStatus === 'IN_PROGRESS') return "inProgress";
+    if (assignmentStatus === 'AT_LOCATION' || assignmentStatus === 'IN_PROGRESS') return "atLocation";
+    if (assignmentStatus === 'EN_ROUTE') return "inProgress";
     return "upcoming";
   };
 
@@ -114,6 +121,21 @@ function DashboardContent() {
     type: mapType(a.type),
   })) as Assignment[];
 
+  // Filter and sort assignments
+  const filteredAssignments = displayAssignments
+    .filter(a => {
+      if (typeFilter !== 'all' && a.type !== typeFilter) return false;
+      if (statusFilter === 'pending' && a.status !== 'upcoming') return false;
+      if (statusFilter === 'active' && !['inProgress', 'atLocation'].includes(a.status)) return false;
+      if (statusFilter === 'completed' && a.status !== 'completed') return false;
+      return true;
+    })
+    .sort((a, b) => {
+      // Active first, then upcoming, then completed
+      const priority: Record<string, number> = { inProgress: 0, atLocation: 0, upcoming: 1, completed: 2, cancelled: 3 };
+      return (priority[a.status] ?? 9) - (priority[b.status] ?? 9);
+    });
+
   const statusConfig = {
     upcoming: {
       label: t.jockeyDashboard.status.upcoming,
@@ -123,6 +145,11 @@ function DashboardContent() {
     inProgress: {
       label: t.jockeyDashboard.status.onRoute,
       class: "badge-in-progress",
+      action: t.jockeyDashboard.documentHandover,
+    },
+    atLocation: {
+      label: language === "de" ? "Angekommen" : "Arrived",
+      class: "badge-pickup",
       action: t.jockeyDashboard.documentHandover,
     },
     completed: {
@@ -263,35 +290,85 @@ function DashboardContent() {
 
         {/* Assignments */}
         <h2 className="mb-4 text-lg font-semibold">{t.jockeyDashboard.assignments}</h2>
+
+        {/* Filter Bar */}
+        <div className="mb-4 flex flex-wrap gap-2">
+          <div className="flex gap-1.5">
+            {([
+              { key: 'all', de: 'Alle', en: 'All' },
+              { key: 'pickup', de: 'Abholung', en: 'Pickup' },
+              { key: 'return', de: 'Rückgabe', en: 'Return' },
+            ] as const).map(({ key, de, en }) => (
+              <Button
+                key={key}
+                variant={typeFilter === key ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTypeFilter(key)}
+              >
+                {key === 'pickup' && <ArrowDownToLine className="mr-1.5 h-3.5 w-3.5" />}
+                {key === 'return' && <ArrowUpFromLine className="mr-1.5 h-3.5 w-3.5" />}
+                {language === "de" ? de : en}
+              </Button>
+            ))}
+          </div>
+          <div className="flex gap-1.5">
+            {([
+              { key: 'all', de: 'Alle Status', en: 'All Status' },
+              { key: 'pending', de: 'Bevorstehend', en: 'Upcoming' },
+              { key: 'active', de: 'Unterwegs', en: 'Active' },
+              { key: 'completed', de: 'Erledigt', en: 'Done' },
+            ] as const).map(({ key, de, en }) => (
+              <Button
+                key={key}
+                variant={statusFilter === key ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter(key)}
+              >
+                {language === "de" ? de : en}
+              </Button>
+            ))}
+          </div>
+        </div>
+
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
-        ) : displayAssignments.length === 0 ? (
+        ) : filteredAssignments.length === 0 ? (
           <Card className="card-premium">
             <CardContent className="flex flex-col items-center justify-center py-12 text-center">
               <Car className="mb-4 h-12 w-12 text-muted-foreground" />
               <p className="text-muted-foreground">
-                {language === "de"
-                  ? "Keine Aufträge für heute"
-                  : "No assignments for today"}
+                {typeFilter !== 'all' || statusFilter !== 'all'
+                  ? (language === "de" ? "Keine passenden Aufträge" : "No matching assignments")
+                  : (language === "de" ? "Keine Aufträge für heute" : "No assignments for today")}
               </p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-4">
-            {displayAssignments.map((assignment) => {
+            {filteredAssignments.map((assignment) => {
             const config = statusConfig[assignment.status];
             return (
               <Card key={assignment.id} className="card-premium overflow-hidden">
-                <div className={`h-1 ${assignment.status === "inProgress" ? "bg-cta" : assignment.status === "completed" ? "bg-success" : assignment.status === "cancelled" ? "bg-destructive" : "bg-primary"}`} />
+                <div className={`h-1 ${
+                  assignment.status === "inProgress" || assignment.status === "atLocation" ? "bg-cta"
+                  : assignment.status === "completed" ? "bg-success"
+                  : assignment.status === "cancelled" ? "bg-destructive"
+                  : assignment.type === "return" ? "bg-jockey"
+                  : "bg-primary"
+                }`} />
                 <CardContent className="p-4">
                   <div className="mb-3 flex items-start justify-between">
                     <div>
                       <div className="mb-1 flex items-center gap-2">
                         <Badge className={config.class}>{config.label}</Badge>
-                        <span className="text-sm text-muted-foreground">
-                          {assignment.type === "pickup" ? t.jockeyDashboard.pickup : (language === "de" ? "Rückgabe" : "Return")}
+                        <span className={`flex items-center gap-1 text-sm font-medium ${
+                          assignment.type === "pickup" ? "text-primary" : "text-jockey"
+                        }`}>
+                          {assignment.type === "pickup"
+                            ? <><ArrowDownToLine className="h-3.5 w-3.5" />{t.jockeyDashboard.pickup}</>
+                            : <><ArrowUpFromLine className="h-3.5 w-3.5" />{language === "de" ? "Rückgabe" : "Return"}</>}
                         </span>
                       </div>
                       <p className="font-semibold">{assignment.customer}</p>
@@ -347,6 +424,19 @@ function DashboardContent() {
                       onClick={() => handleOpenHandover(assignment)}
                     >
                       <Camera className="mr-2 h-4 w-4" />
+                      {t.jockeyDashboard.documentHandover}
+                      <ChevronRight className="ml-1 h-4 w-4" />
+                    </Button>
+                  )}
+
+                  {assignment.status === "atLocation" && (
+                    <Button
+                      variant="ghost"
+                      className="mt-3 w-full text-jockey"
+                      size="sm"
+                      onClick={() => handleOpenHandover(assignment)}
+                    >
+                      <MapPinCheck className="mr-2 h-4 w-4" />
                       {t.jockeyDashboard.documentHandover}
                       <ChevronRight className="ml-1 h-4 w-4" />
                     </Button>

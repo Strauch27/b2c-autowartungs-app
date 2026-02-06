@@ -975,7 +975,8 @@
       "received": "Received",
       "inProgress": "In Progress",
       "waitingApproval": "Waiting for Approval",
-      "completed": "Completed"
+      "completed": "Completed",
+      "cancelled": "Cancelled"
     },
     "viewDetails": "Details",
     "createExtension": "Extension"
@@ -1148,22 +1149,69 @@
     "totalCost": "Total Cost",
     "documentation": "Documentation"
   },
+  "bookingPage": {
+    "step1Label": "Select vehicle",
+    "step2Label": "Choose service",
+    "step3Label": "Book appointment",
+    "title": "Select Vehicle",
+    "subtitle": "Please enter your vehicle details",
+    "whyTitle": "Why this information?",
+    "whyBrand": "Make & Model:",
+    "whyBrandDesc": "For precise price calculation based on your vehicle",
+    "whyYear": "Year:",
+    "whyYearDesc": "To consider vehicle-specific maintenance intervals",
+    "whyMileage": "Mileage:",
+    "whyMileageDesc": "Determines the maintenance scope (30k, 60k, 90k km inspection)",
+    "stepProgress": "Step 1 of 3: Vehicle details",
+    "next": "Continue",
+    "privacyNotice": "Your data is processed securely and not shared with third parties.",
+    "privacyLinkPrefix": "For more information, see our",
+    "privacyLink": "Privacy Policy"
+  },
+  "serviceSelectionPage": {
+    "title": "Choose Your Service",
+    "vehicleInfo": "for your __brand__ __model__ (__year__)",
+    "infoTitle": "Guaranteed Fixed Price",
+    "infoText": "All prices are calculated specifically for your vehicle and guaranteed. Additional work will be offered to you digitally and only performed after your approval. The pickup and delivery service is already included in the price."
+  },
+  "serviceCard": {
+    "featured": "Featured",
+    "calculating": "Calculating price...",
+    "forYourVehicle": "for your vehicle",
+    "priceOnRequest": "Price on request",
+    "selected": "Selected",
+    "select": "Select"
+  },
+  "services": {
+    "inspection": "Inspection/Maintenance",
+    "inspectionDesc": "Comprehensive inspection according to manufacturer specifications incl. oil change, filter change and vehicle check",
+    "oilService": "Oil Service",
+    "oilServiceDesc": "Drain and renew engine oil, change oil filter, reset service interval",
+    "brakeService": "Brake Service",
+    "brakeServiceDesc": "Check and replace brake pads and brake discs, inspect brake system",
+    "tuv": "MOT/TUV",
+    "tuvDesc": "Main inspection by certified testing organisation, incl. preparation",
+    "climateService": "Climate Service",
+    "climateServiceDesc": "Disinfect AC system, refill refrigerant, check function"
+  },
   "workshopModal": {
     "orderDetails": {
       "title": "Order Details",
       "customer": "Customer Information",
       "vehicle": "Vehicle Information",
       "service": "Service",
-      "timeline": "Status Timeline",
+      "timeline": "Timeline",
       "address": "Pickup/Return Address",
       "notes": "Notes",
       "noNotes": "No notes",
       "startWork": "Start Work",
       "markComplete": "Mark as Completed",
+      "markAsArrived": "Mark as Arrived",
       "status": {
         "pending": "Pending",
         "inProgress": "In Progress",
-        "completed": "Completed"
+        "completed": "Completed",
+        "cancelled": "Cancelled"
       },
       "steps": {
         "received": "Order Received",

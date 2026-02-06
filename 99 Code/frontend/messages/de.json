@@ -990,7 +990,8 @@
       "received": "Eingegangen",
       "inProgress": "In Bearbeitung",
       "waitingApproval": "Wartet auf Freigabe",
-      "completed": "Abgeschlossen"
+      "completed": "Abgeschlossen",
+      "cancelled": "Storniert"
     },
     "viewDetails": "Details",
     "createExtension": "Erweiterung"
@@ -1163,22 +1164,69 @@
     "totalCost": "Gesamtkosten",
     "documentation": "Dokumentation"
   },
+  "bookingPage": {
+    "step1Label": "Fahrzeug auswählen",
+    "step2Label": "Service wählen",
+    "step3Label": "Termin buchen",
+    "title": "Fahrzeug auswählen",
+    "subtitle": "Bitte geben Sie die Daten Ihres Fahrzeugs ein",
+    "whyTitle": "Warum diese Daten?",
+    "whyBrand": "Marke & Modell:",
+    "whyBrandDesc": "Für präzise Preiskalkulation nach Ihrem Fahrzeug",
+    "whyYear": "Baujahr:",
+    "whyYearDesc": "Zur Berücksichtigung fahrzeugspezifischer Wartungsintervalle",
+    "whyMileage": "Kilometerstand:",
+    "whyMileageDesc": "Bestimmt den Wartungsumfang (30k, 60k, 90k km Inspektion)",
+    "stepProgress": "Schritt 1 von 3: Fahrzeugdaten",
+    "next": "Weiter",
+    "privacyNotice": "Ihre Daten werden sicher verarbeitet und nicht an Dritte weitergegeben.",
+    "privacyLinkPrefix": "Weitere Informationen in unserer",
+    "privacyLink": "Datenschutzerklärung"
+  },
+  "serviceSelectionPage": {
+    "title": "Wählen Sie Ihren Service",
+    "vehicleInfo": "für Ihren __brand__ __model__ (__year__)",
+    "infoTitle": "Garantierter Festpreis",
+    "infoText": "Alle Preise sind fahrzeugspezifisch kalkuliert und garantiert. Zusätzliche Arbeiten werden Ihnen digital angeboten und erst nach Ihrer Freigabe durchgeführt. Der Hol- und Bringservice ist bereits im Preis enthalten."
+  },
+  "serviceCard": {
+    "featured": "Hauptprodukt",
+    "calculating": "Preis wird berechnet...",
+    "forYourVehicle": "für Ihr Fahrzeug",
+    "priceOnRequest": "Preis auf Anfrage",
+    "selected": "Ausgewählt",
+    "select": "Auswählen"
+  },
+  "services": {
+    "inspection": "Inspektion/Wartung",
+    "inspectionDesc": "Umfassende Inspektion nach Herstellervorgaben inkl. Ölwechsel, Filterwechsel und Fahrzeugprüfung",
+    "oilService": "Ölservice",
+    "oilServiceDesc": "Motoröl ablassen und erneuern, Ölfilter wechseln, Service-Intervall zurücksetzen",
+    "brakeService": "Bremsservice",
+    "brakeServiceDesc": "Bremsbeläge und Bremsscheiben prüfen und wechseln, Bremssystem kontrollieren",
+    "tuv": "TÜV/HU",
+    "tuvDesc": "Hauptuntersuchung durch zertifizierte Prüforganisation, inkl. Vorbereitung",
+    "climateService": "Klimaservice",
+    "climateServiceDesc": "Klimaanlage desinfizieren, Kältemittel auffüllen, Funktion prüfen"
+  },
   "workshopModal": {
     "orderDetails": {
       "title": "Auftragsdetails",
       "customer": "Kundeninformationen",
       "vehicle": "Fahrzeuginformationen",
       "service": "Service",
-      "timeline": "Status-Verlauf",
+      "timeline": "Zeitverlauf",
       "address": "Abhol-/Rückgabeadresse",
       "notes": "Anmerkungen",
       "noNotes": "Keine Anmerkungen",
       "startWork": "Bearbeitung starten",
       "markComplete": "Als abgeschlossen markieren",
+      "markAsArrived": "Als angekommen markieren",
       "status": {
         "pending": "Ausstehend",
         "inProgress": "In Bearbeitung",
-        "completed": "Abgeschlossen"
+        "completed": "Abgeschlossen",
+        "cancelled": "Storniert"
       },
       "steps": {
         "received": "Auftrag eingegangen",

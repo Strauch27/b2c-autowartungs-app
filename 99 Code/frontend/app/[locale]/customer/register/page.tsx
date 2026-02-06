@@ -276,9 +276,9 @@ export default function RegisterPage() {
             {locale === "de"
               ? "Mit der Registrierung akzeptieren Sie unsere"
               : "By registering, you accept our"}{" "}
-            <a href="/datenschutz" className="underline hover:text-primary">
+            <Link href={`/${locale}/privacy`} className="underline hover:text-primary">
               {locale === "de" ? "Datenschutzerklärung" : "Privacy Policy"}
-            </a>
+            </Link>
             .
           </p>
         </div>

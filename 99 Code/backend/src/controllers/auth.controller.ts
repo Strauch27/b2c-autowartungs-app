@@ -74,6 +74,9 @@ export async function loginCustomer(req: Request, res: Response): Promise<void> 
       return;
     }
 
+    // Update lastLoginAt
+    await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+
     // Generate JWT token
     const authToken = generateAuthToken(user);
 
@@ -160,6 +163,9 @@ async function loginWithCredentials(req: Request, res: Response, role: UserRole)
       });
       return;
     }
+
+    // Update lastLoginAt
+    await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
 
     // Generate JWT token
     const authToken = generateAuthToken(user);

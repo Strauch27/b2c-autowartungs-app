@@ -56,22 +56,26 @@ export class BookingsRepository {
     const date = new Date();
     const year = date.getFullYear().toString().slice(-2);
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const datePrefix = `${prefix}${year}${month}`;
 
-    // Find the count of bookings created today
-    const startOfDay = new Date(date.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(date.setHours(23, 59, 59, 999));
-
-    const count = await this.prisma.booking.count({
+    // Find the highest existing booking number for this month
+    const lastBooking = await this.prisma.booking.findFirst({
       where: {
-        createdAt: {
-          gte: startOfDay,
-          lte: endOfDay
-        }
-      }
+        bookingNumber: { startsWith: datePrefix }
+      },
+      orderBy: { bookingNumber: 'desc' },
+      select: { bookingNumber: true }
     });
 
-    const sequence = (count + 1).toString().padStart(4, '0');
-    return `${prefix}${year}${month}${sequence}`;
+    let sequence = 1;
+    if (lastBooking) {
+      const lastSeq = parseInt(lastBooking.bookingNumber.slice(datePrefix.length), 10);
+      if (!isNaN(lastSeq)) {
+        sequence = lastSeq + 1;
+      }
+    }
+
+    return `${datePrefix}${sequence.toString().padStart(4, '0')}`;
   }
 
   /**

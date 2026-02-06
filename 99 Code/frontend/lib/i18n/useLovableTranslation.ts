@@ -29,6 +29,11 @@ export function useLovableTranslation() {
   const jockeyDashboard = useTranslations('jockeyDashboard');
   const workshopDashboard = useTranslations('workshopDashboard');
   const dashboard = useTranslations('dashboard');
+  const vehicleForm = useTranslations('vehicleForm');
+  const bookingPage = useTranslations('bookingPage');
+  const serviceSelectionPage = useTranslations('serviceSelectionPage');
+  const serviceCard = useTranslations('serviceCard');
+  const services = useTranslations('services');
 
   // Create a translation object that matches Lovable's structure
   const t = {
@@ -288,6 +293,72 @@ export function useLovableTranslation() {
     dashboard: {
       welcome: dashboard('welcome'),
       logout: dashboard('logout'),
+    },
+    vehicleForm: {
+      brand: vehicleForm('brand'),
+      brandPlaceholder: vehicleForm('brandPlaceholder'),
+      brandSearch: vehicleForm('brandSearch'),
+      model: vehicleForm('model'),
+      modelPlaceholder: vehicleForm('modelPlaceholder'),
+      modelSelectBrandFirst: vehicleForm('modelSelectBrandFirst'),
+      year: vehicleForm('year'),
+      yearPlaceholder: vehicleForm('yearPlaceholder'),
+      mileage: vehicleForm('mileage'),
+      mileagePlaceholder: vehicleForm('mileagePlaceholder'),
+      mileageUnit: vehicleForm('mileageUnit'),
+      mileageRange: vehicleForm('mileageRange'),
+      required: vehicleForm('required'),
+      loading: vehicleForm('loading'),
+      noBrandsFound: vehicleForm('noBrandsFound'),
+      noModelsAvailable: vehicleForm('noModelsAvailable'),
+      errorLoadingBrands: vehicleForm('errorLoadingBrands'),
+      errorLoadingModels: vehicleForm('errorLoadingModels'),
+      plausibilityWarning: vehicleForm('plausibilityWarning'),
+    },
+    bookingPage: {
+      step1Label: bookingPage('step1Label'),
+      step2Label: bookingPage('step2Label'),
+      step3Label: bookingPage('step3Label'),
+      title: bookingPage('title'),
+      subtitle: bookingPage('subtitle'),
+      whyTitle: bookingPage('whyTitle'),
+      whyBrand: bookingPage('whyBrand'),
+      whyBrandDesc: bookingPage('whyBrandDesc'),
+      whyYear: bookingPage('whyYear'),
+      whyYearDesc: bookingPage('whyYearDesc'),
+      whyMileage: bookingPage('whyMileage'),
+      whyMileageDesc: bookingPage('whyMileageDesc'),
+      stepProgress: bookingPage('stepProgress'),
+      next: bookingPage('next'),
+      privacyNotice: bookingPage('privacyNotice'),
+      privacyLinkPrefix: bookingPage('privacyLinkPrefix'),
+      privacyLink: bookingPage('privacyLink'),
+    },
+    serviceSelectionPage: {
+      title: serviceSelectionPage('title'),
+      vehicleInfo: serviceSelectionPage('vehicleInfo'),
+      infoTitle: serviceSelectionPage('infoTitle'),
+      infoText: serviceSelectionPage('infoText'),
+    },
+    serviceCard: {
+      featured: serviceCard('featured'),
+      calculating: serviceCard('calculating'),
+      forYourVehicle: serviceCard('forYourVehicle'),
+      priceOnRequest: serviceCard('priceOnRequest'),
+      selected: serviceCard('selected'),
+      select: serviceCard('select'),
+    },
+    services: {
+      inspection: services('inspection'),
+      inspectionDesc: services('inspectionDesc'),
+      oilService: services('oilService'),
+      oilServiceDesc: services('oilServiceDesc'),
+      brakeService: services('brakeService'),
+      brakeServiceDesc: services('brakeServiceDesc'),
+      tuv: services('tuv'),
+      tuvDesc: services('tuvDesc'),
+      climateService: services('climateService'),
+      climateServiceDesc: services('climateServiceDesc'),
     },
     customerDashboard: {
       nav: {
