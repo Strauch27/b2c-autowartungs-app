@@ -25,29 +25,27 @@ export function DemoBanner() {
   }
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none">
-      <div className="pointer-events-auto bg-yellow-400 border-b-4 border-yellow-600 shadow-lg">
-        <div className="container mx-auto px-4 py-2">
-          <div className="flex items-center justify-center space-x-3">
-            <span className="text-2xl" role="img" aria-label="Theater masks">
-              🎭
-            </span>
-            <div className="text-center">
-              <p className="text-sm font-bold text-yellow-900 uppercase tracking-wide">
-                Demo Mode Active
-              </p>
-              <p className="text-xs text-yellow-800">
-                This is a demonstration environment - no real payments will be processed
-              </p>
-            </div>
-            <button
-              onClick={handleDismiss}
-              className="ml-4 p-1 rounded-full hover:bg-yellow-500 transition-colors"
-              aria-label="Dismiss demo banner"
-            >
-              <X className="h-4 w-4 text-yellow-900" />
-            </button>
+    <div className="relative z-50 bg-yellow-400 border-b-4 border-yellow-600 shadow-lg">
+      <div className="container mx-auto px-4 py-2">
+        <div className="flex items-center justify-center space-x-3">
+          <span className="text-2xl" role="img" aria-label="Theater masks">
+            🎭
+          </span>
+          <div className="text-center">
+            <p className="text-sm font-bold text-yellow-900 uppercase tracking-wide">
+              Demo Mode Active
+            </p>
+            <p className="text-xs text-yellow-800">
+              This is a demonstration environment - no real payments will be processed
+            </p>
           </div>
+          <button
+            onClick={handleDismiss}
+            className="ml-4 p-1 rounded-full hover:bg-yellow-500 transition-colors"
+            aria-label="Dismiss demo banner"
+          >
+            <X className="h-4 w-4 text-yellow-900" />
+          </button>
         </div>
       </div>
     </div>

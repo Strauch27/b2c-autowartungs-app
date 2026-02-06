@@ -405,7 +405,7 @@ test.describe('Authenticated Booking Flow', () => {
       await page.goto(`/${locale}/customer/booking/payment?bookingId=bad-id`);
       await page.waitForLoadState('networkidle');
 
-      const dashboardLink = page.locator('button:has-text("Go to Dashboard"), a:has-text("Go to Dashboard"), text="Go to Dashboard"').first();
+      const dashboardLink = page.locator('button:has-text("Go to Dashboard"), a:has-text("Go to Dashboard"), button:has-text("Dashboard"), a:has-text("Dashboard")').first();
       await expect(dashboardLink).toBeVisible({ timeout: 10000 });
     });
   });
