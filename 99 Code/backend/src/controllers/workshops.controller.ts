@@ -253,12 +253,13 @@ const updateStatusSchema = z.object({
 
 export async function updateBookingStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { id } = req.params;
+    // Note: :id route param is the bookingNumber, not the internal UUID
+    const { id: bookingNumber } = req.params;
     const { status } = updateStatusSchema.parse(req.body);
 
     // Get current booking to validate FSM transition
     const currentBooking = await prisma.booking.findUnique({
-      where: { bookingNumber: id }
+      where: { bookingNumber }
     });
 
     if (!currentBooking) {
@@ -288,7 +289,7 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
 
     // Perform status update
     const booking = await prisma.booking.update({
-      where: { bookingNumber: id },
+      where: { bookingNumber },
       data: { status },
       include: {
         customer: {
@@ -313,7 +314,7 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
 
     logger.info('Booking status updated:', {
       bookingId: currentBooking.id,
-      bookingNumber: id,
+      bookingNumber,
       oldStatus: currentBooking.status,
       newStatus: status
     });
@@ -370,22 +371,37 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
             }
           });
 
-          // Fix B) Update booking status to RETURN_ASSIGNED after creating return assignment
-          await prisma.booking.update({
-            where: { id: currentBooking.id },
-            data: { status: BookingStatus.RETURN_ASSIGNED }
-          });
+          // Update booking status to RETURN_ASSIGNED with FSM validation
+          try {
+            // Re-read current status since it was just updated to READY_FOR_RETURN
+            const refreshedBooking = await prisma.booking.findUnique({
+              where: { id: currentBooking.id },
+              select: { status: true }
+            });
+            if (refreshedBooking) {
+              assertTransition(refreshedBooking.status, BookingStatus.RETURN_ASSIGNED, Actor.SYSTEM);
+            }
+            await prisma.booking.update({
+              where: { id: currentBooking.id },
+              data: { status: BookingStatus.RETURN_ASSIGNED }
+            });
+          } catch (fsmError: any) {
+            logger.warn('FSM transition to RETURN_ASSIGNED not allowed', {
+              bookingId: currentBooking.id,
+              error: fsmError.message
+            });
+          }
 
           logger.info('Return assignment created and booking status updated to RETURN_ASSIGNED', {
             bookingId: currentBooking.id,
-            bookingNumber: id,
+            bookingNumber,
             jockeyId,
             scheduledTime
           });
         } else {
           logger.warn('No available jockey found for return assignment', {
             bookingId: currentBooking.id,
-            bookingNumber: id
+            bookingNumber
           });
         }
       } catch (error) {
@@ -414,7 +430,7 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
               await demoPaymentService.capturePayment(extension.paymentIntentId!);
               logger.info('[DEMO] Extension payment auto-captured', {
                 extensionId: extension.id,
-                bookingId: id,
+                bookingNumber,
                 amount: extension.totalAmount / 100
               });
             } else {
@@ -422,7 +438,7 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
               await paymentService.capturePayment(extension.paymentIntentId!);
               logger.info('Extension payment auto-captured', {
                 extensionId: extension.id,
-                bookingId: id,
+                bookingNumber,
                 amount: extension.totalAmount / 100
               });
             }

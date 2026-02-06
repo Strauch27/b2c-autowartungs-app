@@ -15,6 +15,7 @@ import { BookingStatus, ServiceType } from '@prisma/client';
 import { z } from 'zod';
 import { CreateBookingDto } from '../types/booking.types';
 import { logger } from '../config/logger';
+import { assertTransition, Actor } from '../domain/bookingFsm';
 
 // Validation schemas
 
@@ -282,11 +283,25 @@ async function createPickupAssignment(booking: any): Promise<void> {
         }
       });
 
-      // Update booking status to PICKUP_ASSIGNED (new FSM status)
-      await prisma.booking.update({
-        where: { id: booking.id },
-        data: { status: BookingStatus.PICKUP_ASSIGNED }
-      });
+      // Update booking status to PICKUP_ASSIGNED with FSM validation
+      try {
+        const currentBooking = await prisma.booking.findUnique({
+          where: { id: booking.id },
+          select: { status: true }
+        });
+        if (currentBooking) {
+          assertTransition(currentBooking.status, BookingStatus.PICKUP_ASSIGNED, Actor.SYSTEM);
+        }
+        await prisma.booking.update({
+          where: { id: booking.id },
+          data: { status: BookingStatus.PICKUP_ASSIGNED }
+        });
+      } catch (fsmError: any) {
+        logger.warn('FSM transition to PICKUP_ASSIGNED not allowed', {
+          bookingId: booking.id,
+          error: fsmError instanceof Error ? fsmError.message : 'Unknown error'
+        });
+      }
 
       logger.info('Pickup assignment created', {
         bookingId: booking.id,

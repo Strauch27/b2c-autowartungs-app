@@ -32,6 +32,19 @@ const completeSchema = z.object({
 });
 
 /**
+ * Allowed assignment status transitions
+ * Prevents invalid jumps like ASSIGNED → COMPLETED
+ */
+const ALLOWED_ASSIGNMENT_TRANSITIONS: Record<string, string[]> = {
+  ASSIGNED: ['EN_ROUTE', 'CANCELLED'],
+  EN_ROUTE: ['AT_LOCATION', 'CANCELLED'],
+  AT_LOCATION: ['IN_PROGRESS', 'COMPLETED', 'CANCELLED'],
+  IN_PROGRESS: ['COMPLETED', 'CANCELLED'],
+  COMPLETED: [],  // Terminal state
+  CANCELLED: [],  // Terminal state
+};
+
+/**
  * Get all assignments for logged-in jockey
  * GET /api/jockeys/assignments
  */
@@ -182,6 +195,19 @@ export async function updateAssignmentStatus(req: Request, res: Response, next: 
       res.status(404).json({
         success: false,
         error: { code: 'ASSIGNMENT_NOT_FOUND', message: 'Assignment not found' }
+      });
+      return;
+    }
+
+    // Validate assignment status transition
+    const allowedTransitions = ALLOWED_ASSIGNMENT_TRANSITIONS[assignment.status] || [];
+    if (!allowedTransitions.includes(status)) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_TRANSITION',
+          message: `Invalid assignment status transition from ${assignment.status} to ${status}. Allowed: ${allowedTransitions.join(', ') || 'none (terminal state)'}`
+        }
       });
       return;
     }
@@ -405,22 +431,43 @@ export async function completeAssignment(req: Request, res: Response, next: Next
       },
     });
 
-    // Update booking status using new FSM statuses
+    // Update booking status using new FSM statuses (with validation)
     const bookingStatus: BookingStatus = assignment.type === 'PICKUP'
       ? BookingStatus.PICKED_UP
       : BookingStatus.RETURNED;
 
-    await prisma.booking.update({
+    // Get current booking to validate FSM transition
+    const currentBooking = await prisma.booking.findUnique({
       where: { id: assignment.bookingId },
-      data: { status: bookingStatus }
+      select: { status: true }
     });
 
-    logger.info('Assignment completed', {
-      assignmentId: id,
-      bookingId: assignment.bookingId,
-      type: assignment.type,
-      newBookingStatus: bookingStatus
-    });
+    if (currentBooking) {
+      try {
+        assertTransition(currentBooking.status, bookingStatus, Actor.JOCKEY);
+
+        await prisma.booking.update({
+          where: { id: assignment.bookingId },
+          data: { status: bookingStatus }
+        });
+
+        logger.info('Assignment completed, booking status updated', {
+          assignmentId: id,
+          bookingId: assignment.bookingId,
+          assignmentType: assignment.type,
+          oldStatus: currentBooking.status,
+          newStatus: bookingStatus
+        });
+      } catch (fsmError: any) {
+        logger.warn('FSM transition not allowed for booking status update', {
+          assignmentId: id,
+          bookingId: assignment.bookingId,
+          currentStatus: currentBooking.status,
+          targetStatus: bookingStatus,
+          error: fsmError.message
+        });
+      }
+    }
 
     res.json({
       success: true,

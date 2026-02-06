@@ -5,7 +5,7 @@ test.describe('Jockey Portal Tests', () => {
     await page.goto('/de/jockey/login');
 
     // Check login form is visible
-    await expect(page.locator('text=Jockey Portal')).toBeVisible();
+    await expect(page.locator('text=Willkommen zurück').or(page.locator('text=Fahrer-Portal'))).toBeVisible();
 
     // Jockey uses username, not email
     const usernameField = page.locator('input[type="text"]').or(page.locator('input[placeholder*="Benutzername"]'));

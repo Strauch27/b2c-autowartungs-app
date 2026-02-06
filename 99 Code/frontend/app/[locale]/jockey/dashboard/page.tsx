@@ -18,6 +18,7 @@ import {
   Phone,
   Camera,
   Loader2,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -38,7 +39,7 @@ interface Assignment {
   address: string;
   time: string;
   vehicle: string;
-  status: "upcoming" | "inProgress" | "completed";
+  status: "upcoming" | "inProgress" | "completed" | "cancelled";
   type: "pickup" | "return";
 }
 
@@ -85,8 +86,9 @@ function DashboardContent() {
   });
 
   // Map assignment status to display status
-  const mapStatus = (assignmentStatus: string): "upcoming" | "inProgress" | "completed" => {
-    if (assignmentStatus === 'COMPLETED' || assignmentStatus === 'CANCELLED') return "completed";
+  const mapStatus = (assignmentStatus: string): "upcoming" | "inProgress" | "completed" | "cancelled" => {
+    if (assignmentStatus === 'COMPLETED') return "completed";
+    if (assignmentStatus === 'CANCELLED') return "cancelled";
     if (assignmentStatus === 'EN_ROUTE' || assignmentStatus === 'AT_LOCATION' || assignmentStatus === 'IN_PROGRESS') return "inProgress";
     return "upcoming";
   };
@@ -128,6 +130,11 @@ function DashboardContent() {
       class: "badge-completed",
       action: null,
     },
+    cancelled: {
+      label: language === "de" ? "Storniert" : "Cancelled",
+      class: "badge-destructive",
+      action: null,
+    },
   };
 
   const stats = {
@@ -161,15 +168,14 @@ function DashboardContent() {
     setHandoverModal({ open: true, assignment });
   };
 
-  const handleCompleteHandover = async () => {
+  const handleCompleteHandover = async (handoverData?: { photos: string[]; customerSignature: string; notes: string }) => {
     if (handoverModal.assignment) {
       try {
-        // For demo: use placeholder handover data
         await jockeysApi.completeAssignment(handoverModal.assignment.id, {
-          photos: ['placeholder-1.jpg', 'placeholder-2.jpg', 'placeholder-3.jpg', 'placeholder-4.jpg'],
-          customerSignature: 'data:image/png;base64,placeholder',
-          ronjaSignature: 'data:image/png;base64,placeholder',
-          notes: 'Vehicle in good condition'
+          photos: handoverData?.photos || [],
+          customerSignature: handoverData?.customerSignature || '',
+          ronjaSignature: '',
+          notes: handoverData?.notes || '',
         });
 
         toast.success(
@@ -278,7 +284,7 @@ function DashboardContent() {
             const config = statusConfig[assignment.status];
             return (
               <Card key={assignment.id} className="card-premium overflow-hidden">
-                <div className={`h-1 ${assignment.status === "inProgress" ? "bg-cta" : assignment.status === "completed" ? "bg-success" : "bg-primary"}`} />
+                <div className={`h-1 ${assignment.status === "inProgress" ? "bg-cta" : assignment.status === "completed" ? "bg-success" : assignment.status === "cancelled" ? "bg-destructive" : "bg-primary"}`} />
                 <CardContent className="p-4">
                   <div className="mb-3 flex items-start justify-between">
                     <div>
@@ -306,7 +312,7 @@ function DashboardContent() {
                     <span className="font-medium">{assignment.vehicle}</span>
                   </div>
 
-                  {assignment.status !== "completed" && (
+                  {assignment.status !== "completed" && assignment.status !== "cancelled" && (
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" className="flex-1">
                         <Phone className="mr-2 h-4 w-4" />
@@ -326,7 +332,9 @@ function DashboardContent() {
                       size="sm"
                       onClick={() => handleStartPickup(assignment.id)}
                     >
-                      {t.jockeyDashboard.startPickup}
+                      {assignment.type === "pickup"
+                        ? t.jockeyDashboard.startPickup
+                        : (language === "de" ? "Rückgabe starten" : "Start Return")}
                       <ChevronRight className="ml-1 h-4 w-4" />
                     </Button>
                   )}
@@ -348,6 +356,13 @@ function DashboardContent() {
                     <div className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-success/10 py-2 text-sm font-medium text-success">
                       <CheckCircle className="h-4 w-4" />
                       {language === "de" ? "Erfolgreich abgeschlossen" : "Successfully completed"}
+                    </div>
+                  )}
+
+                  {assignment.status === "cancelled" && (
+                    <div className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-destructive/10 py-2 text-sm font-medium text-destructive">
+                      <X className="h-4 w-4" />
+                      {language === "de" ? "Storniert" : "Cancelled"}
                     </div>
                   )}
                 </CardContent>

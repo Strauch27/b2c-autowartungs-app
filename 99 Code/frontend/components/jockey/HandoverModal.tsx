@@ -33,7 +33,7 @@ interface HandoverModalProps {
     vehicle: string;
     type: string;
   };
-  onComplete: () => void;
+  onComplete: (data: { photos: string[]; customerSignature: string; notes: string }) => void;
 }
 
 const HandoverModal = ({
@@ -185,7 +185,11 @@ const HandoverModal = ({
   const handleComplete = () => {
     if (isValid) {
       toast.success(texts.success);
-      onComplete();
+      onComplete({
+        photos,
+        customerSignature: signature!,
+        notes,
+      });
       onOpenChange(false);
     }
   };
