@@ -8,7 +8,7 @@
 import React, { useState } from 'react';
 import { FileUploader } from '@/components/upload';
 import { UploadResult } from '@/lib/hooks/use-file-upload';
-import { useToast } from '@/lib/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface JockeyPhotoUploadProps {
   jockeyId: string;
@@ -20,16 +20,12 @@ export const JockeyPhotoUpload: React.FC<JockeyPhotoUploadProps> = ({
   onUploadSuccess,
 }) => {
   const [uploadedPhotos, setUploadedPhotos] = useState<UploadResult[]>([]);
-  const { toast } = useToast();
 
   const handleUploadComplete = (result: UploadResult | UploadResult[]) => {
     const results = Array.isArray(result) ? result : [result];
     setUploadedPhotos((prev) => [...prev, ...results]);
 
-    toast({
-      title: 'Upload successful',
-      description: `${results.length} photo(s) uploaded successfully`,
-    });
+    toast.success(`${results.length} photo(s) uploaded successfully`);
 
     // Call callback with the first photo URL
     if (results.length > 0) {
@@ -38,11 +34,7 @@ export const JockeyPhotoUpload: React.FC<JockeyPhotoUploadProps> = ({
   };
 
   const handleError = (error: Error) => {
-    toast({
-      variant: 'destructive',
-      title: 'Upload failed',
-      description: error.message,
-    });
+    toast.error(`Upload failed: ${error.message}`);
   };
 
   return (

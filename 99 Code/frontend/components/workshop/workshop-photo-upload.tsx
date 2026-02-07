@@ -8,7 +8,7 @@
 import React, { useState } from 'react';
 import { FileUploader } from '@/components/upload';
 import { UploadResult } from '@/lib/hooks/use-file-upload';
-import { useToast } from '@/lib/hooks/use-toast';
+import { toast } from 'sonner';
 import { ImagePreview } from '@/components/upload';
 
 interface WorkshopPhotoUploadProps {
@@ -21,28 +21,20 @@ export const WorkshopPhotoUpload: React.FC<WorkshopPhotoUploadProps> = ({
   onPhotosUpdated,
 }) => {
   const [uploadedPhotos, setUploadedPhotos] = useState<UploadResult[]>([]);
-  const { toast } = useToast();
 
   const handleUploadComplete = (result: UploadResult | UploadResult[]) => {
     const results = Array.isArray(result) ? result : [result];
     const newPhotos = [...uploadedPhotos, ...results];
     setUploadedPhotos(newPhotos);
 
-    toast({
-      title: 'Upload successful',
-      description: `${results.length} photo(s) uploaded successfully`,
-    });
+    toast.success(`${results.length} photo(s) uploaded successfully`);
 
     // Notify parent component
     onPhotosUpdated?.(newPhotos.map((p) => p.url));
   };
 
   const handleError = (error: Error) => {
-    toast({
-      variant: 'destructive',
-      title: 'Upload failed',
-      description: error.message,
-    });
+    toast.error(`Upload failed: ${error.message}`);
   };
 
   return (

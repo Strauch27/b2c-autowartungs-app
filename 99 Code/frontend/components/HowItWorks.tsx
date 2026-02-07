@@ -1,5 +1,5 @@
 import { Car, ClipboardList, CalendarCheck } from "lucide-react";
-import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useLanguage } from "@/lib/i18n/useLovableTranslation";
 
 const HowItWorks = () => {
   const { t } = useLanguage();

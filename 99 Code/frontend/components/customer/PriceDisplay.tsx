@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { Info, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { formatEuro } from '@/lib/utils/currency';
 import { calculatePrice } from '@/lib/api/pricing';
 import { ServiceType, VehicleData, PriceResponse } from '@/lib/types/service';
+import { useTranslations } from 'next-intl';
 
 export interface PriceDisplayProps {
   brand: string;
@@ -35,30 +36,31 @@ export function PriceDisplay({
   const [error, setError] = useState<string | null>(null);
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [displayPrice, setDisplayPrice] = useState(0);
+  const t = useTranslations('priceDisplay');
+
+  const fetchPrice = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const vehicle: VehicleData = { brand, model, year, mileage };
+      const data = await calculatePrice(vehicle, serviceType);
+      setPriceData(data);
+
+      // Animate price transition
+      animatePrice(data.breakdown.total);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : t('calculationError')
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchPrice = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const vehicle: VehicleData = { brand, model, year, mileage };
-        const data = await calculatePrice(vehicle, serviceType);
-        setPriceData(data);
-
-        // Animate price transition
-        animatePrice(data.breakdown.total);
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : 'Preis konnte nicht berechnet werden'
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchPrice();
   }, [brand, model, year, mileage, serviceType]);
 
@@ -83,7 +85,7 @@ export function PriceDisplay({
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Preis wird berechnet...</CardTitle>
+          <CardTitle>{t('calculating')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-12">
@@ -98,45 +100,48 @@ export function PriceDisplay({
     return (
       <Card className="w-full border-destructive">
         <CardHeader>
-          <CardTitle className="text-destructive">Fehler</CardTitle>
+          <CardTitle className="text-destructive">{t('error')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            {error || 'Preis nicht verfügbar'}
+          <p className="text-sm text-muted-foreground mb-4">
+            {error || t('notAvailable')}
           </p>
+          <Button variant="outline" size="sm" onClick={fetchPrice} aria-label={t('retry')}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            {t('retry')}
+          </Button>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="w-full">
+    <Card data-testid="price-display" className="w-full">
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <CardTitle className="text-4xl font-bold text-primary mb-2">
+            <CardTitle data-testid="price-amount" className="text-4xl font-bold text-primary mb-2">
               {formatEuro(displayPrice)}
             </CardTitle>
             <div className="flex flex-wrap items-center gap-2 mb-3">
-              <Badge variant="success" className="text-sm">
-                Garantierter Festpreis
+              <Badge variant="success" className="text-sm" role="status">
+                {t('guaranteedPrice')}
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
-              Inkl. Hol- und Bringservice
+              {t('includesPickup')}
             </p>
           </div>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="shrink-0">
-                  <Info className="h-5 w-5 text-muted-foreground" />
+                <Button variant="ghost" size="icon" className="shrink-0" aria-label={t('infoTooltip')}>
+                  <Info className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p>
-                  Zusätzliche Arbeiten werden digital angeboten und erst nach
-                  Ihrer Freigabe durchgeführt
+                  {t('infoTooltip')}
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -149,8 +154,9 @@ export function PriceDisplay({
           variant="ghost"
           className="w-full justify-between text-sm"
           onClick={() => setShowBreakdown(!showBreakdown)}
+          aria-expanded={showBreakdown}
         >
-          <span>Preisaufschlüsselung</span>
+          <span>{t('breakdown')}</span>
           {showBreakdown ? (
             <ChevronUp className="h-4 w-4" />
           ) : (
@@ -159,9 +165,9 @@ export function PriceDisplay({
         </Button>
 
         {showBreakdown && (
-          <div className="mt-4 space-y-2 border-t pt-4">
+          <div data-testid="price-breakdown" className="mt-4 space-y-2 border-t pt-4">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Basispreis:</span>
+              <span className="text-muted-foreground">{t('basePrice')}:</span>
               <span className="font-medium">
                 {formatEuro(priceData.breakdown.basePrice)}
               </span>
@@ -169,7 +175,7 @@ export function PriceDisplay({
 
             {priceData.breakdown.ageSurcharge && (
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Alter-Zuschlag:</span>
+                <span className="text-muted-foreground">{t('ageSurcharge')}:</span>
                 <span className="font-medium text-amber-600">
                   +{formatEuro(priceData.breakdown.ageSurcharge)}
                 </span>
@@ -179,7 +185,7 @@ export function PriceDisplay({
             {priceData.breakdown.mileageSurcharge && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
-                  Kilometerstand-Zuschlag:
+                  {t('mileageSurcharge')}:
                 </span>
                 <span className="font-medium text-amber-600">
                   +{formatEuro(priceData.breakdown.mileageSurcharge)}
@@ -188,7 +194,7 @@ export function PriceDisplay({
             )}
 
             <div className="flex justify-between text-base font-bold border-t pt-2 mt-2">
-              <span>Gesamt:</span>
+              <span>{t('total')}:</span>
               <span className="text-primary">
                 {formatEuro(priceData.breakdown.total)}
               </span>

@@ -22,9 +22,9 @@ export default function PriceDisplayDemo() {
 
   // Example price breakdown (normally from API)
   const examplePriceBreakdown = {
-    basePrice: 21900, // 219.00 EUR in cents
-    ageSurcharge: 3000, // 30.00 EUR
-    total: 24900, // 249.00 EUR
+    basePrice: 219, // in EUR
+    ageSurcharge: 30, // in EUR
+    total: 249, // in EUR
   };
 
   const handleConfirmBooking = () => {
@@ -156,7 +156,7 @@ export default function PriceDisplayDemo() {
             </p>
             <p>
               <strong>Response:</strong> Price breakdown with basePrice,
-              ageSurcharge, mileageSurcharge, and total (in cents)
+              ageSurcharge, mileageSurcharge, and total (in EUR)
             </p>
             <p className="mt-2">
               <strong>Functions available:</strong>
@@ -176,8 +176,8 @@ export default function PriceDisplayDemo() {
           </h3>
           <div className="space-y-2 text-sm text-green-800">
             <p>
-              <strong>formatEuro(cents):</strong> Converts cents to German EUR
-              format (e.g., 24900 → "249,00 €")
+              <strong>formatEuro(amount):</strong> Formats EUR amount to German
+              EUR format (e.g., 249 → "249,00 €")
             </p>
             <p>
               <strong>formatCents(euro):</strong> Converts euro to cents (e.g.,

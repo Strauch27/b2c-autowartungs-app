@@ -7,7 +7,7 @@ let stripe: Stripe | null = null;
 
 if (process.env.STRIPE_SECRET_KEY) {
   stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2024-12-18.acacia',
+    apiVersion: '2024-12-18.acacia' as any,
     typescript: true,
   });
 } else {
@@ -108,7 +108,7 @@ export class PaymentService {
   ): Promise<Stripe.Customer> {
     try {
       // Search for existing customer by metadata
-      const existingCustomers = await this.stripe.customers.list({
+      const existingCustomers = await this.stripe!.customers.list({
         email,
         limit: 1,
       });
@@ -118,7 +118,7 @@ export class PaymentService {
       }
 
       // Create new customer
-      const customer = await this.stripe.customers.create({
+      const customer = await this.stripe!.customers.create({
         email,
         metadata: {
           customerId,
@@ -149,7 +149,7 @@ export class PaymentService {
    */
   async getPaymentIntent(paymentIntentId: string): Promise<Stripe.PaymentIntent> {
     try {
-      const paymentIntent = await this.stripe.paymentIntents.retrieve(paymentIntentId);
+      const paymentIntent = await this.stripe!.paymentIntents.retrieve(paymentIntentId);
       return paymentIntent;
     } catch (error) {
       if (error instanceof Stripe.errors.StripeError) {
@@ -170,7 +170,7 @@ export class PaymentService {
    */
   async capturePayment(paymentIntentId: string): Promise<Stripe.PaymentIntent> {
     try {
-      const paymentIntent = await this.stripe.paymentIntents.capture(paymentIntentId);
+      const paymentIntent = await this.stripe!.paymentIntents.capture(paymentIntentId);
 
       logger.info({
         message: 'Payment captured',
@@ -197,7 +197,7 @@ export class PaymentService {
    */
   async cancelPayment(paymentIntentId: string): Promise<Stripe.PaymentIntent> {
     try {
-      const paymentIntent = await this.stripe.paymentIntents.cancel(paymentIntentId);
+      const paymentIntent = await this.stripe!.paymentIntents.cancel(paymentIntentId);
 
       logger.info({
         message: 'Payment cancelled',
@@ -235,7 +235,7 @@ export class PaymentService {
         refundParams.amount = Math.round(amount);
       }
 
-      const refund = await this.stripe.refunds.create(refundParams);
+      const refund = await this.stripe!.refunds.create(refundParams);
 
       logger.info({
         message: 'Refund created',
@@ -251,7 +251,7 @@ export class PaymentService {
         logger.error({
           message: 'Stripe error creating refund',
           error: error.message,
-          paymentIntentId,
+          paymentIntentId: params.paymentIntentId,
         });
         throw new ApiError(400, `Cannot refund payment: ${error.message}`);
       }
@@ -273,7 +273,7 @@ export class PaymentService {
     }
 
     try {
-      const event = this.stripe.webhooks.constructEvent(
+      const event = this.stripe!.webhooks.constructEvent(
         payload,
         signature,
         webhookSecret
@@ -319,7 +319,7 @@ export class PaymentService {
   ): Promise<Stripe.PaymentIntent[]> {
     try {
       // First get the Stripe customer
-      const customers = await this.stripe.customers.list({
+      const customers = await this.stripe!.customers.list({
         limit: 1,
       });
 
@@ -332,7 +332,7 @@ export class PaymentService {
       }
 
       // Get payment intents for this customer
-      const paymentIntents = await this.stripe.paymentIntents.list({
+      const paymentIntents = await this.stripe!.paymentIntents.list({
         customer: customer.id,
         limit,
       });

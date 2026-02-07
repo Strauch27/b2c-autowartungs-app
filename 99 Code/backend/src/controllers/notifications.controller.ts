@@ -59,7 +59,7 @@ const subscribeTopicSchema = z.object({
  */
 export const registerToken = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
 
     if (!userId) {
       res.status(401).json({
@@ -105,7 +105,7 @@ export const registerToken = async (req: Request, res: Response): Promise<void> 
  */
 export const unregisterToken = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
 
     if (!userId) {
       res.status(401).json({
@@ -205,7 +205,7 @@ export const sendPushNotification = async (req: Request, res: Response): Promise
  */
 export const getNotificationHistory = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
 
     if (!userId) {
       res.status(401).json({
@@ -273,8 +273,8 @@ export const getNotificationHistory = async (req: Request, res: Response): Promi
  */
 export const markAsRead = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
-    const notificationId = req.params.id;
+    const userId = (req.user as any)?.id;
+    const notificationId = req.params.id as string;
 
     if (!userId) {
       res.status(401).json({
@@ -328,7 +328,7 @@ export const markAsRead = async (req: Request, res: Response): Promise<void> => 
  */
 export const markAllAsRead = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
 
     if (!userId) {
       res.status(401).json({
@@ -369,7 +369,7 @@ export const markAllAsRead = async (req: Request, res: Response): Promise<void> 
  */
 export const getUnreadCount = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
 
     if (!userId) {
       res.status(401).json({
@@ -407,7 +407,7 @@ export const getUnreadCount = async (req: Request, res: Response): Promise<void>
  */
 export const subscribeToTopicHandler = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
 
     if (!userId) {
       res.status(401).json({
@@ -467,7 +467,7 @@ export const subscribeToTopicHandler = async (req: Request, res: Response): Prom
  */
 export const unsubscribeFromTopicHandler = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
 
     if (!userId) {
       res.status(401).json({

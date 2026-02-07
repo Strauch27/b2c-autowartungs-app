@@ -13,7 +13,9 @@ import { toast } from 'sonner';
 import { apiClient } from '@/lib/api/client';
 import { tokenStorage } from '@/lib/auth/token-storage';
 
-export default function BookingRegisterPage() {
+import { Suspense } from 'react';
+
+function BookingRegisterContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { language } = useLanguage();
@@ -340,5 +342,13 @@ export default function BookingRegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function BookingRegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <BookingRegisterContent />
+    </Suspense>
   );
 }

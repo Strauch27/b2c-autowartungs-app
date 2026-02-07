@@ -381,16 +381,16 @@ export function generateTestEmail(prefix: string = 'test'): string {
 }
 
 /**
- * Format price for display (cents to euros)
+ * Format price for display (EUR)
  */
-export function formatPrice(cents: number): string {
-  return (cents / 100).toFixed(2);
+export function formatPrice(amount: number): string {
+  return amount.toFixed(2);
 }
 
 /**
- * Parse price from display string (euros to cents)
+ * Parse price from display string (EUR)
  */
 export function parsePrice(priceString: string): number {
   const cleaned = priceString.replace(/[^\d.,]/g, '').replace(',', '.');
-  return Math.round(parseFloat(cleaned) * 100);
+  return parseFloat(cleaned);
 }

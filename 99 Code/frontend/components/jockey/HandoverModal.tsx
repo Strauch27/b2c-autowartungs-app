@@ -55,6 +55,7 @@ const HandoverModal = ({
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const t = {
     de: {
@@ -240,6 +241,40 @@ const HandoverModal = ({
                 <span className="text-xs">{texts.addPhoto}</span>
               </button>
             </div>
+            {/* J8: Camera capture button */}
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="min-h-[44px]"
+                onClick={() => cameraInputRef.current?.click()}
+                aria-label={texts.takePhoto}
+              >
+                <Camera className="mr-2 h-4 w-4" />
+                {texts.takePhoto}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="min-h-[44px]"
+                onClick={() => fileInputRef.current?.click()}
+                aria-label={texts.addPhoto}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                {texts.addPhoto}
+              </Button>
+            </div>
+            {/* TODO: Photos are currently held in local state only. Implement backend upload when endpoint is available. */}
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleFileUpload}
+            />
             <input
               ref={fileInputRef}
               type="file"
@@ -360,16 +395,18 @@ const HandoverModal = ({
           <div className="flex gap-3">
             <Button
               variant="outline"
-              className="flex-1"
+              className="flex-1 min-h-[44px]"
               onClick={() => onOpenChange(false)}
+              aria-label={texts.cancel}
             >
               {texts.cancel}
             </Button>
             <Button
               variant="jockey"
-              className="flex-1"
+              className="flex-1 min-h-[44px]"
               onClick={handleComplete}
               disabled={!isValid}
+              aria-label={texts.complete}
             >
               <Check className="mr-2 h-4 w-4" />
               {texts.complete}

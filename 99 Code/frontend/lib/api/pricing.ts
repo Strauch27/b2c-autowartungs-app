@@ -2,7 +2,9 @@ import { apiClient } from './client';
 import { ServiceType, VehicleData, PriceResponse } from '../types/service';
 
 /**
- * Calculate price for a specific service and vehicle
+ * Calculate price for a specific service and vehicle.
+ * The backend returns {success, data: {price, breakdown: {basePrice, ageMultiplier, ...}}},
+ * which we unwrap and map to the frontend PriceResponse shape.
  */
 export async function calculatePrice(
   vehicle: VehicleData,
@@ -15,16 +17,33 @@ export async function calculatePrice(
     mileage: vehicle.mileage.toString(),
   });
 
-  return apiClient.get<PriceResponse>(
+  const response = await apiClient.get<{ success: boolean; data: any }>(
     `/api/services/${serviceType}/price?${params.toString()}`
   );
+
+  const data = response.data;
+  return {
+    serviceType,
+    vehicle,
+    breakdown: {
+      basePrice: data.breakdown?.basePrice ?? data.price ?? 0,
+      ageSurcharge: data.breakdown?.ageMultiplier ?? data.breakdown?.ageSurcharge ?? 0,
+      mileageSurcharge: data.breakdown?.mileageSurcharge ?? 0,
+      total: data.price ?? data.breakdown?.total ?? 0,
+    },
+    message: data.message,
+  };
 }
 
 /**
- * Get all available services
+ * Get all available services.
+ * The backend returns {success, data: [...]}, which we unwrap.
  */
 export async function getAvailableServices(): Promise<ServiceType[]> {
-  return apiClient.get<ServiceType[]>('/api/services');
+  const response = await apiClient.get<{ success: boolean; data: ServiceType[] }>(
+    '/api/services'
+  );
+  return response.data;
 }
 
 /**

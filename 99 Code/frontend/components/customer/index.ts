@@ -12,3 +12,7 @@ export { BookingSummary } from './BookingSummary';
 export type { BookingSummaryProps } from './BookingSummary';
 
 export { ServiceCard } from './ServiceCard';
+
+export { BookingStepper } from './BookingStepper';
+
+export { RatingModal } from './RatingModal';

@@ -16,6 +16,7 @@ import workshopsRoutes from './routes/workshops.routes';
 import extensionsRoutes from './routes/extensions.routes';
 import jockeysRoutes from './routes/jockeys.routes';
 import demoRoutes from './routes/demo.routes';
+import testRoutes from './routes/test.routes';
 
 export function createApp(): Application {
   const app: Application = express();
@@ -59,6 +60,11 @@ export function createApp(): Application {
   // Demo routes (only active when DEMO_MODE=true)
   if (process.env.DEMO_MODE === 'true') {
     app.use('/api/demo', demoRoutes);
+  }
+
+  // E2E test routes (only active when E2E_TEST=true)
+  if (process.env.E2E_TEST === 'true') {
+    app.use('/api/test', testRoutes);
   }
 
   // Error handling middleware (must be last)

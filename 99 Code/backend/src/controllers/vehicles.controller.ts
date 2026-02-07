@@ -40,7 +40,7 @@ export async function listVehicles(req: Request, res: Response, next: NextFuncti
       throw new ApiError(401, 'Authentication required');
     }
 
-    const vehicles = await vehiclesService.getCustomerVehicles(req.user.userId);
+    const vehicles = await vehiclesService.getCustomerVehicles(req.user.userId as string);
 
     res.status(200).json({
       success: true,
@@ -61,14 +61,14 @@ export async function getVehicle(req: Request, res: Response, next: NextFunction
       throw new ApiError(401, 'Authentication required');
     }
 
-    const { id } = req.params;
+    const id = req.params.id as string;
     const includeBookings = req.query.includeBookings === 'true';
 
     let vehicle;
     if (includeBookings) {
-      vehicle = await vehiclesService.getVehicleWithBookings(id, req.user.userId);
+      vehicle = await vehiclesService.getVehicleWithBookings(id, req.user.userId as string);
     } else {
-      vehicle = await vehiclesService.getVehicleById(id, req.user.userId);
+      vehicle = await vehiclesService.getVehicleById(id, req.user.userId as string);
     }
 
     res.status(200).json({
@@ -96,7 +96,7 @@ export async function createVehicle(req: Request, res: Response, next: NextFunct
     // Create vehicle
     const result = await vehiclesService.createVehicle({
       ...validatedData,
-      customerId: req.user.userId
+      customerId: req.user.userId as string
     });
 
     res.status(201).json({
@@ -123,7 +123,7 @@ export async function updateVehicle(req: Request, res: Response, next: NextFunct
       throw new ApiError(401, 'Authentication required');
     }
 
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     // Validate request body
     const validatedData = updateVehicleSchema.parse(req.body);
@@ -134,7 +134,7 @@ export async function updateVehicle(req: Request, res: Response, next: NextFunct
     }
 
     // Update vehicle
-    const result = await vehiclesService.updateVehicle(id, req.user.userId, validatedData);
+    const result = await vehiclesService.updateVehicle(id, req.user.userId as string, validatedData);
 
     res.status(200).json({
       success: true,
@@ -160,9 +160,9 @@ export async function deleteVehicle(req: Request, res: Response, next: NextFunct
       throw new ApiError(401, 'Authentication required');
     }
 
-    const { id } = req.params;
+    const id = req.params.id as string;
 
-    await vehiclesService.deleteVehicle(id, req.user.userId);
+    await vehiclesService.deleteVehicle(id, req.user.userId as string);
 
     res.status(200).json({
       success: true,

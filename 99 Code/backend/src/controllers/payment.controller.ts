@@ -48,7 +48,7 @@ export async function createPaymentIntent(
     }
 
     // Verify booking belongs to customer
-    if (booking.customerId !== req.user.userId) {
+    if (booking.customerId !== req.user.userId as string) {
       throw new ApiError(403, 'You do not have permission to pay for this booking');
     }
 
@@ -100,7 +100,7 @@ export async function createPaymentIntent(
     const paymentIntent = await paymentService.createPaymentIntent({
       amount: amountInCents,
       bookingId: booking.id,
-      customerId: req.user.userId,
+      customerId: req.user.userId as string,
       customerEmail,
       metadata: {
         bookingNumber: booking.bookingNumber,
@@ -151,7 +151,7 @@ export async function getPaymentStatus(
       throw new ApiError(401, 'Authentication required');
     }
 
-    const { paymentIntentId } = req.params;
+    const paymentIntentId = req.params.paymentIntentId as string;
 
     // Get payment intent
     const paymentIntent = await paymentService.getPaymentIntent(paymentIntentId);
@@ -163,7 +163,7 @@ export async function getPaymentStatus(
       throw new ApiError(404, 'Booking not found for this payment');
     }
 
-    if (booking.customerId !== req.user.userId) {
+    if (booking.customerId !== req.user.userId as string) {
       throw new ApiError(403, 'You do not have permission to access this payment');
     }
 
@@ -555,7 +555,7 @@ export async function authorizeExtension(
     }
 
     // Verify customer owns this booking
-    if (extension.booking.customerId !== req.user.userId) {
+    if (extension.booking.customerId !== req.user.userId as string) {
       throw new ApiError(
         403,
         'You do not have permission to authorize payment for this extension'
@@ -577,7 +577,7 @@ export async function authorizeExtension(
     const paymentIntent = await paymentService.createPaymentIntent({
       amount: extension.totalAmount, // Already in cents
       bookingId: extension.bookingId,
-      customerId: req.user.userId,
+      customerId: req.user.userId as string,
       customerEmail,
       metadata: {
         bookingNumber: extension.booking.bookingNumber,
@@ -637,24 +637,27 @@ export async function captureExtension(
     });
 
     if (!extension) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: { code: 'EXTENSION_NOT_FOUND', message: 'Extension not found' }
       });
+      return;
     }
 
     if (extension.status !== 'APPROVED') {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: { code: 'EXTENSION_NOT_APPROVED', message: 'Extension not approved' }
       });
+      return;
     }
 
     if (!extension.paymentIntentId) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: { code: 'NO_PAYMENT_INTENT', message: 'No payment intent found' }
       });
+      return;
     }
 
     // Capture the payment
@@ -677,7 +680,7 @@ export async function captureExtension(
       amount: paymentIntent.amount
     });
 
-    return res.json({
+    res.json({
       success: true,
       data: {
         paymentIntent: {

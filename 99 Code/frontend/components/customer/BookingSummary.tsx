@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { formatEuro, formatNumber } from '@/lib/utils/currency';
 import { ServiceType, VehicleData, PriceBreakdown } from '@/lib/types/service';
 import { Car, Gauge, Wrench, Receipt } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export interface BookingSummaryProps {
   vehicle: VehicleData;
@@ -15,15 +16,6 @@ export interface BookingSummaryProps {
   isLoading?: boolean;
 }
 
-const serviceTypeLabels: Record<ServiceType, string> = {
-  [ServiceType.INSPECTION]: 'Inspektion/Wartung',
-  [ServiceType.OIL_SERVICE]: 'Ölservice',
-  [ServiceType.BRAKE_SERVICE]: 'Bremsservice',
-  [ServiceType.TUV]: 'TÜV/HU',
-  [ServiceType.CLIMATE_SERVICE]: 'Klimaservice',
-  [ServiceType.DETAILING]: 'Fahrzeugaufbereitung',
-};
-
 export function BookingSummary({
   vehicle,
   serviceType,
@@ -32,10 +24,20 @@ export function BookingSummary({
   onConfirm,
   isLoading = false,
 }: BookingSummaryProps) {
+  const t = useTranslations('bookingSummary');
+
+  const serviceTypeLabels: Record<ServiceType, string> = {
+    [ServiceType.INSPECTION]: t('serviceTypes.INSPECTION'),
+    [ServiceType.OIL_SERVICE]: t('serviceTypes.OIL_SERVICE'),
+    [ServiceType.BRAKE_SERVICE]: t('serviceTypes.BRAKE_SERVICE'),
+    [ServiceType.TUV]: t('serviceTypes.TUV'),
+    [ServiceType.CLIMATE_SERVICE]: t('serviceTypes.CLIMATE_SERVICE'),
+  };
+
   return (
-    <Card className="w-full">
+    <Card data-testid="booking-summary" className="w-full">
       <CardHeader>
-        <CardTitle className="text-2xl">Buchungsübersicht</CardTitle>
+        <CardTitle className="text-2xl">{t('title')}</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-6">
@@ -43,14 +45,14 @@ export function BookingSummary({
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <Car className="h-4 w-4" />
-            <span>Fahrzeug</span>
+            <span>{t('vehicle')}</span>
           </div>
           <div className="pl-6 space-y-1">
             <p className="font-semibold text-lg">
               {vehicle.brand} {vehicle.model}
             </p>
             <p className="text-sm text-muted-foreground">
-              Baujahr: {vehicle.year}
+              {t('buildYear')}: {vehicle.year}
             </p>
           </div>
         </div>
@@ -59,7 +61,7 @@ export function BookingSummary({
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <Gauge className="h-4 w-4" />
-            <span>Kilometerstand</span>
+            <span>{t('mileage')}</span>
           </div>
           <div className="pl-6">
             <p className="font-semibold">{formatNumber(vehicle.mileage)} km</p>
@@ -70,7 +72,7 @@ export function BookingSummary({
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <Wrench className="h-4 w-4" />
-            <span>Service</span>
+            <span>{t('service')}</span>
           </div>
           <div className="pl-6">
             <p className="font-semibold">
@@ -83,17 +85,17 @@ export function BookingSummary({
         <div className="space-y-3 border-t pt-4">
           <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <Receipt className="h-4 w-4" />
-            <span>Preis</span>
+            <span>{t('price')}</span>
           </div>
           <div className="pl-6 space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Basispreis:</span>
-              <span>{formatEuro(priceBreakdown.basePrice)}</span>
+              <span className="text-muted-foreground">{t('basePrice')}:</span>
+              <span data-testid="price-base">{formatEuro(priceBreakdown.basePrice)}</span>
             </div>
 
             {priceBreakdown.ageSurcharge && priceBreakdown.ageSurcharge > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Alter-Zuschlag:</span>
+                <span className="text-muted-foreground">{t('ageSurcharge')}:</span>
                 <span className="text-amber-600">
                   +{formatEuro(priceBreakdown.ageSurcharge)}
                 </span>
@@ -104,7 +106,7 @@ export function BookingSummary({
               priceBreakdown.mileageSurcharge > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
-                    Kilometerstand-Zuschlag:
+                    {t('mileageSurcharge')}:
                   </span>
                   <span className="text-amber-600">
                     +{formatEuro(priceBreakdown.mileageSurcharge)}
@@ -113,14 +115,14 @@ export function BookingSummary({
               )}
 
             <div className="flex justify-between text-lg font-bold border-t pt-2 mt-2">
-              <span>Gesamtpreis:</span>
-              <span className="text-primary">
+              <span>{t('totalPrice')}:</span>
+              <span data-testid="price-total" className="text-primary">
                 {formatEuro(priceBreakdown.total)}
               </span>
             </div>
 
             <p className="text-xs text-muted-foreground mt-2">
-              Inkl. Hol- und Bringservice
+              {t('includesPickup')}
             </p>
           </div>
         </div>
@@ -128,6 +130,7 @@ export function BookingSummary({
 
       <CardFooter>
         <Button
+          data-testid="booking-submit"
           className="w-full text-lg h-12"
           onClick={onConfirm}
           disabled={isLoading}
@@ -135,10 +138,10 @@ export function BookingSummary({
           {isLoading ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Wird verarbeitet...
+              {t('processing')}
             </>
           ) : (
-            'Jetzt buchen'
+            t('bookNow')
           )}
         </Button>
       </CardFooter>

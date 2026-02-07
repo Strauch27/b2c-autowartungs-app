@@ -952,6 +952,8 @@
   },
   "jockeyDashboard": {
     "today": "Heute",
+    "tomorrow": "Morgen",
+    "later": "Später",
     "stats": {
       "todayTrips": "Heutige Fahrten",
       "completed": "Abgeschlossen",
@@ -959,16 +961,68 @@
     },
     "assignments": "Heutige Aufträge",
     "noAssignments": "Keine Aufträge für heute",
+    "noMatchingAssignments": "Keine passenden Aufträge",
     "status": {
       "upcoming": "Bevorstehend",
       "onRoute": "Unterwegs",
-      "completed": "Abgeschlossen"
+      "arrived": "Angekommen",
+      "completed": "Abgeschlossen",
+      "cancelled": "Storniert"
     },
     "pickup": "Abholung",
+    "return": "Rückgabe",
     "navigate": "Navigation starten",
     "startPickup": "Abholung starten",
+    "startReturn": "Rückgabe starten",
     "documentHandover": "Übergabe dokumentieren",
-    "complete": "Abschließen"
+    "complete": "Abschließen",
+    "call": "Anrufen",
+    "successfullyCompleted": "Erfolgreich abgeschlossen",
+    "pickupStarted": "Abholung gestartet",
+    "pickupStartError": "Fehler beim Start der Abholung",
+    "pickupCompleted": "Abholung abgeschlossen",
+    "returnCompleted": "Rückgabe abgeschlossen",
+    "handoverError": "Fehler beim Abschluss",
+    "loadError": "Aufträge konnten nicht geladen werden",
+    "confirmAction": "Sind Sie sicher? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "filter": {
+      "all": "Alle",
+      "allStatus": "Alle Status",
+      "pickupType": "Abholung",
+      "returnType": "Rückgabe",
+      "upcoming": "Bevorstehend",
+      "active": "Unterwegs",
+      "done": "Erledigt"
+    },
+    "notifications": "Benachrichtigungen",
+    "logout": "Abmelden",
+    "takePhoto": "Foto aufnehmen",
+    "photoPreview": "Foto-Vorschau"
+  },
+  "jockeyStats": {
+    "title": "Verdienst-Statistiken",
+    "tripsThisWeek": "Fahrten diese Woche",
+    "tripsThisMonth": "Fahrten diesen Monat",
+    "averageRating": "Durchschnittsbewertung",
+    "backToDashboard": "Zurück zum Dashboard"
+  },
+  "jockeyAvailability": {
+    "title": "Verfügbarkeit",
+    "subtitle": "Legen Sie Ihre wöchentliche Verfügbarkeit fest",
+    "available": "Verfügbar",
+    "notAvailable": "Nicht verfügbar",
+    "morning": "Vormittag",
+    "afternoon": "Nachmittag",
+    "fullDay": "Ganztags",
+    "monday": "Montag",
+    "tuesday": "Dienstag",
+    "wednesday": "Mittwoch",
+    "thursday": "Donnerstag",
+    "friday": "Freitag",
+    "saturday": "Samstag",
+    "sunday": "Sonntag",
+    "backToDashboard": "Zurück zum Dashboard",
+    "saved": "Verfügbarkeit gespeichert"
   },
   "workshopDashboard": {
     "stats": {
@@ -994,7 +1048,38 @@
       "cancelled": "Storniert"
     },
     "viewDetails": "Details",
-    "createExtension": "Erweiterung"
+    "createExtension": "Erweiterung",
+    "filter": {
+      "all": "Alle",
+      "pending": "Wartend",
+      "inProgress": "In Arbeit",
+      "completed": "Erledigt"
+    },
+    "searchPlaceholder": "Auftrag, Kunde oder Fahrzeug suchen...",
+    "noMatchingOrders": "Keine passenden Aufträge",
+    "services": "Leistungen",
+    "toast": {
+      "loadFailed": "Aufträge konnten nicht geladen werden",
+      "statusUpdated": "Status erfolgreich aktualisiert",
+      "statusFailed": "Status-Update fehlgeschlagen",
+      "extensionSent": "Auftragserweiterung wurde an den Kunden gesendet!",
+      "extensionFailed": "Fehler beim Senden der Erweiterung"
+    },
+    "tip": {
+      "title": "Tipp: Auftragserweiterungen",
+      "text": "Wenn Sie zusätzliche Arbeiten identifizieren, können Sie eine Erweiterung erstellen und dem Kunden zur Genehmigung senden."
+    },
+    "pagination": {
+      "previous": "Zurück",
+      "next": "Weiter",
+      "page": "Seite",
+      "of": "von"
+    },
+    "links": {
+      "calendar": "Kalender",
+      "stats": "Statistiken",
+      "team": "Team"
+    }
   },
   "payment": {
     "summary": {
@@ -1197,6 +1282,55 @@
     "selected": "Ausgewählt",
     "select": "Auswählen"
   },
+  "bookingSummary": {
+    "title": "Buchungsübersicht",
+    "vehicle": "Fahrzeug",
+    "buildYear": "Baujahr",
+    "mileage": "Kilometerstand",
+    "service": "Service",
+    "price": "Preis",
+    "basePrice": "Basispreis",
+    "ageSurcharge": "Alter-Zuschlag",
+    "mileageSurcharge": "Kilometerstand-Zuschlag",
+    "totalPrice": "Gesamtpreis",
+    "includesPickup": "Inkl. Hol- und Bringservice",
+    "processing": "Wird verarbeitet...",
+    "bookNow": "Jetzt buchen",
+    "serviceTypes": {
+      "INSPECTION": "Inspektion/Wartung",
+      "OIL_SERVICE": "Ölservice",
+      "BRAKE_SERVICE": "Bremsservice",
+      "TUV": "TÜV/HU",
+      "CLIMATE_SERVICE": "Klimaservice"
+    }
+  },
+  "priceDisplay": {
+    "calculating": "Preis wird berechnet...",
+    "error": "Fehler bei der Preisberechnung",
+    "notAvailable": "Preis nicht verfügbar",
+    "calculationError": "Preis konnte nicht berechnet werden",
+    "retry": "Erneut versuchen",
+    "guaranteedPrice": "Garantierter Festpreis",
+    "includesPickup": "Inkl. Hol- und Bringservice",
+    "infoTooltip": "Zusätzliche Arbeiten werden digital angeboten und erst nach Ihrer Freigabe durchgeführt",
+    "breakdown": "Preisaufschlüsselung",
+    "basePrice": "Basispreis",
+    "ageSurcharge": "Alter-Zuschlag",
+    "mileageSurcharge": "Kilometerstand-Zuschlag",
+    "total": "Gesamt"
+  },
+  "bookingStepper": {
+    "vehicle": "Fahrzeug",
+    "service": "Service",
+    "appointment": "Termin",
+    "confirmation": "Bestätigung"
+  },
+  "customerLogin": {
+    "brandTitle": "Premium Service für Ihr Auto",
+    "brandDescription": "Buchen Sie Ihren nächsten Wartungstermin bequem online und genießen Sie unseren exklusiven Hol- und Bringservice.",
+    "loginSuccess": "Erfolgreich angemeldet!",
+    "loginError": "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Zugangsdaten."
+  },
   "services": {
     "inspection": "Inspektion/Wartung",
     "inspectionDesc": "Umfassende Inspektion nach Herstellervorgaben inkl. Ölwechsel, Filterwechsel und Fahrzeugprüfung",
@@ -1232,7 +1366,23 @@
         "received": "Auftrag eingegangen",
         "inProgress": "In Bearbeitung",
         "completed": "Abgeschlossen"
-      }
+      },
+      "cancelledNotice": "Dieser Auftrag wurde storniert",
+      "vehicleHistory": "Fahrzeug-Historie",
+      "noHistory": "Keine vorherigen Wartungen gefunden",
+      "historyDate": "Datum",
+      "historyService": "Service",
+      "historyStatus": "Status",
+      "photos": "Schadensdokumentation",
+      "addPhotos": "Fotos hinzufügen",
+      "photoPreview": "Foto-Vorschau",
+      "removePhoto": "Foto entfernen",
+      "exportInvoice": "Rechnung exportieren",
+      "contactInfo": "Kontaktdaten",
+      "contactNotAvailable": "Kontaktdaten nicht verfügbar",
+      "extensionPending": "Warte auf Kundenfreigabe...",
+      "extensionApproved": "Erweiterung genehmigt",
+      "extensionDeclined": "Erweiterung abgelehnt"
     },
     "extension": {
       "title": "Auftragserweiterung erstellen",
@@ -1249,7 +1399,42 @@
       "cancel": "Abbrechen",
       "send": "An Kunden senden",
       "success": "Erweiterung erfolgreich an Kunden gesendet!",
-      "validation": "Bitte füllen Sie alle Positionen aus."
+      "validation": "Bitte füllen Sie alle Positionen aus.",
+      "descriptionRequired": "Beschreibung darf nicht leer sein.",
+      "priceRequired": "Preis muss größer als 0 sein."
     }
+  },
+  "workshopCalendar": {
+    "title": "Werkstatt-Kalender",
+    "weekOf": "Woche vom",
+    "previousWeek": "Vorherige Woche",
+    "nextWeek": "Nächste Woche",
+    "today": "Heute",
+    "noOrders": "Keine Aufträge",
+    "backToDashboard": "Zurück zum Dashboard",
+    "days": {
+      "mon": "Mo",
+      "tue": "Di",
+      "wed": "Mi",
+      "thu": "Do",
+      "fri": "Fr",
+      "sat": "Sa",
+      "sun": "So"
+    }
+  },
+  "workshopStats": {
+    "title": "Werkstatt-Statistiken",
+    "ordersThisMonth": "Aufträge diesen Monat",
+    "revenue": "Umsatz",
+    "avgTurnaround": "Durchschnittliche Durchlaufzeit",
+    "utilization": "Auslastung",
+    "days": "Tage",
+    "backToDashboard": "Zurück zum Dashboard"
+  },
+  "workshopTeam": {
+    "title": "Mitarbeiterverwaltung",
+    "comingSoon": "Mitarbeiterverwaltung - Kommt bald",
+    "comingSoonText": "Hier können Sie bald Ihre Werkstatt-Mitarbeiter verwalten, Aufträge zuweisen und Arbeitszeiten einsehen.",
+    "backToDashboard": "Zurück zum Dashboard"
   }
 }

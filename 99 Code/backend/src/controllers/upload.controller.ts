@@ -45,7 +45,7 @@ export const uploadSingle = async (
 
     // Extract metadata from request
     const metadata = {
-      userId: req.user?.id,
+      userId: (req.user as any)?.id,
       entityType: req.body.entityType,
       entityId: req.body.entityId,
       description: req.body.description,
@@ -110,7 +110,7 @@ export const uploadMultiple = async (
 
     // Extract metadata from request
     const metadata = {
-      userId: req.user?.id,
+      userId: (req.user as any)?.id,
       entityType: req.body.entityType,
       entityId: req.body.entityId,
       description: req.body.description,
@@ -144,7 +144,7 @@ export const deleteFile = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { key } = req.params;
+    const key = req.params.key as string;
 
     if (!key) {
       res.status(400).json({
@@ -204,7 +204,7 @@ export const generateSignedUrl = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { key } = req.params;
+    const key = req.params.key as string;
     const expiresIn = parseInt(req.query.expiresIn as string) || undefined;
 
     if (!key) {
@@ -288,7 +288,7 @@ export const checkFileExists = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { key } = req.params;
+    const key = req.params.key as string;
 
     if (!key) {
       res.status(400).json({

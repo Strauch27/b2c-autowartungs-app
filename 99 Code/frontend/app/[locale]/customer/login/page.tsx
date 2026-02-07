@@ -7,6 +7,7 @@ import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-hooks";
 import { useState } from "react";
+import { useTranslations } from 'next-intl';
 
 export default function CustomerLoginPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function CustomerLoginPage() {
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const t = useTranslations('customerLogin');
 
   const handleLogin = async (email: string, password: string) => {
     setError(null);
@@ -26,11 +28,11 @@ export default function CustomerLoginPage() {
         password,
       });
       // Redirect happens in the auth context
-      toast.success("Erfolgreich angemeldet!");
+      toast.success(t('loginSuccess'));
     } catch (err) {
       const errorMessage = err instanceof Error
         ? err.message
-        : 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Zugangsdaten.';
+        : t('loginError');
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -42,7 +44,7 @@ export default function CustomerLoginPage() {
     <div className="flex min-h-screen">
       {/* Left Side - Form */}
       <div className="flex w-full flex-col justify-center px-4 py-12 lg:w-1/2 lg:px-20">
-        <Link href={`/${locale}`} className="mb-12 flex items-center gap-2">
+        <Link href={`/${locale}`} className="mb-12 flex items-center gap-2" aria-label="AutoConcierge Home">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
             <Car className="h-5 w-5 text-primary-foreground" />
           </div>
@@ -50,7 +52,7 @@ export default function CustomerLoginPage() {
         </Link>
 
         {error && (
-          <div className="mb-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="mb-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive" role="alert">
             {error}
           </div>
         )}
@@ -68,13 +70,12 @@ export default function CustomerLoginPage() {
         <div className="max-w-md text-center text-primary-foreground">
           <div className="mb-8 flex justify-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-card/10 backdrop-blur-sm">
-              <Car className="h-12 w-12" />
+              <Car className="h-12 w-12" aria-hidden="true" />
             </div>
           </div>
-          <h2 className="mb-4 text-3xl font-bold">Premium Service für Ihr Auto</h2>
+          <h2 className="mb-4 text-3xl font-bold">{t('brandTitle')}</h2>
           <p className="text-primary-foreground/80">
-            Buchen Sie Ihren nächsten Wartungstermin bequem online und genießen Sie unseren
-            exklusiven Hol- und Bringservice.
+            {t('brandDescription')}
           </p>
         </div>
       </div>

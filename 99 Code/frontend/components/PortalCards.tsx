@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Car, User, Wrench, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useLanguage } from "@/lib/i18n/LanguageContext";
+import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/useLovableTranslation";
 
 const PortalCards = () => {
   const { t } = useLanguage();
@@ -72,7 +72,7 @@ const PortalCards = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Link to={portal.href}>
+                <Link href={portal.href}>
                   <Button variant={portal.buttonVariant} className="w-full group">
                     {portal.button}
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />

@@ -1,4 +1,4 @@
-import { test as base } from '@playwright/test';
+import { test as base, type Browser, type Page } from '@playwright/test';
 import path from 'path';
 
 /**
@@ -27,7 +27,7 @@ type AuthFixtures = {
 };
 
 export const test = base.extend<AuthFixtures>({
-  asCustomer: async ({ browser }, use) => {
+  asCustomer: async ({ browser }: { browser: Browser }, use: (page: Page) => Promise<void>) => {
     const authFile = path.join(__dirname, '..', '.auth', 'customer.json');
     const context = await browser.newContext({ storageState: authFile });
     const page = await context.newPage();
@@ -36,7 +36,7 @@ export const test = base.extend<AuthFixtures>({
     await context.close();
   },
 
-  asJockey: async ({ browser }, use) => {
+  asJockey: async ({ browser }: { browser: Browser }, use: (page: Page) => Promise<void>) => {
     const authFile = path.join(__dirname, '..', '.auth', 'jockey.json');
     const context = await browser.newContext({ storageState: authFile });
     const page = await context.newPage();
@@ -45,7 +45,7 @@ export const test = base.extend<AuthFixtures>({
     await context.close();
   },
 
-  asWorkshop: async ({ browser }, use) => {
+  asWorkshop: async ({ browser }: { browser: Browser }, use: (page: Page) => Promise<void>) => {
     const authFile = path.join(__dirname, '..', '.auth', 'workshop.json');
     const context = await browser.newContext({ storageState: authFile });
     const page = await context.newPage();

@@ -8,7 +8,6 @@ export enum ServiceType {
   BRAKE_SERVICE = 'brake_service',
   TUV = 'tuv',
   CLIMATE_SERVICE = 'climate_service',
-  DETAILING = 'detailing',
 }
 
 export interface ServiceInfo {
@@ -26,10 +25,10 @@ export interface VehicleData {
 }
 
 export interface PriceBreakdown {
-  basePrice: number; // in cents
-  ageSurcharge?: number; // in cents
-  mileageSurcharge?: number; // in cents
-  total: number; // in cents
+  basePrice: number; // in EUR
+  ageSurcharge?: number; // in EUR
+  mileageSurcharge?: number; // in EUR
+  total: number; // in EUR
 }
 
 export interface PriceResponse {

@@ -15,8 +15,8 @@ const MAGIC_LINK_EXPIRES_IN = '15m';
  * Generate JWT token for authenticated users
  */
 export function generateToken(payload: JWTPayload): string {
-  return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN
+  return jwt.sign(payload as object, JWT_SECRET, {
+    expiresIn: JWT_EXPIRES_IN as any
   });
 }
 

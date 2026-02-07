@@ -7,8 +7,9 @@ import { DemoPaymentForm } from "@/components/payment/demo-payment-form";
 import { PaymentSummary } from "@/components/payment/payment-summary";
 import { Alert } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { Suspense } from "react";
 
-export default function PaymentPage() {
+function PaymentContent() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -183,5 +184,13 @@ export default function PaymentPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={null}>
+      <PaymentContent />
+    </Suspense>
   );
 }

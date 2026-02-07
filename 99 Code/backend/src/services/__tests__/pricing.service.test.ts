@@ -1,6 +1,7 @@
 import { PricingService, PriceCalculationInput } from '../pricing.service';
 import { PriceMatrixRepository } from '../../repositories/price-matrix.repository';
 import { PriceMatrix } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 
 // Mock PriceMatrixRepository
 class MockPriceMatrixRepository extends PriceMatrixRepository {
@@ -18,17 +19,21 @@ class MockPriceMatrixRepository extends PriceMatrixRepository {
         id: '1',
         brand: 'VW',
         model: 'Golf',
-        yearFrom: 2012,
+        yearFrom: 2005,
         yearTo: 2019,
-        inspection30k: 189,
-        inspection60k: 219,
-        inspection90k: 289,
-        inspection120k: 349,
-        oilService: 159,
-        brakeServiceFront: 349,
-        brakeServiceRear: 299,
-        tuv: 120,
-        climateService: 140,
+        serviceType: 'INSPECTION' as any,
+        basePrice: new Decimal(219),
+        mileageMultiplier: new Decimal(1.0),
+        ageMultiplier: new Decimal(1.0),
+        inspection30k: new Decimal(189),
+        inspection60k: new Decimal(219),
+        inspection90k: new Decimal(289),
+        inspection120k: new Decimal(349),
+        oilService: new Decimal(159),
+        brakeServiceFront: new Decimal(349),
+        brakeServiceRear: new Decimal(299),
+        tuv: new Decimal(120),
+        climateService: new Decimal(140),
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -38,15 +43,19 @@ class MockPriceMatrixRepository extends PriceMatrixRepository {
         model: 'S-Class',
         yearFrom: 2013,
         yearTo: 2020,
-        inspection30k: 349,
-        inspection60k: 399,
-        inspection90k: 499,
-        inspection120k: 599,
-        oilService: 249,
-        brakeServiceFront: 649,
-        brakeServiceRear: 549,
-        tuv: 150,
-        climateService: 180,
+        serviceType: 'INSPECTION' as any,
+        basePrice: new Decimal(399),
+        mileageMultiplier: new Decimal(1.0),
+        ageMultiplier: new Decimal(1.0),
+        inspection30k: new Decimal(349),
+        inspection60k: new Decimal(399),
+        inspection90k: new Decimal(499),
+        inspection120k: new Decimal(599),
+        oilService: new Decimal(249),
+        brakeServiceFront: new Decimal(649),
+        brakeServiceRear: new Decimal(549),
+        tuv: new Decimal(150),
+        climateService: new Decimal(180),
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -56,15 +65,19 @@ class MockPriceMatrixRepository extends PriceMatrixRepository {
         model: '3er',
         yearFrom: 2015,
         yearTo: 2022,
-        inspection30k: 269,
-        inspection60k: 309,
-        inspection90k: 379,
-        inspection120k: 449,
-        oilService: 219,
-        brakeServiceFront: 479,
-        brakeServiceRear: 429,
-        tuv: 130,
-        climateService: 160,
+        serviceType: 'INSPECTION' as any,
+        basePrice: new Decimal(309),
+        mileageMultiplier: new Decimal(1.0),
+        ageMultiplier: new Decimal(1.0),
+        inspection30k: new Decimal(269),
+        inspection60k: new Decimal(309),
+        inspection90k: new Decimal(379),
+        inspection120k: new Decimal(449),
+        oilService: new Decimal(219),
+        brakeServiceFront: new Decimal(479),
+        brakeServiceRear: new Decimal(429),
+        tuv: new Decimal(130),
+        climateService: new Decimal(160),
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -269,99 +282,46 @@ describe('PricingService', () => {
   });
 
   describe('getPriceByMileage', () => {
-    it('should return 30k inspection price for mileage < 40000', () => {
-      const priceEntry: PriceMatrix = {
-        id: '1',
-        brand: 'VW',
-        model: 'Golf',
-        yearFrom: 2012,
-        yearTo: 2019,
-        inspection30k: 189,
-        inspection60k: 219,
-        inspection90k: 289,
-        inspection120k: 349,
-        oilService: null,
-        brakeServiceFront: null,
-        brakeServiceRear: null,
-        tuv: null,
-        climateService: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+    const createTestPriceEntry = (): PriceMatrix => ({
+      id: '1',
+      brand: 'VW',
+      model: 'Golf',
+      yearFrom: 2012,
+      yearTo: 2019,
+      serviceType: 'INSPECTION' as any,
+      basePrice: new Decimal(219),
+      mileageMultiplier: new Decimal(1.0),
+      ageMultiplier: new Decimal(1.0),
+      inspection30k: new Decimal(189),
+      inspection60k: new Decimal(219),
+      inspection90k: new Decimal(289),
+      inspection120k: new Decimal(349),
+      oilService: null,
+      brakeServiceFront: null,
+      brakeServiceRear: null,
+      tuv: null,
+      climateService: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
-      const price = pricingService.getPriceByMileage(priceEntry, 30000, 'inspection');
+    it('should return 30k inspection price for mileage < 40000', () => {
+      const price = pricingService.getPriceByMileage(createTestPriceEntry(), 30000, 'inspection');
       expect(price).toBe(189);
     });
 
     it('should return 60k inspection price for mileage between 40000 and 70000', () => {
-      const priceEntry: PriceMatrix = {
-        id: '1',
-        brand: 'VW',
-        model: 'Golf',
-        yearFrom: 2012,
-        yearTo: 2019,
-        inspection30k: 189,
-        inspection60k: 219,
-        inspection90k: 289,
-        inspection120k: 349,
-        oilService: null,
-        brakeServiceFront: null,
-        brakeServiceRear: null,
-        tuv: null,
-        climateService: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      const price = pricingService.getPriceByMileage(priceEntry, 60000, 'inspection');
+      const price = pricingService.getPriceByMileage(createTestPriceEntry(), 60000, 'inspection');
       expect(price).toBe(219);
     });
 
     it('should return 90k inspection price for mileage between 70000 and 100000', () => {
-      const priceEntry: PriceMatrix = {
-        id: '1',
-        brand: 'VW',
-        model: 'Golf',
-        yearFrom: 2012,
-        yearTo: 2019,
-        inspection30k: 189,
-        inspection60k: 219,
-        inspection90k: 289,
-        inspection120k: 349,
-        oilService: null,
-        brakeServiceFront: null,
-        brakeServiceRear: null,
-        tuv: null,
-        climateService: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      const price = pricingService.getPriceByMileage(priceEntry, 90000, 'inspection');
+      const price = pricingService.getPriceByMileage(createTestPriceEntry(), 90000, 'inspection');
       expect(price).toBe(289);
     });
 
     it('should return 120k+ inspection price for mileage >= 100000', () => {
-      const priceEntry: PriceMatrix = {
-        id: '1',
-        brand: 'VW',
-        model: 'Golf',
-        yearFrom: 2012,
-        yearTo: 2019,
-        inspection30k: 189,
-        inspection60k: 219,
-        inspection90k: 289,
-        inspection120k: 349,
-        oilService: null,
-        brakeServiceFront: null,
-        brakeServiceRear: null,
-        tuv: null,
-        climateService: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      const price = pricingService.getPriceByMileage(priceEntry, 120000, 'inspection');
+      const price = pricingService.getPriceByMileage(createTestPriceEntry(), 120000, 'inspection');
       expect(price).toBe(349);
     });
   });

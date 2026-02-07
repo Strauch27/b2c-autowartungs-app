@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, Home, Mail, Phone } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/useLovableTranslation';
 
-export default function BookingSuccessPage() {
+import { Suspense } from 'react';
+
+function BookingSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { t, language } = useLanguage();
@@ -155,5 +157,13 @@ export default function BookingSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function BookingSuccessPage() {
+  return (
+    <Suspense fallback={null}>
+      <BookingSuccessContent />
+    </Suspense>
   );
 }

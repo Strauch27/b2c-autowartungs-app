@@ -59,9 +59,19 @@ export class PricingService {
       basePrice = this.getPriceByMileage(priceEntry, mileage, serviceType);
       priceSource = 'exact';
     } else {
-      // Fallback: Use average price for brand
-      basePrice = await this.getFallbackPrice(brand, serviceType);
-      priceSource = basePrice > 0 ? 'fallback_brand' : 'fallback_default';
+      // Fallback: Use average price for brand, or default price
+      const brandAveragePrice = await this.priceMatrixRepository.getAveragePriceForBrand({
+        brand,
+        serviceType,
+      });
+
+      if (brandAveragePrice !== null) {
+        basePrice = brandAveragePrice;
+        priceSource = 'fallback_brand';
+      } else {
+        basePrice = this.getDefaultPrice(serviceType);
+        priceSource = 'fallback_default';
+      }
     }
 
     // Step 2: Apply age multiplier

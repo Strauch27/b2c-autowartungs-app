@@ -26,8 +26,9 @@ import { bookingsApi, BookingResponse, ExtensionResponse } from "@/lib/api/booki
 import { useLanguage } from "@/lib/i18n/useLovableTranslation";
 import { ExtensionList } from "@/components/customer/ExtensionList";
 import { toast } from "sonner";
+import { Suspense } from "react";
 
-export default function BookingDetailPage() {
+function BookingDetailContent() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -416,5 +417,13 @@ export default function BookingDetailPage() {
         </Tabs>
       </div>
     </div>
+  );
+}
+
+export default function BookingDetailPage() {
+  return (
+    <Suspense fallback={null}>
+      <BookingDetailContent />
+    </Suspense>
   );
 }

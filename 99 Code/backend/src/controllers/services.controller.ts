@@ -140,7 +140,7 @@ export async function getBrands(req: Request, res: Response, next: NextFunction)
  */
 export async function getModels(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { brand } = req.params;
+    const brand = req.params.brand as string;
 
     if (!brand) {
       throw new ApiError(400, 'Brand is required');

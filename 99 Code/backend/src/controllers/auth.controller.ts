@@ -292,7 +292,10 @@ export async function registerCustomer(req: Request, res: Response): Promise<voi
         return;
       }
 
-      // User exists but is inactive (from guest checkout) - activate them
+      // Guest checkout flow: When a guest books a service, a User record is created
+      // with isActive=false and no passwordHash. When they later register with the
+      // same email, we activate the existing account (set password, isActive=true)
+      // rather than creating a duplicate. This preserves their booking history.
       user = await prisma.user.update({
         where: { email },
         data: {

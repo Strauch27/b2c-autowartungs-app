@@ -165,7 +165,7 @@ export async function getAvailableModels(
   next: NextFunction
 ): Promise<void> {
   try {
-    const { brand } = req.params;
+    const brand = req.params.brand as string;
 
     if (!brand) {
       res.status(400).json({
@@ -334,9 +334,9 @@ export async function createBookingWithPricing(
         pickupSlotStart: pickupSlot.start,
         pickupSlotEnd: pickupSlot.end,
         pickupAddress: pickupAddress,
-        status: 'PENDING',
+        status: 'PENDING_PAYMENT' as any,
         // ... other fields
-      },
+      } as any,
     });
 
     // Step 3: Create Stripe payment intent

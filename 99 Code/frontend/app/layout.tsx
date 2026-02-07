@@ -5,6 +5,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "sonner";
 import { DemoBanner } from "@/components/demo/DemoBanner";
 import { DebugLogger } from "@/components/debug/DebugLogger";
+import { Suspense } from "react";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -28,7 +29,7 @@ export default function RootLayout({
         <DemoBanner />
         <AuthProvider>{children}</AuthProvider>
         <Toaster position="top-right" richColors />
-        <DebugLogger />
+        <Suspense fallback={null}><DebugLogger /></Suspense>
       </body>
     </html>
   );

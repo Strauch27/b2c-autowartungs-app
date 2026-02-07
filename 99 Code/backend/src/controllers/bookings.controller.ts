@@ -120,13 +120,13 @@ export async function listBookings(req: Request, res: Response, next: NextFuncti
     const status = req.query.status as BookingStatus | undefined;
 
     // Get bookings
-    const result = await bookingsService.getCustomerBookings(req.user.userId, page, limit);
+    const result = await bookingsService.getCustomerBookings(req.user.userId as string, page, limit);
 
     // Filter by status if provided
     let filteredResult = result;
     if (status) {
       const statusFiltered = await bookingsService.getBookings(
-        { customerId: req.user.userId, status },
+        { customerId: req.user.userId as string, status },
         page,
         limit
       );
@@ -158,8 +158,8 @@ export async function getBooking(req: Request, res: Response, next: NextFunction
       throw new ApiError(401, 'Authentication required');
     }
 
-    const { id } = req.params;
-    const booking = await bookingsService.getBookingById(id, req.user.userId);
+    const id = req.params.id as string;
+    const booking = await bookingsService.getBookingById(id, req.user.userId as string);
 
     res.status(200).json({
       success: true,
@@ -181,7 +181,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
 
     // Check if user is authenticated
     if (req.user) {
-      customerId = req.user.userId;
+      customerId = req.user.userId as string;
     } else {
       // Guest checkout - require customer data in body
       if (!req.body.customer?.email) {
@@ -230,10 +230,10 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       const validatedData = createBookingSchema.parse(req.body);
       const booking = await bookingsService.createBooking({
         ...validatedData,
-        customerId: req.user.userId
+        customerId: req.user.userId as string
       });
 
-      await handleBookingPaymentAndNotifications(booking, req.user.userId, req, res);
+      await handleBookingPaymentAndNotifications(booking, req.user.userId as string, req, res);
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -476,7 +476,7 @@ export async function updateBooking(req: Request, res: Response, next: NextFunct
       throw new ApiError(401, 'Authentication required');
     }
 
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     // Validate request body
     const validatedData = updateBookingSchema.parse(req.body);
@@ -496,7 +496,7 @@ export async function updateBooking(req: Request, res: Response, next: NextFunct
     }
 
     // Update booking
-    const booking = await bookingsService.updateBooking(id, req.user.userId, updateData);
+    const booking = await bookingsService.updateBooking(id, req.user.userId as string, updateData);
 
     res.status(200).json({
       success: true,
@@ -522,14 +522,14 @@ export async function cancelBooking(req: Request, res: Response, next: NextFunct
       throw new ApiError(401, 'Authentication required');
     }
 
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     // Validate request body
     const validatedData = cancelBookingSchema.parse(req.body);
 
     const booking = await bookingsService.cancelBooking(
       id,
-      req.user.userId,
+      req.user.userId as string,
       validatedData.reason
     );
 
@@ -557,8 +557,8 @@ export async function getBookingStatus(req: Request, res: Response, next: NextFu
       throw new ApiError(401, 'Authentication required');
     }
 
-    const { id } = req.params;
-    const status = await bookingsService.getBookingStatus(id, req.user.userId);
+    const id = req.params.id as string;
+    const status = await bookingsService.getBookingStatus(id, req.user.userId as string);
 
     res.status(200).json({
       success: true,
@@ -579,8 +579,8 @@ export async function getBookingExtensions(req: Request, res: Response, next: Ne
       throw new ApiError(401, 'Authentication required');
     }
 
-    const { id } = req.params;
-    const extensions = await bookingsService.getBookingExtensions(id, req.user.userId);
+    const id = req.params.id as string;
+    const extensions = await bookingsService.getBookingExtensions(id, req.user.userId as string);
 
     res.status(200).json({
       success: true,
@@ -601,12 +601,13 @@ export async function approveExtension(req: Request, res: Response, next: NextFu
       throw new ApiError(401, 'Authentication required');
     }
 
-    const { id, extensionId } = req.params;
+    const id = req.params.id as string;
+    const extensionId = req.params.extensionId as string;
 
     const result = await bookingsService.approveExtension(
       id,
       extensionId,
-      req.user.userId
+      req.user.userId as string
     );
 
     res.status(200).json({
@@ -629,7 +630,8 @@ export async function declineExtension(req: Request, res: Response, next: NextFu
       throw new ApiError(401, 'Authentication required');
     }
 
-    const { id, extensionId } = req.params;
+    const id = req.params.id as string;
+    const extensionId = req.params.extensionId as string;
 
     // Validate request body
     const validatedData = declineExtensionSchema.parse(req.body);
@@ -637,7 +639,7 @@ export async function declineExtension(req: Request, res: Response, next: NextFu
     const extension = await bookingsService.declineExtension(
       id,
       extensionId,
-      req.user.userId,
+      req.user.userId as string,
       validatedData.reason
     );
 

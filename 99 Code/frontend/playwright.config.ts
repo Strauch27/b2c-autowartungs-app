@@ -24,6 +24,10 @@ export default defineConfig({
   /* Test timeout for expect() assertions */
   expect: {
     timeout: 10 * 1000, // 10 seconds for assertions
+    toHaveScreenshot: {
+      maxDiffPixels: 100, // Allow small differences
+      threshold: 0.2, // 20% threshold for pixel differences
+    },
   },
 
   /* Run tests in files in parallel */
@@ -137,14 +141,7 @@ export default defineConfig({
   /* Folder for test artifacts such as screenshots, videos, traces, etc. */
   snapshotDir: 'e2e/__snapshots__',
 
-  /* Visual regression testing settings */
-  expect: {
-    timeout: 10 * 1000, // 10 seconds for assertions
-    toHaveScreenshot: {
-      maxDiffPixels: 100, // Allow small differences
-      threshold: 0.2, // 20% threshold for pixel differences
-    },
-  },
+  /* Visual regression testing settings are merged into the expect block above */
 
   /* Assume dev server is already running */
   // We expect the dev server to be running on port 3000

@@ -36,6 +36,10 @@ interface ExtensionModalProps {
   onSubmit: (items: ExtensionItem[], photos: string[]) => void;
 }
 
+// TODO: W13 Security - Backend must verify ownership before accepting extension creation.
+// The workshop creating the extension must be the same workshop assigned to the booking.
+// Implement server-side ownership check in POST /api/workshops/orders/:id/extensions
+// to prevent unauthorized extensions on bookings belonging to other workshops.
 const ExtensionModal = ({
   open,
   onOpenChange,
@@ -48,6 +52,7 @@ const ExtensionModal = ({
     { id: "1", description: "", price: "" },
   ]);
   const [photos, setPhotos] = useState<string[]>([]);
+  const [validationErrors, setValidationErrors] = useState<Record<string, { description?: boolean; price?: boolean }>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addItem = () => {
@@ -95,10 +100,29 @@ const ExtensionModal = ({
     return sum + price;
   }, 0);
 
-  const isValid = items.every((item) => item.description && item.price);
+  const isValid = items.every((item) => item.description.trim() && parseFloat(item.price) > 0);
 
   const handleSubmit = () => {
-    if (!isValid) {
+    // Build per-item validation errors
+    const errors: Record<string, { description?: boolean; price?: boolean }> = {};
+    let hasError = false;
+    items.forEach((item) => {
+      const itemErrors: { description?: boolean; price?: boolean } = {};
+      if (!item.description.trim()) {
+        itemErrors.description = true;
+        hasError = true;
+      }
+      if (!item.price || parseFloat(item.price) <= 0) {
+        itemErrors.price = true;
+        hasError = true;
+      }
+      if (itemErrors.description || itemErrors.price) {
+        errors[item.id] = itemErrors;
+      }
+    });
+    setValidationErrors(errors);
+
+    if (hasError) {
       toast.error(t('validation'));
       return;
     }
@@ -108,6 +132,7 @@ const ExtensionModal = ({
     // Reset form
     setItems([{ id: "1", description: "", price: "" }]);
     setPhotos([]);
+    setValidationErrors({});
   };
 
   return (
@@ -151,9 +176,22 @@ const ExtensionModal = ({
                   <Textarea
                     placeholder={t('itemDescriptionPlaceholder')}
                     value={item.description}
-                    onChange={(e) => updateItem(item.id, "description", e.target.value)}
+                    onChange={(e) => {
+                      updateItem(item.id, "description", e.target.value);
+                      if (validationErrors[item.id]?.description) {
+                        setValidationErrors((prev) => {
+                          const next = { ...prev };
+                          if (next[item.id]) next[item.id] = { ...next[item.id], description: false };
+                          return next;
+                        });
+                      }
+                    }}
                     rows={2}
+                    className={validationErrors[item.id]?.description ? "border-destructive" : ""}
                   />
+                  {validationErrors[item.id]?.description && (
+                    <p className="text-xs text-destructive">{t('descriptionRequired')}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>{t('itemPrice')}</Label>
@@ -162,11 +200,23 @@ const ExtensionModal = ({
                       type="number"
                       placeholder="0.00"
                       value={item.price}
-                      onChange={(e) => updateItem(item.id, "price", e.target.value)}
-                      className="pr-8"
+                      onChange={(e) => {
+                        updateItem(item.id, "price", e.target.value);
+                        if (validationErrors[item.id]?.price) {
+                          setValidationErrors((prev) => {
+                            const next = { ...prev };
+                            if (next[item.id]) next[item.id] = { ...next[item.id], price: false };
+                            return next;
+                          });
+                        }
+                      }}
+                      className={`pr-8 ${validationErrors[item.id]?.price ? "border-destructive" : ""}`}
                     />
                     <Euro className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   </div>
+                  {validationErrors[item.id]?.price && (
+                    <p className="text-xs text-destructive">{t('priceRequired')}</p>
+                  )}
                 </div>
               </div>
             ))}

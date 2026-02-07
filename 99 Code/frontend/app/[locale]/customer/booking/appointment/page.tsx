@@ -9,8 +9,9 @@ import { useAuth } from '@/lib/auth-hooks';
 import { PickupStep } from '@/components/booking/PickupStep';
 import { bookingsApi, CreateBookingRequest } from '@/lib/api/bookings';
 import { toast } from 'sonner';
+import { Suspense } from 'react';
 
-export default function AppointmentPage() {
+function AppointmentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams();
@@ -173,7 +174,7 @@ export default function AppointmentPage() {
         <PickupStep
           formData={formData}
           onUpdate={(data) => setFormData((prev) => ({ ...prev, ...data }))}
-          translations={t.booking.step3 ?? t.lovableBooking.step3}
+          translations={t.booking.step3}
           language={language as 'de' | 'en'}
         />
 
@@ -207,5 +208,13 @@ export default function AppointmentPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AppointmentPage() {
+  return (
+    <Suspense fallback={null}>
+      <AppointmentContent />
+    </Suspense>
   );
 }

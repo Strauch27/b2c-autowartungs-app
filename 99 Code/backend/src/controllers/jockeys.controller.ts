@@ -58,7 +58,7 @@ export async function getAssignments(req: Request, res: Response, next: NextFunc
       return;
     }
 
-    const jockeyId = req.user.userId;
+    const jockeyId = req.user.userId as string;
 
     // Get query params
     const { status, limit = '50' } = req.query;
@@ -132,8 +132,8 @@ export async function getAssignment(req: Request, res: Response, next: NextFunct
       return;
     }
 
-    const { id } = req.params;
-    const jockeyId = req.user.userId;
+    const id = req.params.id as string;
+    const jockeyId = req.user.userId as string;
 
     const assignment = await prisma.jockeyAssignment.findFirst({
       where: {
@@ -182,8 +182,8 @@ export async function updateAssignmentStatus(req: Request, res: Response, next: 
       return;
     }
 
-    const { id } = req.params;
-    const jockeyId = req.user.userId;
+    const id = req.params.id as string;
+    const jockeyId = req.user.userId as string;
     const { status } = updateStatusSchema.parse(req.body);
 
     // Verify ownership
@@ -321,8 +321,8 @@ export async function saveHandoverData(req: Request, res: Response, next: NextFu
       return;
     }
 
-    const { id } = req.params;
-    const jockeyId = req.user.userId;
+    const id = req.params.id as string;
+    const jockeyId = req.user.userId as string;
     const handoverData = handoverSchema.parse(req.body);
 
     // Verify ownership
@@ -393,8 +393,8 @@ export async function completeAssignment(req: Request, res: Response, next: Next
       return;
     }
 
-    const { id } = req.params;
-    const jockeyId = req.user.userId;
+    const id = req.params.id as string;
+    const jockeyId = req.user.userId as string;
     const { handoverData } = completeSchema.parse(req.body);
 
     // Verify ownership
@@ -427,7 +427,7 @@ export async function completeAssignment(req: Request, res: Response, next: Next
         status: 'COMPLETED',
         completedAt: new Date(),
         departedAt: assignment.departedAt || new Date(),
-        handoverData: finalHandoverData,
+        handoverData: finalHandoverData as any,
       },
     });
 

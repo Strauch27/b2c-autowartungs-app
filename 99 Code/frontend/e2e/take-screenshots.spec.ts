@@ -66,7 +66,7 @@ async function screenshot(page: Page, name: string) {
 async function loginViaAPI(page: Page, role: 'customer' | 'jockey' | 'workshop', customCreds?: { email?: string; password?: string }) {
   const config = CREDENTIALS[role];
   const body = role === 'customer'
-    ? { email: customCreds?.email || config.email, password: customCreds?.password || config.password }
+    ? { email: customCreds?.email || (config as any).email, password: customCreds?.password || config.password }
     : { username: (config as any).username, password: config.password };
 
   const res = await fetch(`${API_BASE}${config.endpoint}`, {

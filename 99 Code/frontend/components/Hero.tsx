@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Star } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useLanguage } from "@/lib/i18n/LanguageContext";
+import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/useLovableTranslation";
 
 const Hero = () => {
   const { t } = useLanguage();
@@ -35,12 +35,12 @@ const Hero = () => {
 
           {/* CTA Buttons */}
           <div className="mb-10 flex flex-col items-center justify-center gap-4 sm:flex-row animate-fade-in-up animate-delay-200">
-            <Link to="/booking">
+            <Link href="/booking">
               <Button variant="hero" size="xl">
                 {t.hero.cta}
               </Button>
             </Link>
-            <Link to="/customer/login">
+            <Link href="/customer/login">
               <Button variant="outline-light" size="lg">
                 {t.hero.login}
               </Button>

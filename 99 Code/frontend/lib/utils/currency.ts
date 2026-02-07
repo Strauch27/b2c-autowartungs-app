@@ -3,18 +3,17 @@
  */
 
 /**
- * Format cents to Euro string with German formatting
- * @param cents - Amount in cents
+ * Format Euro amount to string with German formatting
+ * @param amount - Amount in EUR
  * @returns Formatted string like "249,00 €"
  */
-export function formatEuro(cents: number): string {
-  const euros = cents / 100;
+export function formatEuro(amount: number): string {
   return new Intl.NumberFormat('de-DE', {
     style: 'currency',
     currency: 'EUR',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(euros);
+  }).format(amount);
 }
 
 /**

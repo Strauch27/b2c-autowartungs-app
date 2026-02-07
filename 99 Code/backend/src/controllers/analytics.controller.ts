@@ -249,7 +249,7 @@ export async function getCustomerLifetimeValue(
   next: NextFunction
 ): Promise<void> {
   try {
-    const { customerId } = req.params;
+    const customerId = req.params.customerId as string;
 
     if (!customerId) {
       throw new ApiError(400, 'Customer ID is required');

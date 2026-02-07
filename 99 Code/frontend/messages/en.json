@@ -937,6 +937,8 @@
   },
   "jockeyDashboard": {
     "today": "Today",
+    "tomorrow": "Tomorrow",
+    "later": "Later",
     "stats": {
       "todayTrips": "Today's Trips",
       "completed": "Completed",
@@ -944,16 +946,68 @@
     },
     "assignments": "Today's Assignments",
     "noAssignments": "No assignments for today",
+    "noMatchingAssignments": "No matching assignments",
     "status": {
       "upcoming": "Upcoming",
       "onRoute": "On Route",
-      "completed": "Completed"
+      "arrived": "Arrived",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
     },
     "pickup": "Pickup",
+    "return": "Return",
     "navigate": "Start Navigation",
     "startPickup": "Start Pickup",
+    "startReturn": "Start Return",
     "documentHandover": "Document Handover",
-    "complete": "Complete"
+    "complete": "Complete",
+    "call": "Call",
+    "successfullyCompleted": "Successfully completed",
+    "pickupStarted": "Pickup started",
+    "pickupStartError": "Failed to start pickup",
+    "pickupCompleted": "Pickup completed",
+    "returnCompleted": "Return completed",
+    "handoverError": "Failed to complete",
+    "loadError": "Failed to load assignments",
+    "confirmAction": "Are you sure? This action cannot be undone.",
+    "filter": {
+      "all": "All",
+      "allStatus": "All Status",
+      "pickupType": "Pickup",
+      "returnType": "Return",
+      "upcoming": "Upcoming",
+      "active": "Active",
+      "done": "Done"
+    },
+    "notifications": "Notifications",
+    "logout": "Logout",
+    "takePhoto": "Take Photo",
+    "photoPreview": "Photo preview"
+  },
+  "jockeyStats": {
+    "title": "Earnings Statistics",
+    "tripsThisWeek": "Trips This Week",
+    "tripsThisMonth": "Trips This Month",
+    "averageRating": "Average Rating",
+    "backToDashboard": "Back to Dashboard"
+  },
+  "jockeyAvailability": {
+    "title": "Availability",
+    "subtitle": "Set your weekly availability",
+    "available": "Available",
+    "notAvailable": "Not available",
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "fullDay": "Full Day",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
+    "backToDashboard": "Back to Dashboard",
+    "saved": "Availability saved"
   },
   "workshopDashboard": {
     "stats": {
@@ -979,7 +1033,38 @@
       "cancelled": "Cancelled"
     },
     "viewDetails": "Details",
-    "createExtension": "Extension"
+    "createExtension": "Extension",
+    "filter": {
+      "all": "All",
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "completed": "Completed"
+    },
+    "searchPlaceholder": "Search order, customer or vehicle...",
+    "noMatchingOrders": "No matching orders",
+    "services": "Services",
+    "toast": {
+      "loadFailed": "Failed to load orders",
+      "statusUpdated": "Status updated successfully",
+      "statusFailed": "Failed to update status",
+      "extensionSent": "Extension sent to customer successfully!",
+      "extensionFailed": "Failed to send extension"
+    },
+    "tip": {
+      "title": "Tip: Order Extensions",
+      "text": "When you identify additional work needed, you can create an extension and send it to the customer for approval."
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page",
+      "of": "of"
+    },
+    "links": {
+      "calendar": "Calendar",
+      "stats": "Statistics",
+      "team": "Team"
+    }
   },
   "payment": {
     "summary": {
@@ -1182,6 +1267,55 @@
     "selected": "Selected",
     "select": "Select"
   },
+  "bookingSummary": {
+    "title": "Booking Summary",
+    "vehicle": "Vehicle",
+    "buildYear": "Year",
+    "mileage": "Mileage",
+    "service": "Service",
+    "price": "Price",
+    "basePrice": "Base Price",
+    "ageSurcharge": "Age Surcharge",
+    "mileageSurcharge": "Mileage Surcharge",
+    "totalPrice": "Total Price",
+    "includesPickup": "Incl. pickup and delivery service",
+    "processing": "Processing...",
+    "bookNow": "Book Now",
+    "serviceTypes": {
+      "INSPECTION": "Inspection/Maintenance",
+      "OIL_SERVICE": "Oil Service",
+      "BRAKE_SERVICE": "Brake Service",
+      "TUV": "MOT/TUV",
+      "CLIMATE_SERVICE": "Climate Service"
+    }
+  },
+  "priceDisplay": {
+    "calculating": "Calculating price...",
+    "error": "Price Calculation Error",
+    "notAvailable": "Price not available",
+    "calculationError": "Could not calculate price",
+    "retry": "Try again",
+    "guaranteedPrice": "Guaranteed Fixed Price",
+    "includesPickup": "Incl. pickup and delivery service",
+    "infoTooltip": "Additional work will be offered digitally and only performed after your approval",
+    "breakdown": "Price Breakdown",
+    "basePrice": "Base Price",
+    "ageSurcharge": "Age Surcharge",
+    "mileageSurcharge": "Mileage Surcharge",
+    "total": "Total"
+  },
+  "bookingStepper": {
+    "vehicle": "Vehicle",
+    "service": "Service",
+    "appointment": "Appointment",
+    "confirmation": "Confirmation"
+  },
+  "customerLogin": {
+    "brandTitle": "Premium Service for Your Car",
+    "brandDescription": "Book your next maintenance appointment conveniently online and enjoy our exclusive pickup and delivery service.",
+    "loginSuccess": "Successfully logged in!",
+    "loginError": "Login failed. Please check your credentials."
+  },
   "services": {
     "inspection": "Inspection/Maintenance",
     "inspectionDesc": "Comprehensive inspection according to manufacturer specifications incl. oil change, filter change and vehicle check",
@@ -1217,7 +1351,23 @@
         "received": "Order Received",
         "inProgress": "In Progress",
         "completed": "Completed"
-      }
+      },
+      "cancelledNotice": "This order has been cancelled",
+      "vehicleHistory": "Vehicle History",
+      "noHistory": "No previous maintenance found",
+      "historyDate": "Date",
+      "historyService": "Service",
+      "historyStatus": "Status",
+      "photos": "Damage Documentation",
+      "addPhotos": "Add Photos",
+      "photoPreview": "Photo Preview",
+      "removePhoto": "Remove Photo",
+      "exportInvoice": "Export Invoice",
+      "contactInfo": "Contact Information",
+      "contactNotAvailable": "Contact information not available",
+      "extensionPending": "Waiting for customer approval...",
+      "extensionApproved": "Extension approved",
+      "extensionDeclined": "Extension declined"
     },
     "extension": {
       "title": "Create Order Extension",
@@ -1234,7 +1384,42 @@
       "cancel": "Cancel",
       "send": "Send to Customer",
       "success": "Extension successfully sent to customer!",
-      "validation": "Please fill in all items."
+      "validation": "Please fill in all items.",
+      "descriptionRequired": "Description must not be empty.",
+      "priceRequired": "Price must be greater than 0."
     }
+  },
+  "workshopCalendar": {
+    "title": "Workshop Calendar",
+    "weekOf": "Week of",
+    "previousWeek": "Previous Week",
+    "nextWeek": "Next Week",
+    "today": "Today",
+    "noOrders": "No orders",
+    "backToDashboard": "Back to Dashboard",
+    "days": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    }
+  },
+  "workshopStats": {
+    "title": "Workshop Statistics",
+    "ordersThisMonth": "Orders This Month",
+    "revenue": "Revenue",
+    "avgTurnaround": "Avg. Turnaround",
+    "utilization": "Utilization",
+    "days": "days",
+    "backToDashboard": "Back to Dashboard"
+  },
+  "workshopTeam": {
+    "title": "Team Management",
+    "comingSoon": "Team Management - Coming Soon",
+    "comingSoonText": "Here you will soon be able to manage your workshop employees, assign orders, and view working hours.",
+    "backToDashboard": "Back to Dashboard"
   }
 }

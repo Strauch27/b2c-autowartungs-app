@@ -7,8 +7,9 @@ import { AVAILABLE_SERVICES } from '@/lib/constants/services';
 import { ServiceType, VehicleData } from '@/lib/types/service';
 import { calculateMultiplePrices } from '@/lib/api/pricing';
 import { useLanguage } from '@/lib/i18n/useLovableTranslation';
+import { Suspense } from 'react';
 
-export default function ServiceSelectionPage() {
+function ServiceSelectionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams();
@@ -129,5 +130,13 @@ export default function ServiceSelectionPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ServiceSelectionPage() {
+  return (
+    <Suspense fallback={null}>
+      <ServiceSelectionContent />
+    </Suspense>
   );
 }

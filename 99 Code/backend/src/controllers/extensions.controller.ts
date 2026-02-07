@@ -27,7 +27,7 @@ export async function approveExtension(
       throw new ApiError(401, 'Authentication required');
     }
 
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { paymentIntentId } = approveExtensionSchema.parse(req.body);
 
     // Get extension with booking details
@@ -54,7 +54,7 @@ export async function approveExtension(
     }
 
     // Verify customer owns this booking
-    if (extension.booking.customerId !== req.user.userId) {
+    if ((extension as any).booking.customerId !== req.user.userId as string) {
       throw new ApiError(
         403,
         'You do not have permission to approve this extension'
@@ -69,8 +69,8 @@ export async function approveExtension(
       );
     }
 
-    const bookingCustomerId = extension.booking.customerId;
-    const bookingNumber = extension.booking.bookingNumber;
+    const bookingCustomerId = (extension as any).booking.customerId;
+    const bookingNumber = (extension as any).booking.bookingNumber;
 
     // Update extension status
     const updatedExtension = await prisma.extension.update({
@@ -85,7 +85,7 @@ export async function approveExtension(
     // Update booking total price (add extension amount)
     const extensionAmountInDecimal = extension.totalAmount / 100;
     await prisma.booking.update({
-      where: { id: extension.bookingId },
+      where: { id: (extension as any).bookingId },
       data: {
         totalPrice: {
           increment: extensionAmountInDecimal,
@@ -103,10 +103,10 @@ export async function approveExtension(
         status: 'PENDING',
         title: 'Erweiterung genehmigt',
         body: `Der Kunde hat die Auftragserweiterung für Buchung ${bookingNumber} genehmigt (${(extension.totalAmount / 100).toFixed(2)} €)`,
-        bookingId: extension.bookingId,
+        bookingId: (extension as any).bookingId,
         data: {
           extensionId: extension.id,
-          bookingId: extension.bookingId,
+          bookingId: (extension as any).bookingId,
           totalAmount: extension.totalAmount,
           paymentIntentId,
         },
@@ -115,8 +115,8 @@ export async function approveExtension(
 
     logger.info('Extension approved', {
       extensionId: id,
-      bookingId: extension.bookingId,
-      customerId: req.user.userId,
+      bookingId: (extension as any).bookingId,
+      customerId: req.user.userId as string,
       totalAmount: extension.totalAmount,
       paymentIntentId,
     });
@@ -151,7 +151,7 @@ export async function declineExtension(
       throw new ApiError(401, 'Authentication required');
     }
 
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { reason } = declineExtensionSchema.parse(req.body);
 
     // Get extension with booking details
@@ -178,7 +178,7 @@ export async function declineExtension(
     }
 
     // Verify customer owns this booking
-    if (extension.booking.customerId !== req.user.userId) {
+    if ((extension as any).booking.customerId !== req.user.userId as string) {
       throw new ApiError(
         403,
         'You do not have permission to decline this extension'
@@ -193,8 +193,8 @@ export async function declineExtension(
       );
     }
 
-    const bookingCustomerId = extension.booking.customerId;
-    const bookingNumber = extension.booking.bookingNumber;
+    const bookingCustomerId = (extension as any).booking.customerId;
+    const bookingNumber = (extension as any).booking.bookingNumber;
 
     // Update extension status
     const updatedExtension = await prisma.extension.update({
@@ -214,10 +214,10 @@ export async function declineExtension(
         status: 'PENDING',
         title: 'Erweiterung abgelehnt',
         body: `Der Kunde hat die Auftragserweiterung für Buchung ${bookingNumber} abgelehnt${reason ? `: ${reason}` : ''}`,
-        bookingId: extension.bookingId,
+        bookingId: (extension as any).bookingId,
         data: {
           extensionId: extension.id,
-          bookingId: extension.bookingId,
+          bookingId: (extension as any).bookingId,
           declineReason: reason || null,
         },
       },
@@ -225,8 +225,8 @@ export async function declineExtension(
 
     logger.info('Extension declined', {
       extensionId: id,
-      bookingId: extension.bookingId,
-      customerId: req.user.userId,
+      bookingId: (extension as any).bookingId,
+      customerId: req.user.userId as string,
       reason: reason || 'No reason provided',
     });
 

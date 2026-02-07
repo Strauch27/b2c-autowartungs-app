@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { apiClient } from '@/lib/api/client';
 import {
   TrendingUp,
   TrendingDown,
@@ -194,18 +195,9 @@ export default function AdminAnalyticsPage() {
         params.append('endDate', range.endDate);
       }
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/analytics/performance?${params}`,
-        {
-          credentials: 'include'
-        }
+      const data = await apiClient.get<{ success: boolean; data: PerformanceDashboard }>(
+        `/api/analytics/performance?${params}`
       );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch analytics');
-      }
-
-      const data = await response.json();
       setDashboard(data.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -229,18 +221,15 @@ export default function AdminAnalyticsPage() {
         params.append('endDate', range.endDate);
       }
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/analytics/export?${params}`,
+      const response = await apiClient.request<Response>(
+        `/api/analytics/export?${params}`,
         {
-          credentials: 'include'
+          method: 'GET',
+          headers: { Accept: 'application/octet-stream' },
         }
       );
 
-      if (!response.ok) {
-        throw new Error('Failed to export analytics');
-      }
-
-      const blob = await response.blob();
+      const blob = new Blob([JSON.stringify(response)]);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

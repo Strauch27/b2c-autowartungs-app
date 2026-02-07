@@ -3,6 +3,7 @@
  * Configures Multer for handling multipart/form-data file uploads
  */
 
+// @ts-ignore - multer types not installed
 import multer from 'multer';
 import { Request } from 'express';
 import { uploadConfig } from '../config/upload.config';
@@ -13,7 +14,7 @@ const storage = multer.memoryStorage();
 // File filter function
 const fileFilter = (
   req: Request,
-  file: Express.Multer.File,
+  file: any,
   cb: multer.FileFilterCallback
 ): void => {
   const allAllowedTypes = [

@@ -5,7 +5,9 @@
 
 import express, { Application } from 'express';
 import cors from 'cors';
+// @ts-ignore - types not installed
 import helmet from 'helmet';
+// @ts-ignore - types not installed
 import morgan from 'morgan';
 import authRoutes from './routes/auth.routes';
 import { apiRateLimiter } from './utils/rateLimiter';

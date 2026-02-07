@@ -16,8 +16,9 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/useLovableTranslation";
 import { bookingsApi } from "@/lib/api/bookings";
+import { Suspense } from "react";
 
-export default function ConfirmationPage() {
+function ConfirmationContent() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -246,6 +247,14 @@ export default function ConfirmationPage() {
           </Button>
           <Button
             variant="outline"
+            onClick={() => router.push(`/${locale}/customer/booking/service`)}
+            className="flex-1"
+            size="lg"
+          >
+            {language === "de" ? "Neue Buchung" : "New Booking"}
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => window.print()}
             className="flex-1"
             size="lg"
@@ -266,5 +275,13 @@ export default function ConfirmationPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ConfirmationPage() {
+  return (
+    <Suspense fallback={null}>
+      <ConfirmationContent />
+    </Suspense>
   );
 }

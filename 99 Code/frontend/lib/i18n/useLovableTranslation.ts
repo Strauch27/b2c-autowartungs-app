@@ -27,6 +27,8 @@ export function useLovableTranslation() {
   const login = useTranslations('login');
   const customerDashboard = useTranslations('customerDashboard');
   const jockeyDashboard = useTranslations('jockeyDashboard');
+  const jockeyStats = useTranslations('jockeyStats');
+  const jockeyAvailability = useTranslations('jockeyAvailability');
   const workshopDashboard = useTranslations('workshopDashboard');
   const dashboard = useTranslations('dashboard');
   const vehicleForm = useTranslations('vehicleForm');
@@ -384,6 +386,8 @@ export function useLovableTranslation() {
     },
     jockeyDashboard: {
       today: jockeyDashboard('today'),
+      tomorrow: jockeyDashboard('tomorrow'),
+      later: jockeyDashboard('later'),
       stats: {
         todayTrips: jockeyDashboard('stats.todayTrips'),
         completed: jockeyDashboard('stats.completed'),
@@ -391,16 +395,68 @@ export function useLovableTranslation() {
       },
       assignments: jockeyDashboard('assignments'),
       noAssignments: jockeyDashboard('noAssignments'),
+      noMatchingAssignments: jockeyDashboard('noMatchingAssignments'),
       status: {
         upcoming: jockeyDashboard('status.upcoming'),
         onRoute: jockeyDashboard('status.onRoute'),
+        arrived: jockeyDashboard('status.arrived'),
         completed: jockeyDashboard('status.completed'),
+        cancelled: jockeyDashboard('status.cancelled'),
       },
       pickup: jockeyDashboard('pickup'),
+      return: jockeyDashboard('return'),
       navigate: jockeyDashboard('navigate'),
       startPickup: jockeyDashboard('startPickup'),
+      startReturn: jockeyDashboard('startReturn'),
       documentHandover: jockeyDashboard('documentHandover'),
       complete: jockeyDashboard('complete'),
+      call: jockeyDashboard('call'),
+      successfullyCompleted: jockeyDashboard('successfullyCompleted'),
+      pickupStarted: jockeyDashboard('pickupStarted'),
+      pickupStartError: jockeyDashboard('pickupStartError'),
+      pickupCompleted: jockeyDashboard('pickupCompleted'),
+      returnCompleted: jockeyDashboard('returnCompleted'),
+      handoverError: jockeyDashboard('handoverError'),
+      loadError: jockeyDashboard('loadError'),
+      confirmAction: jockeyDashboard('confirmAction'),
+      filter: {
+        all: jockeyDashboard('filter.all'),
+        allStatus: jockeyDashboard('filter.allStatus'),
+        pickupType: jockeyDashboard('filter.pickupType'),
+        returnType: jockeyDashboard('filter.returnType'),
+        upcoming: jockeyDashboard('filter.upcoming'),
+        active: jockeyDashboard('filter.active'),
+        done: jockeyDashboard('filter.done'),
+      },
+      notifications: jockeyDashboard('notifications'),
+      logout: jockeyDashboard('logout'),
+      takePhoto: jockeyDashboard('takePhoto'),
+      photoPreview: jockeyDashboard('photoPreview'),
+    },
+    jockeyStats: {
+      title: jockeyStats('title'),
+      tripsThisWeek: jockeyStats('tripsThisWeek'),
+      tripsThisMonth: jockeyStats('tripsThisMonth'),
+      averageRating: jockeyStats('averageRating'),
+      backToDashboard: jockeyStats('backToDashboard'),
+    },
+    jockeyAvailability: {
+      title: jockeyAvailability('title'),
+      subtitle: jockeyAvailability('subtitle'),
+      available: jockeyAvailability('available'),
+      notAvailable: jockeyAvailability('notAvailable'),
+      morning: jockeyAvailability('morning'),
+      afternoon: jockeyAvailability('afternoon'),
+      fullDay: jockeyAvailability('fullDay'),
+      monday: jockeyAvailability('monday'),
+      tuesday: jockeyAvailability('tuesday'),
+      wednesday: jockeyAvailability('wednesday'),
+      thursday: jockeyAvailability('thursday'),
+      friday: jockeyAvailability('friday'),
+      saturday: jockeyAvailability('saturday'),
+      sunday: jockeyAvailability('sunday'),
+      backToDashboard: jockeyAvailability('backToDashboard'),
+      saved: jockeyAvailability('saved'),
     },
     workshopDashboard: {
       stats: {
@@ -423,9 +479,41 @@ export function useLovableTranslation() {
         inProgress: workshopDashboard('status.inProgress'),
         waitingApproval: workshopDashboard('status.waitingApproval'),
         completed: workshopDashboard('status.completed'),
+        cancelled: workshopDashboard('status.cancelled'),
       },
       viewDetails: workshopDashboard('viewDetails'),
       createExtension: workshopDashboard('createExtension'),
+      filter: {
+        all: workshopDashboard('filter.all'),
+        pending: workshopDashboard('filter.pending'),
+        inProgress: workshopDashboard('filter.inProgress'),
+        completed: workshopDashboard('filter.completed'),
+      },
+      searchPlaceholder: workshopDashboard('searchPlaceholder'),
+      noMatchingOrders: workshopDashboard('noMatchingOrders'),
+      services: workshopDashboard('services'),
+      toast: {
+        loadFailed: workshopDashboard('toast.loadFailed'),
+        statusUpdated: workshopDashboard('toast.statusUpdated'),
+        statusFailed: workshopDashboard('toast.statusFailed'),
+        extensionSent: workshopDashboard('toast.extensionSent'),
+        extensionFailed: workshopDashboard('toast.extensionFailed'),
+      },
+      tip: {
+        title: workshopDashboard('tip.title'),
+        text: workshopDashboard('tip.text'),
+      },
+      pagination: {
+        previous: workshopDashboard('pagination.previous'),
+        next: workshopDashboard('pagination.next'),
+        page: workshopDashboard('pagination.page'),
+        of: workshopDashboard('pagination.of'),
+      },
+      links: {
+        calendar: workshopDashboard('links.calendar'),
+        stats: workshopDashboard('links.stats'),
+        team: workshopDashboard('links.team'),
+      },
     },
   };
 

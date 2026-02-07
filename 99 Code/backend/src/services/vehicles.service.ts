@@ -219,9 +219,9 @@ export class VehiclesService {
     // Check if vehicle has active bookings
     const vehicleWithBookings = await this.vehiclesRepository.findByIdWithBookings(vehicleId);
 
-    if (vehicleWithBookings?.bookings && vehicleWithBookings.bookings.length > 0) {
-      const activeBookings = vehicleWithBookings.bookings.filter(
-        booking => booking.status !== 'CANCELLED' && booking.status !== 'DELIVERED'
+    if ((vehicleWithBookings as any)?.bookings && (vehicleWithBookings as any).bookings.length > 0) {
+      const activeBookings = (vehicleWithBookings as any).bookings.filter(
+        (booking: any) => booking.status !== 'CANCELLED' && booking.status !== 'DELIVERED'
       );
 
       if (activeBookings.length > 0) {

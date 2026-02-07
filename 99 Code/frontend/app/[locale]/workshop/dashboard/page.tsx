@@ -28,6 +28,11 @@ import {
   Loader2,
   X,
   Search,
+  ChevronLeft,
+  ChevronRight,
+  CalendarDays,
+  BarChart3,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -43,6 +48,8 @@ const LanguageSwitcher = dynamic(() => import("@/components/LanguageSwitcher"), 
   ssr: false,
 });
 
+const ORDERS_PER_PAGE = 10;
+
 interface Order {
   id: string;
   customer: string;
@@ -50,6 +57,7 @@ interface Order {
   customerPhone: string;
   vehicle: string;
   vehiclePlate: string;
+  vehicleId?: string;
   service: string;
   status: "pending" | "inProgress" | "completed" | "cancelled";
   backendStatus?: string; // Original backend BookingStatus for FSM transitions
@@ -75,6 +83,7 @@ function DashboardContent() {
   }>({ open: false, orderId: "", customerName: "" });
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'inProgress' | 'completed'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     async function fetchOrders(isRefresh = false) {
@@ -85,11 +94,7 @@ function DashboardContent() {
       } catch (error) {
         console.error('Failed to fetch orders:', error);
         if (!isRefresh) {
-          toast.error(
-            language === "de"
-              ? "Aufträge konnten nicht geladen werden"
-              : "Failed to load orders"
-          );
+          toast.error(t.workshopDashboard.toast.loadFailed);
         }
       } finally {
         if (!isRefresh) setIsLoading(false);
@@ -134,8 +139,9 @@ function DashboardContent() {
     customerPhone: o.customer?.phone || '',
     vehicle: o.vehicle ? `${o.vehicle.brand} ${o.vehicle.model}` : 'Vehicle',
     vehiclePlate: o.vehicle?.licensePlate || '',
+    vehicleId: o.vehicle?.id,
     service: Array.isArray(o.services) && o.services.length > 0
-      ? `${o.services.length} ${language === "de" ? "Leistungen" : "Services"}`
+      ? `${o.services.length} ${t.workshopDashboard.services}`
       : o.serviceType,
     status: mapStatus(o.status),
     backendStatus: o.status, // Keep original backend status for FSM transitions
@@ -162,6 +168,26 @@ function DashboardContent() {
         || o.vehicle.toLowerCase().includes(q);
     });
 
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ORDERS_PER_PAGE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedOrders = filteredOrders.slice(
+    (safeCurrentPage - 1) * ORDERS_PER_PAGE,
+    safeCurrentPage * ORDERS_PER_PAGE
+  );
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, searchQuery]);
+
+  const filterLabels: Record<string, string> = {
+    all: t.workshopDashboard.filter.all,
+    pending: t.workshopDashboard.filter.pending,
+    inProgress: t.workshopDashboard.filter.inProgress,
+    completed: t.workshopDashboard.filter.completed,
+  };
+
   const statusConfig = {
     pending: {
       label: t.workshopDashboard.status.received,
@@ -179,7 +205,7 @@ function DashboardContent() {
       icon: CheckCircle,
     },
     cancelled: {
-      label: language === "de" ? "Storniert" : "Cancelled",
+      label: t.workshopDashboard.status.cancelled,
       class: "badge-destructive",
       icon: X,
     },
@@ -219,11 +245,7 @@ function DashboardContent() {
 
       await workshopsApi.updateStatus(orderId, targetStatus);
 
-      toast.success(
-        language === "de"
-          ? "Status erfolgreich aktualisiert"
-          : "Status updated successfully"
-      );
+      toast.success(t.workshopDashboard.toast.statusUpdated);
 
       // Refresh orders to show updated status
       const result = await workshopsApi.getOrders({ limit: 50 });
@@ -232,11 +254,7 @@ function DashboardContent() {
       setDetailsModal({ open: false, order: null });
     } catch (error) {
       console.error("Failed to update status:", error);
-      toast.error(
-        language === "de"
-          ? "Status-Update fehlgeschlagen"
-          : "Failed to update status"
-      );
+      toast.error(t.workshopDashboard.toast.statusFailed);
     }
   };
 
@@ -261,18 +279,10 @@ function DashboardContent() {
 
       await workshopsApi.createExtension(order.id, extensionData);
 
-      toast.success(
-        language === "de"
-          ? "Auftragserweiterung wurde an den Kunden gesendet!"
-          : "Extension sent to customer successfully!"
-      );
+      toast.success(t.workshopDashboard.toast.extensionSent);
     } catch (error) {
       console.error("Failed to submit extension:", error);
-      toast.error(
-        language === "de"
-          ? "Fehler beim Senden der Erweiterung"
-          : "Failed to send extension"
-      );
+      toast.error(t.workshopDashboard.toast.extensionFailed);
     }
   };
 
@@ -293,6 +303,24 @@ function DashboardContent() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Link href={`/${language}/workshop/calendar`}>
+              <Button variant="ghost" size="sm" className="text-muted-foreground">
+                <CalendarDays className="mr-2 h-4 w-4" />
+                {t.workshopDashboard.links.calendar}
+              </Button>
+            </Link>
+            <Link href={`/${language}/workshop/stats`}>
+              <Button variant="ghost" size="sm" className="text-muted-foreground">
+                <BarChart3 className="mr-2 h-4 w-4" />
+                {t.workshopDashboard.links.stats}
+              </Button>
+            </Link>
+            <Link href={`/${language}/workshop/team`}>
+              <Button variant="ghost" size="sm" className="text-muted-foreground">
+                <Users className="mr-2 h-4 w-4" />
+                {t.workshopDashboard.links.team}
+              </Button>
+            </Link>
             <LanguageSwitcher />
             <Button
               variant="ghost"
@@ -351,19 +379,14 @@ function DashboardContent() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <CardTitle>{t.workshopDashboard.orders}</CardTitle>
               <div className="flex flex-wrap gap-2">
-                {([
-                  { key: 'all', de: 'Alle', en: 'All' },
-                  { key: 'pending', de: 'Wartend', en: 'Pending' },
-                  { key: 'inProgress', de: 'In Arbeit', en: 'In Progress' },
-                  { key: 'completed', de: 'Erledigt', en: 'Completed' },
-                ] as const).map(({ key, de, en }) => (
+                {(['all', 'pending', 'inProgress', 'completed'] as const).map((key) => (
                   <Button
                     key={key}
                     variant={statusFilter === key ? "default" : "outline"}
                     size="sm"
                     onClick={() => setStatusFilter(key)}
                   >
-                    {language === "de" ? de : en}
+                    {filterLabels[key]}
                   </Button>
                 ))}
               </div>
@@ -371,7 +394,7 @@ function DashboardContent() {
             <div className="relative mt-3 sm:max-w-xs">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={language === "de" ? "Auftrag, Kunde oder Fahrzeug suchen..." : "Search order, customer or vehicle..."}
+                placeholder={t.workshopDashboard.searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -388,71 +411,113 @@ function DashboardContent() {
                 <Car className="mb-4 h-12 w-12 text-muted-foreground" />
                 <p className="text-muted-foreground">
                   {searchQuery || statusFilter !== 'all'
-                    ? (language === "de" ? "Keine passenden Aufträge" : "No matching orders")
-                    : (language === "de" ? "Keine Aufträge vorhanden" : "No orders available")}
+                    ? t.workshopDashboard.noMatchingOrders
+                    : t.workshopDashboard.noOrders}
                 </p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t.workshopDashboard.table.orderId}</TableHead>
-                    <TableHead>{t.workshopDashboard.table.customer}</TableHead>
-                    <TableHead>{t.workshopDashboard.table.vehicle}</TableHead>
-                    <TableHead>{t.workshopDashboard.table.service}</TableHead>
-                    <TableHead>{t.workshopDashboard.table.status}</TableHead>
-                    <TableHead className="text-right">{t.workshopDashboard.table.actions}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredOrders.map((order) => {
-                  const config = statusConfig[order.status];
-                  const StatusIcon = config.icon;
-                  return (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-medium">{order.id}</TableCell>
-                      <TableCell>{order.customer}</TableCell>
-                      <TableCell>{order.vehicle}</TableCell>
-                      <TableCell>{order.service}</TableCell>
-                      <TableCell>
-                        <Badge className={`${config.class} gap-1`}>
-                          <StatusIcon className="h-3 w-3" />
-                          {config.label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setDetailsModal({ open: true, order })}
-                          >
-                            <Eye className="mr-1 h-4 w-4" />
-                            {t.workshopDashboard.viewDetails}
-                          </Button>
-                          {order.status === "inProgress" && (
-                            <Button
-                              variant="workshop"
-                              size="sm"
-                              onClick={() =>
-                                setExtensionModal({
-                                  open: true,
-                                  orderId: order.id,
-                                  customerName: order.customer,
-                                })
-                              }
-                            >
-                              <Plus className="mr-1 h-4 w-4" />
-                              {t.workshopDashboard.createExtension}
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t.workshopDashboard.table.orderId}</TableHead>
+                      <TableHead>{t.workshopDashboard.table.customer}</TableHead>
+                      <TableHead>{t.workshopDashboard.table.vehicle}</TableHead>
+                      <TableHead>{t.workshopDashboard.table.service}</TableHead>
+                      <TableHead>{t.workshopDashboard.table.status}</TableHead>
+                      <TableHead className="text-right">{t.workshopDashboard.table.actions}</TableHead>
                     </TableRow>
-                  );
-                })}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedOrders.map((order) => {
+                    const config = statusConfig[order.status];
+                    const StatusIcon = config.icon;
+                    return (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">{order.id}</TableCell>
+                        <TableCell>{order.customer}</TableCell>
+                        <TableCell>{order.vehicle}</TableCell>
+                        <TableCell>{order.service}</TableCell>
+                        <TableCell>
+                          <Badge data-testid="booking-status" className={`${config.class} gap-1`}>
+                            <StatusIcon className="h-3 w-3" />
+                            {config.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setDetailsModal({ open: true, order })}
+                            >
+                              <Eye className="mr-1 h-4 w-4" />
+                              {t.workshopDashboard.viewDetails}
+                            </Button>
+                            {order.status === "inProgress" && (
+                              <Button
+                                variant="workshop"
+                                size="sm"
+                                onClick={() =>
+                                  setExtensionModal({
+                                    open: true,
+                                    orderId: order.id,
+                                    customerName: order.customer,
+                                  })
+                                }
+                              >
+                                <Plus className="mr-1 h-4 w-4" />
+                                {t.workshopDashboard.createExtension}
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  </TableBody>
+                </Table>
+
+                {/* Pagination */}
+                {filteredOrders.length > ORDERS_PER_PAGE && (
+                  <div className="flex items-center justify-between border-t border-border px-4 py-3">
+                    <p className="text-sm text-muted-foreground">
+                      {t.workshopDashboard.pagination.page} {safeCurrentPage} {t.workshopDashboard.pagination.of} {totalPages}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={safeCurrentPage <= 1}
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      >
+                        <ChevronLeft className="mr-1 h-4 w-4" />
+                        {t.workshopDashboard.pagination.previous}
+                      </Button>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                        <Button
+                          key={page}
+                          variant={page === safeCurrentPage ? "default" : "outline"}
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => setCurrentPage(page)}
+                        >
+                          {page}
+                        </Button>
+                      ))}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={safeCurrentPage >= totalPages}
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      >
+                        {t.workshopDashboard.pagination.next}
+                        <ChevronRight className="ml-1 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
@@ -463,12 +528,10 @@ function DashboardContent() {
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
             <div>
               <p className="font-medium">
-                {language === "de" ? "Tipp: Auftragserweiterungen" : "Tip: Order Extensions"}
+                {t.workshopDashboard.tip.title}
               </p>
               <p className="text-sm text-muted-foreground">
-                {language === "de"
-                  ? "Wenn Sie zusätzliche Arbeiten identifizieren, können Sie eine Erweiterung erstellen und dem Kunden zur Genehmigung senden."
-                  : "When you identify additional work needed, you can create an extension and send it to the customer for approval."}
+                {t.workshopDashboard.tip.text}
               </p>
             </div>
           </CardContent>

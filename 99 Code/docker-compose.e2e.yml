@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # E2E Test Database
+  db_e2e:
+    image: postgres:16-alpine
+    container_name: b2c-postgres-e2e
+    environment:
+      POSTGRES_DB: autowartungs_app_e2e
+      POSTGRES_USER: b2c_user
+      POSTGRES_PASSWORD: b2c_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - b2c_e2e_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U b2c_user -d autowartungs_app_e2e"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # E2E Test Backend API
+  backend_e2e:
+    build:
+      context: ./backend
+    container_name: b2c-backend-e2e
+    environment:
+      NODE_ENV: test
+      E2E_TEST: "true"
+      DEMO_MODE: "true"
+      DATABASE_URL: postgresql://b2c_user:b2c_password@db_e2e:5432/autowartungs_app_e2e
+      JWT_SECRET: e2e-test-jwt-secret-minimum-32-characters-long
+      JWT_EXPIRES_IN: 7d
+      FRONTEND_URL: http://localhost:3000
+      BACKEND_URL: http://localhost:5002
+      PORT: 5000
+    ports:
+      - "5002:5000"
+    depends_on:
+      db_e2e:
+        condition: service_healthy
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed && npm run dev"
+
+volumes:
+  b2c_e2e_postgres_data:
+    driver: local
