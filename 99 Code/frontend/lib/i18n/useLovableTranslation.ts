@@ -180,6 +180,7 @@ export function useLovableTranslation() {
         model: booking('step1.model'),
         selectModel: booking('step1.selectModel'),
         year: booking('step1.year'),
+        yearPlaceholder: booking('step1.yearPlaceholder'),
         selectYear: booking('step1.selectYear'),
         mileage: booking('step1.mileage'),
         mileagePlaceholder: booking('step1.mileagePlaceholder'),

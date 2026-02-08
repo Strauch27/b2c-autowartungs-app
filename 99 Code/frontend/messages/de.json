@@ -806,6 +806,7 @@
       "model": "Modell",
       "selectModel": "Modell auswählen",
       "year": "Baujahr",
+      "yearPlaceholder": "z.B. 2020",
       "selectYear": "Jahr auswählen",
       "mileage": "Kilometerstand",
       "mileagePlaceholder": "z.B. 45000",
@@ -917,6 +918,10 @@
     "submit": "Anmelden",
     "noAccount": "Noch kein Konto?",
     "register": "Jetzt registrieren",
+    "username": "Benutzername",
+    "loginError": "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Zugangsdaten.",
+    "loggingIn": "Anmelden...",
+    "loginButton": "Anmelden",
     "portalTitles": {
       "customer": "Kunden-Portal",
       "jockey": "Fahrer-Portal",

@@ -134,6 +134,43 @@ export async function resetDatabase(req: Request, res: Response): Promise<void> 
     // Seed PriceMatrix
     await prisma.priceMatrix.createMany({ data: PRICE_MATRIX_DATA as any });
 
+    // Seed a sample booking at AT_WORKSHOP so the workshop dashboard has data
+    const customer = await prisma.user.findUnique({ where: { email: 'customer@test.com' } });
+    const jockey = await prisma.user.findUnique({ where: { email: 'jockey@test.com' } });
+    if (customer && jockey) {
+      const vehicle = await prisma.vehicle.create({
+        data: {
+          customerId: customer.id,
+          brand: 'VW',
+          model: 'Golf 7',
+          year: 2019,
+          mileage: 45000,
+          licensePlate: 'B-AC 1234',
+        }
+      });
+
+      await prisma.booking.create({
+        data: {
+          bookingNumber: 'AC-SEED-0001',
+          customerId: customer.id,
+          vehicleId: vehicle.id,
+          serviceType: 'INSPECTION',
+          services: [{ type: 'INSPECTION', price: 249 }],
+          mileageAtBooking: 45000,
+          status: 'AT_WORKSHOP',
+          totalPrice: 249,
+          pickupDate: new Date(),
+          pickupTimeSlot: '09:00-11:00',
+          pickupAddress: 'Musterstraße 1',
+          pickupCity: 'Berlin',
+          pickupPostalCode: '10115',
+          jockeyId: jockey.id,
+          paidAt: new Date(),
+          customerNotes: 'Seed booking for testing',
+        }
+      });
+    }
+
     res.json({ ok: true });
   } catch (error) {
     console.error('Error resetting database:', error);

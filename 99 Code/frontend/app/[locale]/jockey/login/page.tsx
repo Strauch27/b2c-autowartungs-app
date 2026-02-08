@@ -8,11 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, Loader2, Car, User } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 export default function JockeyLoginPage() {
   const { login } = useAuth();
   const params = useParams();
   const locale = params.locale as string || 'de';
+  const t = useTranslations('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -34,7 +36,7 @@ export default function JockeyLoginPage() {
       setError(
         err instanceof Error
           ? err.message
-          : 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Zugangsdaten.'
+          : t('loginError')
       );
     } finally {
       setIsLoading(false);
@@ -54,13 +56,13 @@ export default function JockeyLoginPage() {
 
         <div className="w-full max-w-md space-y-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Willkommen zurück</h1>
-            <p className="mt-2 text-muted-foreground">Verwalten Sie Ihre Aufträge, dokumentieren Sie Übergaben und navigieren Sie effizient zu Ihren Kunden.</p>
+            <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
+            <p className="mt-2 text-muted-foreground">{t('portalDescriptions.jockey')}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="username">Benutzername</Label>
+              <Label htmlFor="username">{t('username')}</Label>
               <Input
                 id="username"
                 type="text"
@@ -74,7 +76,7 @@ export default function JockeyLoginPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Passwort</Label>
+              <Label htmlFor="password">{t('password')}</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -116,10 +118,10 @@ export default function JockeyLoginPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Anmelden...
+                  {t('loggingIn')}
                 </>
               ) : (
-                'Anmelden'
+                t('loginButton')
               )}
             </Button>
           </form>
@@ -135,9 +137,9 @@ export default function JockeyLoginPage() {
             </div>
           </div>
           <div className="text-center space-y-2 text-white">
-            <h2 className="text-2xl font-bold">Fahrer-Portal</h2>
+            <h2 className="text-2xl font-bold">{t('portalTitles.jockey')}</h2>
             <p className="text-white/80">
-              Verwalten Sie Ihre Aufträge, dokumentieren Sie Übergaben und navigieren Sie effizient zu Ihren Kunden.
+              {t('portalDescriptions.jockey')}
             </p>
           </div>
         </div>

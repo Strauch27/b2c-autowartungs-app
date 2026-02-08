@@ -791,6 +791,7 @@
       "model": "Model",
       "selectModel": "Select model",
       "year": "Year",
+      "yearPlaceholder": "e.g. 2020",
       "selectYear": "Select year",
       "mileage": "Mileage",
       "mileagePlaceholder": "e.g. 45000",
@@ -902,6 +903,10 @@
     "submit": "Sign In",
     "noAccount": "Don't have an account?",
     "register": "Register now",
+    "username": "Username",
+    "loginError": "Login failed. Please check your credentials.",
+    "loggingIn": "Logging in...",
+    "loginButton": "Log In",
     "portalTitles": {
       "customer": "Customer Portal",
       "jockey": "Driver Portal",

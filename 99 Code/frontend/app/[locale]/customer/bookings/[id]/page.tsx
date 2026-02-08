@@ -18,12 +18,12 @@ import {
   Car,
   Calendar,
   MapPin,
-  Euro,
   AlertCircle,
   Loader2,
 } from "lucide-react";
 import { bookingsApi, BookingResponse, ExtensionResponse } from "@/lib/api/bookings";
 import { useLanguage } from "@/lib/i18n/useLovableTranslation";
+import { formatEuro } from "@/lib/utils/currency";
 import { ExtensionList } from "@/components/customer/ExtensionList";
 import { toast } from "sonner";
 import { Suspense } from "react";
@@ -308,7 +308,7 @@ function BookingDetailContent() {
                         >
                           <span>{service.type}</span>
                           <span className="font-medium">
-                            {formatPrice(service.price)}€
+                            {formatEuro(typeof service.price === "string" ? parseFloat(service.price) : service.price)}
                           </span>
                         </div>
                       ))}
@@ -379,9 +379,8 @@ function BookingDetailContent() {
               <CardContent className="py-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-semibold">{texts.price}:</span>
-                  <span className="text-2xl font-bold text-primary flex items-center gap-1">
-                    {formatPrice(booking.totalPrice)}
-                    <Euro className="h-6 w-6" />
+                  <span className="text-2xl font-bold text-primary">
+                    {formatEuro(typeof booking.totalPrice === "string" ? parseFloat(booking.totalPrice) : booking.totalPrice)}
                   </span>
                 </div>
               </CardContent>

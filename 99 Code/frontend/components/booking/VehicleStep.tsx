@@ -29,6 +29,7 @@ interface VehicleStepProps {
     model: string;
     selectModel: string;
     year: string;
+    yearPlaceholder?: string;
     mileage: string;
     mileagePlaceholder: string;
     saveVehicle: string;
@@ -108,7 +109,7 @@ export function VehicleStep({ formData, onUpdate, translations }: VehicleStepPro
             <Input
               id="year"
               type="number"
-              placeholder="z.B. 2020"
+              placeholder={translations.yearPlaceholder || "e.g. 2020"}
               value={formData.year}
               onChange={(e) => onUpdate({ year: e.target.value })}
             />
