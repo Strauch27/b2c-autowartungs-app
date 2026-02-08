@@ -66,7 +66,7 @@ export default function JockeyLoginPage() {
               <Input
                 id="username"
                 type="text"
-                placeholder="jockey"
+                placeholder={t('usernamePlaceholder')}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="input-premium"

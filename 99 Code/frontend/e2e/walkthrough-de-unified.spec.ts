@@ -30,12 +30,16 @@ const SCREENSHOT_DIR = path.join(__dirname, 'walkthrough-screenshots', 'de-unifi
 const API_BASE = process.env.PLAYWRIGHT_API_URL || 'http://localhost:5001';
 const LOCALE = 'de';
 
-const VEHICLE = { brandLabel: 'BMW', model: '3er', year: '2020', mileage: '50000' };
+const VEHICLE = { brandId: 'bmw', brandLabel: 'BMW', model: '3er', year: '2020', mileage: '50000' };
 const ADDRESS = { street: 'Musterstraße 123', zip: '58453', city: 'Witten' };
+
+// Viewport presets per role
+const VIEWPORT_MOBILE = { width: 390, height: 844 };   // iPhone 14 Pro — Customer & Jockey
+const VIEWPORT_DESKTOP = { width: 1280, height: 720 };  // Workshop (desktop app)
 
 const timestamp = Date.now();
 const CUSTOMER = {
-  email: `walkthrough-de-unified-${timestamp}@test.de`,
+  email: `max.mustermann+${String(timestamp).slice(-4)}@test.de`,
   password: 'WalkThrough123!',
   firstName: 'Max',
   lastName: 'Mustermann',
@@ -58,6 +62,20 @@ let screenshotCount = 0;
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/** Set viewport for the current role */
+async function setMobileViewport(page: Page) {
+  await page.setViewportSize(VIEWPORT_MOBILE);
+}
+async function setDesktopViewport(page: Page) {
+  await page.setViewportSize(VIEWPORT_DESKTOP);
+}
+
+/** Scroll an element into view before interacting (important for mobile) */
+async function scrollTo(page: Page, locator: ReturnType<Page['locator']>) {
+  await locator.scrollIntoViewIfNeeded().catch(() => {});
+  await page.waitForTimeout(200);
+}
 
 /** Hide demo banner and Next.js dev overlay for clean screenshots */
 async function hideBannerAndOverlays(page: Page) {
@@ -126,12 +144,17 @@ async function customerLogin(page: Page, email: string, password: string) {
 
 /** Fill vehicle form fields (reusable across tests that restart from page goto) */
 async function fillVehicleForm(page: Page) {
+  // Brand card grid
+  await page.locator(`[data-testid="brand-card-${VEHICLE.brandId}"]`).click();
+  await page.waitForTimeout(300);
+  // Model dropdown (first combobox after brand selection)
   await page.locator('[role="combobox"]').first().click();
-  await page.locator(`[role="option"]:has-text("${VEHICLE.brandLabel}")`).click();
-  await page.waitForTimeout(200);
-  await page.locator('[role="combobox"]').nth(1).click();
   await page.locator(`[role="option"]:has-text("${VEHICLE.model}")`).click();
-  await page.locator('#year').fill(VEHICLE.year);
+  await page.waitForTimeout(200);
+  // Year dropdown (second combobox)
+  await page.locator('[role="combobox"]').nth(1).click();
+  await page.locator(`[role="option"]:has-text("${VEHICLE.year}")`).click();
+  // Mileage input
   await page.locator('#mileage').fill(VEHICLE.mileage);
 }
 
@@ -139,40 +162,40 @@ async function fillVehicleForm(page: Page) {
 async function navigateToAppointmentStep(page: Page) {
   await page.goto(`/${LOCALE}/booking`);
   await page.waitForLoadState('networkidle');
-  await expect(page.locator('#year')).toBeVisible({ timeout: 10000 });
+  await expect(page.locator('[data-testid="vehicle-step"]')).toBeVisible({ timeout: 10000 });
   await fillVehicleForm(page);
-  await page.locator('button:has-text("Weiter")').click();
-  await expect(page.locator('[data-testid="service-card-inspection"]')).toBeVisible({ timeout: 10000 });
-  await page.locator('[data-testid="service-card-inspection"]').click();
-  await page.locator('button:has-text("Weiter")').click();
+  const weiter1 = page.locator('button:has-text("Weiter")');
+  await scrollTo(page, weiter1);
+  await weiter1.click();
+  const serviceCard = page.locator('[data-testid="service-card-inspection"]');
+  await expect(serviceCard).toBeVisible({ timeout: 10000 });
+  await scrollTo(page, serviceCard);
+  await serviceCard.click();
+  const weiter2 = page.locator('button:has-text("Weiter")');
+  await scrollTo(page, weiter2);
+  await weiter2.click();
   await expect(page.locator('#street')).toBeVisible({ timeout: 10000 });
 }
 
 /** Pick a date in the appointment step */
 async function pickDate(page: Page) {
-  const dateBtn = page.locator('button:has-text("Abholdatum")');
-  if (await dateBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await dateBtn.click();
-    await expect(page.locator('table')).toBeVisible({ timeout: 5000 });
-    await page.locator('td button:not([disabled])').first().click();
-  } else {
-    const morgen = page.locator('button:has-text("Morgen")');
-    if (await morgen.isVisible({ timeout: 2000 }).catch(() => false)) await morgen.click();
-  }
+  // Wait for calendar grid to be ready, then click first available (non-disabled) day
+  await page.locator('[role="grid"]').waitFor({ state: 'visible', timeout: 10000 });
+  await page.locator('[role="gridcell"] button:not([disabled])').first().click({ timeout: 5000 });
+  await page.waitForTimeout(500);
 }
 
 /** Pick time slots in the appointment step */
 async function pickTimeSlots(page: Page) {
-  const timeGrids = page.locator('.grid.grid-cols-5');
-  await timeGrids.nth(0).locator('button:has-text("10:00")').click();
-  const returnWeek = page.locator('button:has-text("+1 Woche")');
-  if (await returnWeek.isVisible({ timeout: 2000 }).catch(() => false)) await returnWeek.click();
-  await timeGrids.nth(1).locator('button:has-text("14:00")').click();
+  await page.locator('[data-testid="time-slot-10:00"]').click();
+  // Return date is auto-set, return time is auto-set to 18:00
 }
 
-/** Fill address fields */
+/** Fill address fields (scrolls into view for mobile) */
 async function fillAddress(page: Page) {
-  await page.locator('#street').fill(ADDRESS.street);
+  const street = page.locator('#street');
+  await scrollTo(page, street);
+  await street.fill(ADDRESS.street);
   await page.locator('#zip').fill(ADDRESS.zip);
   await page.locator('#city').fill(ADDRESS.city);
 }
@@ -183,6 +206,21 @@ async function fillAddress(page: Page) {
 
 test.describe.serial('DE Unified Walkthrough', () => {
   test.setTimeout(300_000); // 5 minutes total
+
+  // Auto-set viewport based on test phase/role
+  test.beforeEach(async ({ page }, testInfo) => {
+    const title = testInfo.title;
+    // Workshop tests get desktop viewport
+    if (/Workshop|P3-|P4-|P5-01|P5-02|P5-03|P5-11|P6-01/.test(title)) {
+      await setDesktopViewport(page);
+    // Landing page stays desktop
+    } else if (/P1-01/.test(title)) {
+      await setDesktopViewport(page);
+    // Customer + Jockey tests get mobile viewport
+    } else if (/Customer|Jockey|P[1278]-|P5-0[4-9]|P5-10/.test(title)) {
+      await setMobileViewport(page);
+    }
+  });
 
   // ==========================================================================
   // PHASE 1: CUSTOMER BOOKING FLOW
@@ -197,7 +235,7 @@ test.describe.serial('DE Unified Walkthrough', () => {
   test('P1-02 - Customer: Click Preis berechnen', async ({ page }) => {
     await page.goto(`/${LOCALE}`);
     await page.waitForLoadState('networkidle');
-    const ctaBtn = page.locator('a:has-text("Preis berechnen"), button:has-text("Preis berechnen")').first();
+    const ctaBtn = page.locator('a:has-text("Jetzt Termin buchen"), button:has-text("Jetzt Termin buchen"), [data-testid="hero-booking-cta"]').first();
     if (await ctaBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await ctaBtn.click();
       await page.waitForLoadState('networkidle');
@@ -209,21 +247,19 @@ test.describe.serial('DE Unified Walkthrough', () => {
     await shot(page, 'click-price-button');
   });
 
-  test('P1-03 - Customer: Vehicle brand select (dropdown open)', async ({ page }) => {
+  test('P1-03 - Customer: Vehicle brand card grid', async ({ page }) => {
     await page.goto(`/${LOCALE}/booking`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('#year')).toBeVisible({ timeout: 10000 });
-    await page.locator('[role="combobox"]').first().click();
+    await expect(page.locator('[data-testid="vehicle-step"]')).toBeVisible({ timeout: 10000 });
     await page.waitForTimeout(400);
-    await shot(page, 'vehicle-brand-dropdown');
+    await shot(page, 'vehicle-brand-grid');
   });
 
   test('P1-04 - Customer: Vehicle brand selected', async ({ page }) => {
     await page.goto(`/${LOCALE}/booking`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('#year')).toBeVisible({ timeout: 10000 });
-    await page.locator('[role="combobox"]').first().click();
-    await page.locator(`[role="option"]:has-text("${VEHICLE.brandLabel}")`).click();
+    await expect(page.locator('[data-testid="vehicle-step"]')).toBeVisible({ timeout: 10000 });
+    await page.locator(`[data-testid="brand-card-${VEHICLE.brandId}"]`).click();
     await page.waitForTimeout(300);
     await shot(page, 'vehicle-brand-selected');
   });
@@ -231,11 +267,10 @@ test.describe.serial('DE Unified Walkthrough', () => {
   test('P1-05 - Customer: Vehicle model select (dropdown open)', async ({ page }) => {
     await page.goto(`/${LOCALE}/booking`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('#year')).toBeVisible({ timeout: 10000 });
-    await page.locator('[role="combobox"]').first().click();
-    await page.locator(`[role="option"]:has-text("${VEHICLE.brandLabel}")`).click();
+    await expect(page.locator('[data-testid="vehicle-step"]')).toBeVisible({ timeout: 10000 });
+    await page.locator(`[data-testid="brand-card-${VEHICLE.brandId}"]`).click();
     await page.waitForTimeout(300);
-    await page.locator('[role="combobox"]').nth(1).click();
+    await page.locator('[role="combobox"]').first().click();
     await page.waitForTimeout(400);
     await shot(page, 'vehicle-model-dropdown');
   });
@@ -243,39 +278,40 @@ test.describe.serial('DE Unified Walkthrough', () => {
   test('P1-06 - Customer: Vehicle model selected', async ({ page }) => {
     await page.goto(`/${LOCALE}/booking`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('#year')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="vehicle-step"]')).toBeVisible({ timeout: 10000 });
+    await page.locator(`[data-testid="brand-card-${VEHICLE.brandId}"]`).click();
+    await page.waitForTimeout(300);
     await page.locator('[role="combobox"]').first().click();
-    await page.locator(`[role="option"]:has-text("${VEHICLE.brandLabel}")`).click();
-    await page.waitForTimeout(200);
-    await page.locator('[role="combobox"]').nth(1).click();
     await page.locator(`[role="option"]:has-text("${VEHICLE.model}")`).click();
     await page.waitForTimeout(300);
     await shot(page, 'vehicle-model-selected');
   });
 
-  test('P1-07 - Customer: Year input', async ({ page }) => {
+  test('P1-07 - Customer: Year selected', async ({ page }) => {
     await page.goto(`/${LOCALE}/booking`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('#year')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="vehicle-step"]')).toBeVisible({ timeout: 10000 });
+    await page.locator(`[data-testid="brand-card-${VEHICLE.brandId}"]`).click();
+    await page.waitForTimeout(300);
     await page.locator('[role="combobox"]').first().click();
-    await page.locator(`[role="option"]:has-text("${VEHICLE.brandLabel}")`).click();
+    await page.locator(`[role="option"]:has-text("${VEHICLE.model}")`).click();
     await page.waitForTimeout(200);
     await page.locator('[role="combobox"]').nth(1).click();
-    await page.locator(`[role="option"]:has-text("${VEHICLE.model}")`).click();
-    await page.locator('#year').fill(VEHICLE.year);
-    await shot(page, 'vehicle-year-input');
+    await page.locator(`[role="option"]:has-text("${VEHICLE.year}")`).click();
+    await shot(page, 'vehicle-year-selected');
   });
 
   test('P1-08 - Customer: Mileage input', async ({ page }) => {
     await page.goto(`/${LOCALE}/booking`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('#year')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="vehicle-step"]')).toBeVisible({ timeout: 10000 });
+    await page.locator(`[data-testid="brand-card-${VEHICLE.brandId}"]`).click();
+    await page.waitForTimeout(300);
     await page.locator('[role="combobox"]').first().click();
-    await page.locator(`[role="option"]:has-text("${VEHICLE.brandLabel}")`).click();
+    await page.locator(`[role="option"]:has-text("${VEHICLE.model}")`).click();
     await page.waitForTimeout(200);
     await page.locator('[role="combobox"]').nth(1).click();
-    await page.locator(`[role="option"]:has-text("${VEHICLE.model}")`).click();
-    await page.locator('#year').fill(VEHICLE.year);
+    await page.locator(`[role="option"]:has-text("${VEHICLE.year}")`).click();
     await page.locator('#mileage').fill(VEHICLE.mileage);
     await shot(page, 'vehicle-mileage-input');
   });
@@ -283,9 +319,12 @@ test.describe.serial('DE Unified Walkthrough', () => {
   test('P1-09 - Customer: Vehicle form complete', async ({ page }) => {
     await page.goto(`/${LOCALE}/booking`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('#year')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="vehicle-step"]')).toBeVisible({ timeout: 10000 });
     await fillVehicleForm(page);
-    await page.locator('#year').click(); // trigger validation
+    // Scroll to bottom of form for mobile screenshot
+    const mileageInput = page.locator('#mileage');
+    await scrollTo(page, mileageInput);
+    await mileageInput.click(); // trigger validation
     await page.waitForTimeout(300);
     await shot(page, 'vehicle-form-complete');
   });
@@ -293,9 +332,11 @@ test.describe.serial('DE Unified Walkthrough', () => {
   test('P1-10 - Customer: Service selection page', async ({ page }) => {
     await page.goto(`/${LOCALE}/booking`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('#year')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="vehicle-step"]')).toBeVisible({ timeout: 10000 });
     await fillVehicleForm(page);
-    await page.locator('button:has-text("Weiter")').click();
+    const weiterBtn = page.locator('button:has-text("Weiter")');
+    await scrollTo(page, weiterBtn);
+    await weiterBtn.click();
     await expect(page.locator('[data-testid="service-card-inspection"]')).toBeVisible({ timeout: 10000 });
     await shot(page, 'service-selection');
   });
@@ -303,11 +344,15 @@ test.describe.serial('DE Unified Walkthrough', () => {
   test('P1-11 - Customer: Service selected', async ({ page }) => {
     await page.goto(`/${LOCALE}/booking`);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('#year')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="vehicle-step"]')).toBeVisible({ timeout: 10000 });
     await fillVehicleForm(page);
-    await page.locator('button:has-text("Weiter")').click();
-    await expect(page.locator('[data-testid="service-card-inspection"]')).toBeVisible({ timeout: 10000 });
-    await page.locator('[data-testid="service-card-inspection"]').click();
+    const weiterBtn = page.locator('button:has-text("Weiter")');
+    await scrollTo(page, weiterBtn);
+    await weiterBtn.click();
+    const serviceCard = page.locator('[data-testid="service-card-inspection"]');
+    await expect(serviceCard).toBeVisible({ timeout: 10000 });
+    await scrollTo(page, serviceCard);
+    await serviceCard.click();
     await page.waitForTimeout(300);
     await shot(page, 'service-selected');
   });
@@ -347,23 +392,32 @@ test.describe.serial('DE Unified Walkthrough', () => {
     await pickDate(page);
     await pickTimeSlots(page);
     await fillAddress(page);
-    await page.locator('button:has-text("Weiter")').click();
+    const weiterBtn = page.locator('button:has-text("Weiter")');
+    await scrollTo(page, weiterBtn);
+    await weiterBtn.click();
 
     // Step 4 - Contact / confirmation form
     await expect(page.locator('#firstName')).toBeVisible({ timeout: 10000 });
     await shot(page, 'booking-confirm-empty');
 
-    // Fill contact info
-    await page.locator('#firstName').fill(CUSTOMER.firstName);
+    // Fill contact info (scroll to each field on mobile)
+    const firstNameInput = page.locator('#firstName');
+    await scrollTo(page, firstNameInput);
+    await firstNameInput.fill(CUSTOMER.firstName);
     await page.locator('#lastName').fill(CUSTOMER.lastName);
-    await page.locator('#email').fill(CUSTOMER.email);
+    const emailInput = page.locator('#email');
+    await scrollTo(page, emailInput);
+    await emailInput.fill(CUSTOMER.email);
     await page.locator('#phone').fill(CUSTOMER.phone);
-    await page.locator('#terms').click();
+    const termsCheckbox = page.locator('#terms');
+    await scrollTo(page, termsCheckbox);
+    await termsCheckbox.click();
     await page.waitForTimeout(300);
     await shot(page, 'booking-confirm-filled');
 
     // Submit booking
     const submitBtn = page.locator('button:has-text("Jetzt kostenpflichtig buchen")');
+    await scrollTo(page, submitBtn);
     await expect(submitBtn).toBeEnabled({ timeout: 5000 });
     await submitBtn.click();
 
@@ -510,22 +564,28 @@ test.describe.serial('DE Unified Walkthrough', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
-    const badge = page.locator('[data-testid="booking-status"]').first();
-    await expect(badge).toBeVisible({ timeout: 10000 });
-    console.log(`    Dashboard badge text: ${await badge.textContent()}`);
+    // Kanban board should be visible
+    const kanban = page.locator('[data-testid="kanban-board"]');
+    if (await kanban.isVisible({ timeout: 10000 }).catch(() => false)) {
+      console.log('    Kanban board visible');
+    }
     await shot(page, 'workshop-dashboard-received');
 
-    // Open order details modal
-    const orderRow = page.locator('tr', { hasText: bookingNumber }).first();
-    if (await orderRow.isVisible({ timeout: 5000 }).catch(() => false)) {
-      const detailsBtn = orderRow.locator('button:has-text("Details")');
-      await detailsBtn.click();
-      await page.waitForTimeout(1000);
-      await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 5000 });
-      await shot(page, 'workshop-order-details-received');
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(500);
+    // Navigate to order detail page
+    const card = page.locator(`[data-testid="kanban-card-${bookingNumber}"]`);
+    if (await card.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const detailBtn = card.locator('button:has-text("Details"), a:has-text("Details")').first();
+      if (await detailBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await detailBtn.click();
+      } else {
+        await page.goto(`/${LOCALE}/workshop/orders/${bookingId}`);
+      }
+    } else {
+      await page.goto(`/${LOCALE}/workshop/orders/${bookingId}`);
     }
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
+    await shot(page, 'workshop-order-details-received');
   });
 
   // ==========================================================================
@@ -547,22 +607,23 @@ test.describe.serial('DE Unified Walkthrough', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
-    const badge = page.locator('[data-testid="booking-status"]').first();
-    await expect(badge).toBeVisible({ timeout: 10000 });
-    console.log(`    Dashboard badge text: ${await badge.textContent()}`);
     await shot(page, 'workshop-dashboard-in-progress');
 
-    // Open order details modal
-    const orderRow = page.locator('tr', { hasText: bookingNumber }).first();
-    if (await orderRow.isVisible({ timeout: 5000 }).catch(() => false)) {
-      const detailsBtn = orderRow.locator('button:has-text("Details")');
-      await detailsBtn.click();
-      await page.waitForTimeout(1000);
-      await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 5000 });
-      await shot(page, 'workshop-order-details-in-progress');
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(500);
+    // Navigate to order detail page
+    const card = page.locator(`[data-testid="kanban-card-${bookingNumber}"]`);
+    if (await card.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const detailBtn = card.locator('button:has-text("Details"), a:has-text("Details"), button:has-text("Erweiterung"), button:has-text("Abschliessen"), button:has-text("Abschließen")').first();
+      if (await detailBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await detailBtn.click();
+      } else {
+        await page.goto(`/${LOCALE}/workshop/orders/${bookingId}`);
+      }
+    } else {
+      await page.goto(`/${LOCALE}/workshop/orders/${bookingId}`);
     }
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
+    await shot(page, 'workshop-order-details-in-progress');
   });
 
   // ==========================================================================
@@ -572,90 +633,69 @@ test.describe.serial('DE Unified Walkthrough', () => {
   // customer reviews, approves, and pays (demo payment), workshop confirms.
   // ==========================================================================
 
-  test('P5-01 - Workshop: Open extension modal on our booking', async ({ page }) => {
+  test('P5-01 - Workshop: Open extension form on our booking', async ({ page }) => {
     await injectToken(page, workshopToken);
-    await page.goto(`/${LOCALE}/workshop/dashboard`);
+    await page.goto(`/${LOCALE}/workshop/orders/${bookingId}`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
+    await shot(page, 'workshop-order-detail-before-extension');
 
-    // Verify order table is visible
-    await expect(page.locator('table')).toBeVisible({ timeout: 10000 });
-    await shot(page, 'workshop-order-list-before-extension');
-
-    // Find the "+" extension button for OUR booking row
-    const orderRow = page.locator('tr', { hasText: bookingNumber });
-    const extensionBtn = orderRow.locator('button').filter({ has: page.locator('svg.lucide-plus') });
-    await expect(extensionBtn).toBeVisible({ timeout: 10000 });
-    await extensionBtn.click();
-    await page.waitForTimeout(800);
-
-    // Verify extension modal opened
-    await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 5000 });
-    await shot(page, 'workshop-extension-modal-empty');
+    // Click "New Extension" text link to show inline form
+    const newExtBtn = page.locator('button').filter({ hasText: /Neue Erweiterung|New Extension|Erweiterung/i });
+    if (await newExtBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await newExtBtn.click();
+      await page.waitForTimeout(800);
+    }
+    await shot(page, 'workshop-extension-form-empty');
   });
 
   test('P5-02 - Workshop: Fill extension form with two items', async ({ page }) => {
     await injectToken(page, workshopToken);
-    await page.goto(`/${LOCALE}/workshop/dashboard`);
+    await page.goto(`/${LOCALE}/workshop/orders/${bookingId}`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
-    // Open extension modal
-    const orderRow = page.locator('tr', { hasText: bookingNumber });
-    const extensionBtn = orderRow.locator('button').filter({ has: page.locator('svg.lucide-plus') });
-    await expect(extensionBtn).toBeVisible({ timeout: 10000 });
-    await extensionBtn.click();
-    await page.waitForTimeout(800);
-    await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 5000 });
+    // Open inline extension form
+    const newExtBtn = page.locator('button').filter({ hasText: /Neue Erweiterung|New Extension|Erweiterung/i });
+    if (await newExtBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await newExtBtn.click();
+      await page.waitForTimeout(800);
+    }
 
-    const dialog = page.locator('[role="dialog"]');
+    const form = page.locator('[data-testid="inline-extension-form"]');
+    await expect(form).toBeVisible({ timeout: 5000 });
 
-    // Fill item 1: Bremsscheiben vorne
-    const descTextarea = dialog.locator('textarea').first();
-    await expect(descTextarea).toBeVisible({ timeout: 5000 });
-    await descTextarea.fill('Bremsscheiben vorne abgenutzt');
+    // Fill description
+    await form.locator('textarea').first().fill('Bremsscheiben vorne abgenutzt');
 
-    const priceInput = dialog.locator('input[type="number"]').first();
-    await priceInput.fill('185.50');
+    // Fill item 1: name and unit price (use table row selectors to avoid cross-matching)
+    const rows = form.locator('tbody tr');
+    const row1 = rows.nth(0);
+    await row1.locator('td').nth(0).locator('input').fill('Bremsscheiben vorne');
+    await row1.locator('td').nth(2).locator('input').fill('185.50');
     await page.waitForTimeout(300);
     await shot(page, 'workshop-extension-item1-filled');
 
-    // Add a second item via the "+" button inside the modal
-    const addItemBtn = dialog.locator('button').filter({ has: page.locator('svg.lucide-plus') });
+    // Add a second item via "Add Position" link
+    const addItemBtn = form.locator('button').filter({ hasText: /Position|hinzufügen|Add/i });
     if (await addItemBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await addItemBtn.click();
       await page.waitForTimeout(300);
 
-      const textareas = dialog.locator('textarea');
-      const secondTextarea = textareas.nth(1);
-      if (await secondTextarea.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await secondTextarea.fill('Bremsbeläge vorne');
-        const priceInputs = dialog.locator('input[type="number"]');
-        const secondPrice = priceInputs.nth(1);
-        if (await secondPrice.isVisible({ timeout: 2000 }).catch(() => false)) {
-          await secondPrice.fill('95.00');
-        }
+      // Fill item 2 using the second table row
+      const row2 = rows.nth(1);
+      if (await row2.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await row2.locator('td').nth(0).locator('input').fill('Bremsbeläge vorne');
+        await row2.locator('td').nth(2).locator('input').fill('95.00');
       }
       await page.waitForTimeout(300);
       await shot(page, 'workshop-extension-two-items');
     }
 
-    // Submit the extension
-    const sendBtn = dialog.locator('button').filter({ has: page.locator('svg.lucide-send') });
+    // Submit the extension via Send button
+    const sendBtn = form.locator('button').filter({ hasText: /senden|send|submit/i });
     if (await sendBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await sendBtn.click();
-    } else {
-      // Fallback: find a submit-like button
-      const buttons = dialog.locator('button');
-      const count = await buttons.count();
-      for (let i = count - 1; i >= 0; i--) {
-        const btn = buttons.nth(i);
-        const text = await btn.textContent() || '';
-        if (text.match(/senden|send|submit|erstellen|create/i)) {
-          await btn.click();
-          break;
-        }
-      }
     }
     await page.waitForTimeout(1500);
     await shot(page, 'workshop-extension-submitted');
@@ -717,9 +757,10 @@ test.describe.serial('DE Unified Walkthrough', () => {
       console.log(`    items type: ${typeof extDebug.data[0].items}, isArray: ${Array.isArray(extDebug.data[0].items)}`);
     }
 
-    // Click extensions tab
-    const extensionsTab = page.locator('button[role="tab"]').filter({ hasText: /Erweiterungen|Extensions/i });
+    // Click extensions tab (scroll into view for mobile)
+    const extensionsTab = page.locator('button').filter({ hasText: /Erweiterungen|Extensions/i });
     if (await extensionsTab.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await scrollTo(page, extensionsTab);
       await extensionsTab.click();
       await page.waitForTimeout(3000);
     }
@@ -733,17 +774,19 @@ test.describe.serial('DE Unified Walkthrough', () => {
     await page.waitForTimeout(2000);
 
     // Click extensions tab
-    const extensionsTab = page.locator('button[role="tab"]').filter({ hasText: /Erweiterungen|Extensions/i });
+    const extensionsTab = page.locator('button').filter({ hasText: /Erweiterungen|Extensions/i });
     if (await extensionsTab.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await scrollTo(page, extensionsTab);
       await extensionsTab.click();
       await page.waitForTimeout(3000);
     }
 
-    // Click the extension action button (AlertTriangle icon = approve & pay)
-    const extensionActionBtn = page.locator('[role="tabpanel"] button').filter({
+    // Click the extension action button (scroll into view for mobile)
+    const extensionActionBtn = page.locator('button').filter({
       has: page.locator('svg.lucide-triangle-alert'),
     }).first();
     if (await extensionActionBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await scrollTo(page, extensionActionBtn);
       await extensionActionBtn.click();
       await page.waitForTimeout(1000);
     }
@@ -757,26 +800,29 @@ test.describe.serial('DE Unified Walkthrough', () => {
     await page.waitForTimeout(2000);
 
     // Navigate to extensions tab
-    const extensionsTab = page.locator('button[role="tab"]').filter({ hasText: /Erweiterungen|Extensions/i });
+    const extensionsTab = page.locator('button').filter({ hasText: /Erweiterungen|Extensions/i });
     if (await extensionsTab.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await scrollTo(page, extensionsTab);
       await extensionsTab.click();
       await page.waitForTimeout(3000);
     }
 
     // Open review modal via the prominent amber button
-    const extensionActionBtn = page.locator('[role="tabpanel"] button').filter({
+    const extensionActionBtn = page.locator('button').filter({
       has: page.locator('svg.lucide-triangle-alert'),
     }).first();
     if (await extensionActionBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await scrollTo(page, extensionActionBtn);
       await extensionActionBtn.click();
       await page.waitForTimeout(1000);
     }
 
-    // Click approve button in the modal
+    // Click approve button in the modal (scroll within dialog for mobile)
     const approveBtn = page.locator('[role="dialog"] button').filter({
       hasText: /Genehmigen|Approve|bezahlen|Pay/i,
     }).first();
     if (await approveBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await scrollTo(page, approveBtn);
       await approveBtn.click();
       await page.waitForTimeout(1500);
     }
@@ -785,6 +831,7 @@ test.describe.serial('DE Unified Walkthrough', () => {
     // Click demo payment button
     const demoPayBtn = page.locator('button').filter({ hasText: /Pay with Demo|Demo/i }).first();
     if (await demoPayBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await scrollTo(page, demoPayBtn);
       await demoPayBtn.click();
       await page.waitForTimeout(4000);
       await shot(page, 'customer-extension-payment-success');
@@ -818,8 +865,9 @@ test.describe.serial('DE Unified Walkthrough', () => {
     await page.waitForTimeout(2000);
 
     // Click extensions tab
-    const extensionsTab = page.locator('button[role="tab"]').filter({ hasText: /Erweiterungen|Extensions/i });
+    const extensionsTab = page.locator('button').filter({ hasText: /Erweiterungen|Extensions/i });
     if (await extensionsTab.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await scrollTo(page, extensionsTab);
       await extensionsTab.click();
       await page.waitForTimeout(1500);
     }
@@ -828,17 +876,10 @@ test.describe.serial('DE Unified Walkthrough', () => {
 
   test('P5-11 - Workshop: See approved extension in order details', async ({ page }) => {
     await injectToken(page, workshopToken);
-    await page.goto(`/${LOCALE}/workshop/dashboard`);
+    // Navigate directly to order detail page
+    await page.goto(`/${LOCALE}/workshop/orders/${bookingId}`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
-
-    // Open order details to see approved extension
-    const orderRow = page.locator('tr', { hasText: bookingNumber });
-    const detailsBtn = orderRow.locator('button:has-text("Details")');
-    if (await detailsBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await detailsBtn.click();
-      await page.waitForTimeout(1000);
-    }
     await shot(page, 'workshop-extension-approved');
   });
 
@@ -861,22 +902,26 @@ test.describe.serial('DE Unified Walkthrough', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
-    const badge = page.locator('[data-testid="booking-status"]').first();
-    await expect(badge).toBeVisible({ timeout: 10000 });
-    console.log(`    Dashboard badge text: ${await badge.textContent()}`);
+    // Verify kanban board is visible
+    const kanban = page.locator('[data-testid="kanban-board"]');
+    if (await kanban.isVisible({ timeout: 10000 }).catch(() => false)) {
+      console.log('    Kanban board visible');
+    }
     await shot(page, 'workshop-dashboard-completed');
 
-    // Open order details modal
-    const orderRow = page.locator('tr', { hasText: bookingNumber }).first();
-    if (await orderRow.isVisible({ timeout: 5000 }).catch(() => false)) {
-      const detailsBtn = orderRow.locator('button:has-text("Details")');
-      await detailsBtn.click();
-      await page.waitForTimeout(1000);
-      await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 5000 });
-      await shot(page, 'workshop-order-details-completed');
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(500);
+    // Navigate to order detail page (full page, not modal)
+    const card = page.locator(`[data-testid="kanban-card-${bookingNumber}"]`);
+    if (await card.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const detailBtn = card.locator('button:has-text("Details"), a:has-text("Details")');
+      if (await detailBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await detailBtn.click();
+      }
+    } else {
+      await page.goto(`/${LOCALE}/workshop/orders/${bookingId}`);
     }
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
+    await shot(page, 'workshop-order-details-completed');
   });
 
   test('P6-02 - Setup: Advance to RETURN_ASSIGNED (creates return assignment)', async () => {

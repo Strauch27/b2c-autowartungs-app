@@ -97,10 +97,12 @@ export function canUserAuthenticate(user: User): { canAuth: boolean; reason?: st
 /**
  * Sanitize user data for response (remove sensitive fields)
  */
-export function sanitizeUserForResponse(user: User): { id: string; email: string; role: UserRole } {
+export function sanitizeUserForResponse(user: User): { id: string; email: string; role: UserRole; name: string } {
+  const name = [user.firstName, user.lastName].filter(Boolean).join(' ');
   return {
     id: user.id,
     email: user.email,
-    role: user.role
+    role: user.role,
+    name,
   };
 }

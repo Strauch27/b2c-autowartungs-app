@@ -4,15 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, MapPin, RotateCcw, Sparkles, User, Mail, Phone } from "lucide-react";
+import { Car, Settings, CalendarIcon, CheckCircle, User } from "lucide-react";
 import { format } from "date-fns";
 import { de, enUS } from "date-fns/locale";
+import Link from "next/link";
+import { VEHICLE_BRANDS } from "@/lib/constants/vehicles";
 
 interface ConfirmationStepProps {
   formData: {
     brand: string;
     model: string;
     year: string;
+    mileage: string;
+    licensePlate?: string;
     selectedServices: string[];
     date: Date | undefined;
     time: string;
@@ -70,92 +74,96 @@ export function ConfirmationStep({
   const selectedServicesList = services.filter((s) => formData.selectedServices.includes(s.id));
   const totalPrice = selectedServicesList.reduce((sum, s) => sum + s.price, 0);
 
+  const mileageDisplay = formData.mileage
+    ? parseInt(formData.mileage, 10).toLocaleString(language === 'en' ? 'en-US' : 'de-DE')
+    : '';
+
   return (
-    <div className="animate-fade-in space-y-6">
+    <div className="animate-fade-in space-y-6" data-testid="confirmation-step">
+      {/* Booking Summary */}
       <Card className="card-premium">
         <CardHeader>
           <CardTitle>{translations.title}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="border-b border-border pb-3">
-            <span className="text-muted-foreground">{translations.service}</span>
-            <div className="mt-1 space-y-1">
+          {/* Vehicle Row */}
+          <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-xl">
+            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+              <Car className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">{translations.vehicle}</p>
+              <p className="font-semibold">
+                {VEHICLE_BRANDS.find(b => b.id === formData.brand)?.name || formData.brand} {formData.model}{formData.year ? `, ${formData.year}` : ''}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {mileageDisplay ? `${mileageDisplay} km` : ''}
+                {formData.licensePlate ? ` | ${formData.licensePlate}` : ''}
+              </p>
+            </div>
+          </div>
+
+          {/* Services Row */}
+          <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-xl">
+            <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+              <Settings className="w-5 h-5 text-amber-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">{translations.service}</p>
               {selectedServicesList.map((service) => (
-                <div key={service.id} className="flex justify-between">
-                  <span className="font-medium">{service.name}</span>
-                  <span className="text-muted-foreground">{service.price}€</span>
+                <div key={service.id} className="flex justify-between items-center mt-1">
+                  <p className="font-semibold">{service.name}</p>
+                  <span className="font-semibold">{service.price} EUR</span>
                 </div>
               ))}
             </div>
           </div>
-          <div className="flex justify-between border-b border-border pb-3">
-            <span className="text-muted-foreground">{translations.vehicle}</span>
-            <span className="font-medium">
-              {formData.brand} {formData.model}
-            </span>
-          </div>
-          {/* Pickup & Return Timeline */}
-          <div className="rounded-xl border border-border bg-muted/30 p-4">
-            <div className="flex items-start gap-4">
-              {/* Pickup */}
-              <div className="flex-1">
-                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  {translations.timeline.pickup}
-                </div>
-                <p className="mt-1 font-semibold">
-                  {formData.date && format(formData.date, "dd.MM.yyyy", { locale: dateLocale })}
-                </p>
-                <p className="text-sm text-muted-foreground">{formData.time}</p>
-              </div>
 
-              {/* Arrow/Divider */}
-              <div className="flex flex-col items-center pt-4">
-                <div className="h-8 w-0.5 bg-success/50"></div>
-                <ArrowRight className="h-4 w-4 rotate-90 text-success" />
-                <div className="h-8 w-0.5 bg-success/50"></div>
-              </div>
-
-              {/* Return */}
-              <div className="flex-1 text-right">
-                <div className="flex items-center justify-end gap-2 text-sm font-medium text-muted-foreground">
-                  {translations.timeline.return}
-                  <RotateCcw className="h-4 w-4" />
-                </div>
-                <p className="mt-1 font-semibold">
-                  {formData.returnDate && format(formData.returnDate, "dd.MM.yyyy", { locale: dateLocale })}
-                </p>
-                <p className="text-sm text-muted-foreground">{formData.returnTime}</p>
-              </div>
+          {/* Appointment Row */}
+          <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-xl">
+            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+              <CalendarIcon className="w-5 h-5 text-green-600" />
             </div>
-
-            <div className="mt-3 border-t border-border pt-3">
-              <p className="text-center text-sm text-muted-foreground">
-                <MapPin className="mr-1 inline h-3 w-3" />
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                {translations.timeline.pickup}
+              </p>
+              <p className="font-semibold">
+                {formData.date
+                  ? `${format(formData.date, "EE, dd.MM.yyyy", { locale: dateLocale })} ${language === 'de' ? 'um' : 'at'} ${formData.time}`
+                  : ''}
+              </p>
+              <p className="text-sm text-muted-foreground">
                 {formData.street}, {formData.zip} {formData.city}
               </p>
             </div>
           </div>
 
           {/* Concierge Highlight */}
-          <div className="rounded-xl border-2 border-success/30 bg-gradient-to-r from-success/10 to-transparent p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success/20">
-                <Sparkles className="h-5 w-5 text-success" />
+          <div className="flex items-start gap-4 p-4 bg-green-50 rounded-xl border border-green-100">
+            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+            </div>
+            <div className="flex-1">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="font-semibold text-green-800">{translations.conciergeIncluded}</p>
+                  <p className="text-sm text-green-600">{translations.conciergeDescription}</p>
+                </div>
+                <span className="font-bold text-green-600">0 EUR</span>
               </div>
-              <div>
-                <p className="font-semibold text-success">{translations.conciergeIncluded}</p>
-                <p className="text-sm text-muted-foreground">
-                  {translations.conciergeDescription}
-                </p>
-              </div>
-              <span className="ml-auto font-bold text-success">0€</span>
             </div>
           </div>
 
-          <div className="flex justify-between pt-4">
-            <span className="text-lg font-semibold">{translations.total}</span>
-            <span className="text-2xl font-bold text-cta">{totalPrice}€</span>
+          {/* Total */}
+          <div className="border-t-2 border-border pt-4">
+            <div className="flex justify-between items-center">
+              <span className="text-lg font-bold">{translations.total}</span>
+              <span className="text-2xl font-bold text-amber-500">{totalPrice} EUR</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {language === 'de' ? 'inkl. MwSt. | Festpreis-Garantie' : 'incl. VAT | Fixed price guarantee'}
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -164,22 +172,20 @@ export function ConfirmationStep({
       <Card className="card-premium">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
+            <User className="h-5 w-5 text-muted-foreground" />
             {translations.contact.title}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="firstName" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                {translations.contact.firstName}
-              </Label>
+              <Label htmlFor="firstName">{translations.contact.firstName}</Label>
               <Input
                 id="firstName"
                 placeholder={translations.contact.firstNamePlaceholder}
                 value={formData.firstName}
                 onChange={(e) => onUpdate({ firstName: e.target.value })}
+                className="rounded-xl"
                 required
               />
             </div>
@@ -190,66 +196,65 @@ export function ConfirmationStep({
                 placeholder={translations.contact.lastNamePlaceholder}
                 value={formData.lastName}
                 onChange={(e) => onUpdate({ lastName: e.target.value })}
+                className="rounded-xl"
                 required
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="email" className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              {translations.contact.email}
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder={translations.contact.emailPlaceholder}
-              value={formData.email}
-              onChange={(e) => onUpdate({ email: e.target.value })}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="phone" className="flex items-center gap-2">
-              <Phone className="h-4 w-4" />
-              {translations.contact.phone}
-            </Label>
-            <Input
-              id="phone"
-              type="tel"
-              placeholder={translations.contact.phonePlaceholder}
-              value={formData.phone}
-              onChange={(e) => onUpdate({ phone: e.target.value })}
-              required
-            />
-          </div>
-          <div className="rounded-lg bg-muted/50 p-3">
-            <p className="text-sm text-muted-foreground">
-              {translations.contact.note}
-            </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="email">{translations.contact.email}</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder={translations.contact.emailPlaceholder}
+                value={formData.email}
+                onChange={(e) => onUpdate({ email: e.target.value })}
+                className="rounded-xl"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">{translations.contact.phone}</Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder={translations.contact.phonePlaceholder}
+                value={formData.phone}
+                onChange={(e) => onUpdate({ phone: e.target.value })}
+                className="rounded-xl"
+                required
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="card-premium">
-        <CardHeader>
-          <CardTitle>{language === "de" ? "Zahlungsmethode" : "Payment Method"}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="rounded-lg border border-border bg-muted/50 p-4 text-center text-muted-foreground">
-            <p className="text-sm">{language === "de" ? "Stripe Zahlungsintegration wird hier angezeigt" : "Stripe payment integration will be shown here"}</p>
-          </div>
-          <div className="flex items-start space-x-2">
-            <Checkbox
-              id="terms"
-              checked={formData.acceptTerms}
-              onCheckedChange={(c) => onUpdate({ acceptTerms: !!c })}
-            />
-            <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground">
-              {translations.terms}
-            </Label>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Terms */}
+      <div className="flex items-start space-x-3">
+        <Checkbox
+          id="terms"
+          checked={formData.acceptTerms}
+          onCheckedChange={(c) => onUpdate({ acceptTerms: !!c })}
+        />
+        <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground leading-relaxed">
+          {language === 'de' ? (
+            <>
+              Ich akzeptiere die{' '}
+              <Link href={`/${language}/terms`} className="text-blue-500 underline hover:text-blue-700">AGB</Link>
+              {' '}und{' '}
+              <Link href={`/${language}/privacy`} className="text-blue-500 underline hover:text-blue-700">Datenschutzbestimmungen</Link>
+            </>
+          ) : (
+            <>
+              I accept the{' '}
+              <Link href={`/${language}/terms`} className="text-blue-500 underline hover:text-blue-700">Terms of Service</Link>
+              {' '}and{' '}
+              <Link href={`/${language}/privacy`} className="text-blue-500 underline hover:text-blue-700">Privacy Policy</Link>
+            </>
+          )}
+        </Label>
+      </div>
     </div>
   );
 }

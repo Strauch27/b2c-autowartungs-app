@@ -1,0 +1,389 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useTranslations, useLocale } from 'next-intl';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { workshopsApi, WorkshopOrder, CreateExtensionData } from '@/lib/api/workshops';
+import { StatusTimeline } from '@/components/workshop/StatusTimeline';
+import { ExtensionForm } from '@/components/workshop/ExtensionForm';
+import { CommunicationSection } from '@/components/workshop/CommunicationSection';
+import { Loader2, ArrowLeft, Phone, Mail, MapPin, Calendar, Car, User, Wrench, FileText } from 'lucide-react';
+import { toast } from 'sonner';
+
+function mapDisplayStatus(bookingStatus: string): 'pending' | 'inProgress' | 'completed' | 'cancelled' {
+  if (bookingStatus === 'CANCELLED') return 'cancelled';
+  if (['DELIVERED', 'COMPLETED', 'READY_FOR_RETURN', 'RETURN_ASSIGNED', 'RETURNED'].includes(bookingStatus)) return 'completed';
+  if (['IN_SERVICE', 'IN_WORKSHOP'].includes(bookingStatus)) return 'inProgress';
+  if (['AT_WORKSHOP', 'PICKED_UP'].includes(bookingStatus)) return 'pending';
+  return 'pending';
+}
+
+function OrderDetailContent() {
+  const params = useParams();
+  const router = useRouter();
+  const t = useTranslations('workshopDashboard');
+  const td = useTranslations('workshopDashboard.detail');
+  const ts = useTranslations('payment.serviceTypes');
+  const locale = useLocale();
+
+  const bookingId = params.id as string;
+
+  const [order, setOrder] = useState<WorkshopOrder | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showExtensionForm, setShowExtensionForm] = useState(false);
+
+  useEffect(() => {
+    async function fetchOrder() {
+      try {
+        setIsLoading(true);
+        const data = await workshopsApi.getOrder(bookingId);
+        setOrder(data);
+      } catch (error) {
+        console.error('Failed to fetch order:', error);
+        toast.error(t('toast.loadFailed'));
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    if (bookingId) fetchOrder();
+  }, [bookingId]);
+
+  const handleStatusAdvance = async () => {
+    if (!order) return;
+    try {
+      let targetStatus: string;
+      const currentStatus = order.status;
+      if (currentStatus === 'PICKED_UP') {
+        targetStatus = 'AT_WORKSHOP';
+      } else if (currentStatus === 'AT_WORKSHOP') {
+        targetStatus = 'IN_SERVICE';
+      } else if (['IN_SERVICE', 'IN_WORKSHOP'].includes(currentStatus)) {
+        targetStatus = 'READY_FOR_RETURN';
+      } else {
+        return;
+      }
+      await workshopsApi.updateStatus(order.bookingNumber, targetStatus);
+      toast.success(t('toast.statusUpdated'));
+      const updated = await workshopsApi.getOrder(bookingId);
+      setOrder(updated);
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      toast.error(t('toast.statusFailed'));
+    }
+  };
+
+  const handleExtensionSubmit = async (description: string, items: Array<{ id: string; name: string; quantity: number; unitPrice: string }>) => {
+    if (!order) return;
+    try {
+      const extensionData: CreateExtensionData = {
+        description,
+        items: items.map(item => ({
+          name: item.name,
+          price: parseFloat(item.unitPrice) * 100,
+          quantity: item.quantity,
+        })),
+      };
+      await workshopsApi.createExtension(order.id, extensionData);
+      toast.success(t('toast.extensionSent'));
+      setShowExtensionForm(false);
+      const updated = await workshopsApi.getOrder(bookingId);
+      setOrder(updated);
+    } catch (error) {
+      console.error('Failed to submit extension:', error);
+      toast.error(t('toast.extensionFailed'));
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3">
+        <p className="text-muted-foreground">{td('orderNotFound')}</p>
+        <button
+          onClick={() => router.push(`/${locale}/workshop/dashboard`)}
+          className="text-sm font-medium text-primary hover:underline"
+        >
+          {td('back')}
+        </button>
+      </div>
+    );
+  }
+
+  const displayStatus = mapDisplayStatus(order.status);
+  const customerName = order.customer
+    ? `${order.customer.firstName || ''} ${order.customer.lastName || ''}`.trim()
+    : '';
+  const vehicleLabel = order.vehicle
+    ? `${order.vehicle.brand} ${order.vehicle.model}`
+    : '';
+
+  // Status advancement button config
+  const getAdvanceButton = () => {
+    const status = order.status;
+    if (status === 'PICKED_UP') {
+      return { label: td('markArrived'), color: 'bg-primary text-primary-foreground hover:bg-primary/90' };
+    }
+    if (status === 'AT_WORKSHOP') {
+      return { label: td('startWork'), color: 'bg-cta text-cta-foreground hover:bg-cta-hover' };
+    }
+    if (['IN_SERVICE', 'IN_WORKSHOP'].includes(status)) {
+      return { label: td('markCompleted'), color: 'bg-success text-success-foreground hover:bg-success/90' };
+    }
+    return null;
+  };
+
+  const advanceButton = getAdvanceButton();
+
+  // Status badge colors
+  const statusBadge = {
+    pending: 'badge-pending',
+    inProgress: 'badge-in-progress',
+    completed: 'badge-completed',
+    cancelled: 'bg-neutral-100 text-neutral-600',
+  }[displayStatus];
+
+  const statusLabel = {
+    pending: t('status.received'),
+    inProgress: t('status.inProgress'),
+    completed: t('status.completed'),
+    cancelled: t('status.cancelled'),
+  }[displayStatus];
+
+  return (
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6" data-testid="workshop-order-detail">
+      {/* Header row */}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push(`/${locale}/workshop/dashboard`)}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 transition-colors hover:bg-neutral-50"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <div>
+            <h1 className="text-lg font-bold">{order.bookingNumber}</h1>
+            <p className="text-xs text-muted-foreground">{vehicleLabel}</p>
+          </div>
+        </div>
+        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusBadge}`}>
+          {statusLabel}
+        </span>
+      </div>
+
+      {/* Status advancement */}
+      {advanceButton && (
+        <div className="mb-6 rounded-xl border border-neutral-200 bg-card p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-foreground">{td('changeStatus')}</p>
+              <p className="text-xs text-muted-foreground">{td('statusTimeline')}</p>
+            </div>
+            <button
+              onClick={handleStatusAdvance}
+              className={`rounded-lg px-6 py-2.5 text-sm font-semibold transition-colors ${advanceButton.color}`}
+              data-testid="status-advance-button"
+            >
+              {advanceButton.label}
+            </button>
+          </div>
+          <div className="mt-4">
+            <StatusTimeline currentStatus={displayStatus} />
+          </div>
+        </div>
+      )}
+
+      {/* Two-column info */}
+      <div className="mb-6 grid gap-5 lg:grid-cols-2">
+        {/* Left: Vehicle + Customer */}
+        <div className="space-y-5">
+          {/* Vehicle Info */}
+          <div className="rounded-xl border border-neutral-200 bg-card p-5 shadow-sm">
+            <p className="text-overline mb-3 text-muted-foreground">{td('vehicleInfo')}</p>
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-3">
+                <Car className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-xs text-muted-foreground">{td('brandModel')}</p>
+                  <p className="text-sm font-medium">{vehicleLabel || '--'}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-xs text-muted-foreground">{td('plate')}</p>
+                  <p className="text-sm font-medium">{order.vehicle?.licensePlate || '--'}</p>
+                </div>
+              </div>
+              {order.vehicle?.year && (
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">{td('year')}</p>
+                    <p className="text-sm font-medium">{order.vehicle.year}</p>
+                  </div>
+                </div>
+              )}
+              {order.vehicle?.mileage && (
+                <div className="flex items-center gap-3">
+                  <Wrench className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">{td('mileage')}</p>
+                    <p className="text-sm font-medium">{order.vehicle.mileage.toLocaleString()} km</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Customer Info */}
+          <div className="rounded-xl border border-neutral-200 bg-card p-5 shadow-sm">
+            <p className="text-overline mb-3 text-muted-foreground">{td('customerInfo')}</p>
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-3">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm font-medium">{customerName || '--'}</p>
+              </div>
+              {order.customer?.email && (
+                <div className="flex items-center gap-3">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <a href={`mailto:${order.customer.email}`} className="text-sm text-primary hover:underline">
+                    {order.customer.email}
+                  </a>
+                </div>
+              )}
+              {order.customer?.phone && (
+                <div className="flex items-center gap-3">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <a href={`tel:${order.customer.phone}`} className="text-sm text-primary hover:underline">
+                    {order.customer.phone}
+                  </a>
+                </div>
+              )}
+              <div className="flex items-center gap-3">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-xs text-muted-foreground">{td('pickupReturnAddress')}</p>
+                  <p className="text-sm font-medium">
+                    {order.pickupAddress}, {order.pickupPostalCode} {order.pickupCity}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Service Details + Notes */}
+        <div className="space-y-5">
+          {/* Service Details */}
+          <div className="rounded-xl border border-neutral-200 bg-card p-5 shadow-sm">
+            <p className="text-overline mb-3 text-muted-foreground">{td('serviceDetails')}</p>
+            <div className="space-y-2.5">
+              <div>
+                <p className="text-xs text-muted-foreground">{td('service')}</p>
+                <p className="text-sm font-medium">
+                  {Array.isArray(order.services) && order.services.length > 0
+                    ? order.services.map(s => {
+                        try { return ts(s.type); } catch { return s.type; }
+                      }).join(', ')
+                    : (() => { try { return ts(order.serviceType); } catch { return order.serviceType; } })()}
+                </p>
+              </div>
+              <div className="flex gap-8">
+                <div>
+                  <p className="text-xs text-muted-foreground">{td('pickup')}</p>
+                  <p className="text-sm font-medium">
+                    {new Date(order.pickupDate).toLocaleDateString(
+                      locale === 'de' ? 'de-DE' : 'en-US'
+                    )}
+                    {order.pickupTimeSlot && ` - ${order.pickupTimeSlot}`}
+                  </p>
+                </div>
+                {order.deliveryDate && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">{td('returnDate')}</p>
+                    <p className="text-sm font-medium">
+                      {new Date(order.deliveryDate).toLocaleDateString(
+                        locale === 'de' ? 'de-DE' : 'en-US'
+                      )}
+                      {order.deliveryTimeSlot && ` - ${order.deliveryTimeSlot}`}
+                    </p>
+                  </div>
+                )}
+              </div>
+              {order.totalPrice && (
+                <div>
+                  <p className="text-xs text-muted-foreground">{td('price')}</p>
+                  <p className="text-sm font-bold">
+                    {(parseFloat(order.totalPrice) / 100).toFixed(2)} &euro;
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Notes */}
+          {order.customerNotes && (
+            <div className="rounded-xl border border-neutral-200 bg-card p-5 shadow-sm">
+              <p className="text-overline mb-2 text-muted-foreground">{td('notes')}</p>
+              <p className="text-sm text-foreground">{order.customerNotes}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Extensions section */}
+      <div className="mb-6 rounded-xl border border-neutral-200 bg-card p-5 shadow-sm">
+        <div className="flex items-center justify-between">
+          <p className="text-overline text-muted-foreground">{td('extensions')}</p>
+          {displayStatus === 'inProgress' && !showExtensionForm && (
+            <button
+              onClick={() => setShowExtensionForm(true)}
+              className="text-xs font-semibold text-cta hover:underline"
+            >
+              {td('newExtension')}
+            </button>
+          )}
+        </div>
+
+        {/* Existing extensions would be shown here if the API returns them */}
+        {!showExtensionForm && (
+          <p className="mt-2 text-xs text-muted-foreground">--</p>
+        )}
+
+        {showExtensionForm && (
+          <ExtensionForm
+            orderId={order.bookingNumber}
+            customerName={customerName}
+            onSubmit={handleExtensionSubmit}
+            onCancel={() => setShowExtensionForm(false)}
+          />
+        )}
+      </div>
+
+      {/* Communication section */}
+      <CommunicationSection
+        messages={[]}
+        onSend={(text) => {
+          console.log('Note sent:', text);
+          toast.success(td('send'));
+        }}
+      />
+    </div>
+  );
+}
+
+export default function WorkshopOrderDetailPage() {
+  return (
+    <ProtectedRoute requiredRole="workshop">
+      <OrderDetailContent />
+    </ProtectedRoute>
+  );
+}

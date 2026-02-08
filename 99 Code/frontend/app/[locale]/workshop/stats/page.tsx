@@ -1,22 +1,17 @@
 'use client';
 
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  ArrowLeft,
-  Wrench,
   ClipboardList,
   Euro,
   Clock,
   TrendingUp,
 } from "lucide-react";
-import Link from "next/link";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 
 function StatsContent() {
   const t = useTranslations('workshopStats');
-  const language = useLocale();
 
   // Placeholder KPI data
   const kpis = [
@@ -55,25 +50,7 @@ function StatsContent() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-card">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-3">
-            <Link href={`/${language}/workshop/dashboard`}>
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t('backToDashboard')}
-              </Button>
-            </Link>
-          </div>
-          <div className="flex items-center gap-2">
-            <Wrench className="h-5 w-5 text-workshop" />
-            <h1 className="font-semibold">{t('title')}</h1>
-          </div>
-        </div>
-      </header>
-
+    <div className="bg-background">
       <main className="container mx-auto px-4 py-6">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {kpis.map((kpi) => {

@@ -1,99 +1,142 @@
 'use client';
 
-import { Car, Mail, Phone, MapPin } from "lucide-react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useLanguage } from "@/lib/i18n/useLovableTranslation";
+import { Mail, Phone, MapPin } from 'lucide-react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { useLanguage } from '@/lib/i18n/useLovableTranslation';
+
+const translations = {
+  de: {
+    tagline: 'Premium Fahrzeugwartung mit Concierge-Service. Wir holen ab, Sie lehnen sich zurück.',
+    aboutUs: 'Über uns',
+    team: 'Unser Team',
+    partnerWorkshops: 'Partnerwerkstätten',
+    careers: 'Karriere',
+    press: 'Presse',
+    legal: 'Rechtliches',
+    privacy: 'Datenschutz',
+    terms: 'AGB',
+    imprint: 'Impressum',
+    cookies: 'Cookie-Einstellungen',
+    contact: 'Kontakt',
+    copyright: 'AutoConcierge. Alle Rechte vorbehalten.',
+  },
+  en: {
+    tagline: 'Premium vehicle maintenance with concierge service. We pick up, you relax.',
+    aboutUs: 'About us',
+    team: 'Our team',
+    partnerWorkshops: 'Partner workshops',
+    careers: 'Careers',
+    press: 'Press',
+    legal: 'Legal',
+    privacy: 'Privacy policy',
+    terms: 'Terms of service',
+    imprint: 'Imprint',
+    cookies: 'Cookie settings',
+    contact: 'Contact',
+    copyright: 'AutoConcierge. All rights reserved.',
+  },
+};
 
 const Footer = () => {
-  const { t } = useLanguage();
+  const { language } = useLanguage();
   const params = useParams();
-  const locale = params.locale as string || 'de';
+  const locale = (params.locale as string) || 'de';
+  const t = translations[language] || translations.de;
 
   return (
-    <footer className="bg-[#1a1f2e] text-background">
-      <div className="container mx-auto px-4 py-16">
+    <footer className="bg-neutral-900 text-white">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-16">
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div>
-            <Link href={`/${locale}`} className="mb-6 flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                <Car className="h-6 w-6 text-primary-foreground" />
+            <Link href={`/${locale}`} className="mb-6 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M8 7h8m-8 4h4m-2 4v4m-4-4h8a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v6a2 2 0 002 2z"
+                  />
+                </svg>
               </div>
               <span className="text-xl font-bold">AutoConcierge</span>
             </Link>
-            <p className="text-background/70">
-              {t.footer.tagline}
-            </p>
+            <p className="text-gray-400 mt-4">{t.tagline}</p>
           </div>
 
-          {/* Quick Links */}
+          {/* About */}
           <div>
-            <h3 className="mb-6 text-lg font-semibold">Quick Links</h3>
+            <h3 className="mb-6 text-lg font-semibold">{t.aboutUs}</h3>
             <ul className="space-y-3">
               <li>
-                <Link href={`/${locale}/customer/login`} className="text-background/70 transition-colors hover:text-background">
-                  Kundenportal
-                </Link>
+                <a href="#" className="text-gray-400 transition-colors hover:text-white">{t.team}</a>
               </li>
               <li>
-                <Link href={`/${locale}/jockey/login`} className="text-background/70 transition-colors hover:text-background">
-                  Fahrerportal
-                </Link>
+                <a href="#" className="text-gray-400 transition-colors hover:text-white">{t.partnerWorkshops}</a>
               </li>
               <li>
-                <Link href={`/${locale}/workshop/login`} className="text-background/70 transition-colors hover:text-background">
-                  Werkstatt-Portal
-                </Link>
+                <a href="#" className="text-gray-400 transition-colors hover:text-white">{t.careers}</a>
+              </li>
+              <li>
+                <a href="#" className="text-gray-400 transition-colors hover:text-white">{t.press}</a>
               </li>
             </ul>
           </div>
 
-          {/* Rechtliches */}
+          {/* Legal */}
           <div>
-            <h3 className="mb-6 text-lg font-semibold">Rechtliches</h3>
+            <h3 className="mb-6 text-lg font-semibold">{t.legal}</h3>
             <ul className="space-y-3">
               <li>
-                <Link href={`/${locale}/privacy`} className="text-background/70 transition-colors hover:text-background">
-                  Datenschutz
+                <Link href={`/${locale}/privacy`} className="text-gray-400 transition-colors hover:text-white">
+                  {t.privacy}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/terms`} className="text-background/70 transition-colors hover:text-background">
-                  AGB
+                <Link href={`/${locale}/terms`} className="text-gray-400 transition-colors hover:text-white">
+                  {t.terms}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/imprint`} className="text-background/70 transition-colors hover:text-background">
-                  {t.footer.imprint}
+                <Link href={`/${locale}/imprint`} className="text-gray-400 transition-colors hover:text-white">
+                  {t.imprint}
                 </Link>
+              </li>
+              <li>
+                <a href="#" className="text-gray-400 transition-colors hover:text-white">{t.cookies}</a>
               </li>
             </ul>
           </div>
 
-          {/* Kontakt */}
+          {/* Contact */}
           <div>
-            <h3 className="mb-6 text-lg font-semibold">Kontakt</h3>
+            <h3 className="mb-6 text-lg font-semibold">{t.contact}</h3>
             <ul className="space-y-3">
-              <li className="flex items-center gap-2 text-background/70">
+              <li className="flex items-center gap-2 text-gray-400">
                 <Mail className="h-4 w-4" />
                 <span>info@autoconcierge.de</span>
               </li>
-              <li className="flex items-center gap-2 text-background/70">
+              <li className="flex items-center gap-2 text-gray-400">
                 <Phone className="h-4 w-4" />
                 <span>+49 30 123 456 789</span>
               </li>
-              <li className="flex items-start gap-2 text-background/70">
+              <li className="flex items-start gap-2 text-gray-400">
                 <MapPin className="h-4 w-4 mt-1" />
-                <span>Musterstraße 123<br />10115 Berlin</span>
+                <span>
+                  Musterstraße 123
+                  <br />
+                  10115 Berlin
+                </span>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="mt-12 border-t border-background/10 pt-8 text-center text-sm text-background/50">
-          <p>© {new Date().getFullYear()} AutoConcierge. Alle Rechte vorbehalten</p>
+        {/* Bottom bar */}
+        <div className="mt-12 border-t border-white/10 pt-8 text-center text-sm text-gray-500">
+          <p>&copy; {new Date().getFullYear()} {t.copyright}</p>
         </div>
       </div>
     </footer>

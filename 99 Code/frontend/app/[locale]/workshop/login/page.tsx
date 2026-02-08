@@ -66,7 +66,7 @@ export default function WorkshopLoginPage() {
               <Input
                 id="username"
                 type="text"
-                placeholder="werkstatt"
+                placeholder={t('usernamePlaceholder')}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="input-premium"

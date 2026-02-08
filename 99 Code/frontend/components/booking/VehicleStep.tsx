@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { VEHICLE_BRANDS, VEHICLE_MODELS } from "@/lib/constants/vehicles";
+import { BrandCardGrid } from "./BrandCardGrid";
+import { useLanguage } from "@/lib/i18n/useLovableTranslation";
 
 interface VehicleStepProps {
   formData: {
@@ -19,6 +21,7 @@ interface VehicleStepProps {
     model: string;
     year: string;
     mileage: string;
+    licensePlate?: string;
     saveVehicle: boolean;
   };
   onUpdate: (data: Partial<VehicleStepProps['formData']>) => void;
@@ -33,64 +36,98 @@ interface VehicleStepProps {
     mileage: string;
     mileagePlaceholder: string;
     saveVehicle: string;
+    licensePlate?: string;
+    licensePlatePlaceholder?: string;
+    subtitle?: string;
   };
 }
 
+const YEAR_OPTIONS = Array.from({ length: 12 }, (_, i) => (2026 - i).toString());
+
+// Top 5 + andere mapping: brand grid IDs -> VEHICLE_BRANDS IDs
+const GRID_TO_BRAND: Record<string, string> = {
+  bmw: 'bmw',
+  mercedes: 'mercedes',
+  audi: 'audi',
+  vw: 'vw',
+  porsche: 'porsche',
+};
+
+function formatMileage(value: string, locale: string = 'de'): string {
+  const num = value.replace(/\D/g, '');
+  if (!num) return '';
+  return parseInt(num, 10).toLocaleString(locale === 'en' ? 'en-US' : 'de-DE');
+}
+
+function parseMileage(formatted: string): string {
+  return formatted.replace(/\D/g, '');
+}
+
 export function VehicleStep({ formData, onUpdate, translations }: VehicleStepProps) {
-  const models = formData.brand ? (VEHICLE_MODELS[formData.brand] || []) : [];
+  const { language } = useLanguage();
+  const resolvedBrand = formData.brand === 'andere' ? '' : formData.brand;
+  const models = resolvedBrand ? (VEHICLE_MODELS[resolvedBrand] || []) : [];
+
+  const handleBrandGridSelect = (gridId: string) => {
+    if (gridId === 'andere') {
+      onUpdate({ brand: 'andere', model: '' });
+    } else {
+      onUpdate({ brand: gridId, model: '' });
+    }
+  };
 
   return (
-    <Card className="card-premium animate-fade-in">
+    <Card className="card-premium animate-fade-in" data-testid="vehicle-step">
       <CardHeader>
         <CardTitle>{translations.title}</CardTitle>
+        {translations.subtitle && (
+          <p className="text-sm text-muted-foreground mt-1">{translations.subtitle}</p>
+        )}
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid gap-4 sm:grid-cols-2">
+        {/* Brand card grid */}
+        <div className="space-y-3">
+          <Label>{translations.brand || translations.selectBrand}</Label>
+          <BrandCardGrid
+            selectedBrand={formData.brand}
+            onSelect={handleBrandGridSelect}
+          />
+        </div>
+
+        {/* If "Andere" selected, show full brand dropdown */}
+        {formData.brand === 'andere' && (
           <div className="space-y-2">
-            <Label>{translations.brand}</Label>
+            <Label>{translations.selectBrand}</Label>
             <Select
-              value={formData.brand}
-              onValueChange={(v) => onUpdate({ brand: v, model: "" })}
+              value=""
+              onValueChange={(v) => onUpdate({ brand: v, model: '' })}
             >
-              <SelectTrigger>
-                <SelectValue placeholder={translations.selectBrand}>
-                  {formData.brand && (() => {
-                    const selected = VEHICLE_BRANDS.find((b) => b.id === formData.brand);
-                    return selected ? (
-                      <div className="flex items-center gap-2">
-                        {selected.logo && (
-                          <img src={selected.logo} alt="" className="h-5 w-5 object-contain" />
-                        )}
-                        <span>{selected.name}</span>
-                      </div>
-                    ) : null;
-                  })()}
-                </SelectValue>
+              <SelectTrigger className="rounded-xl">
+                <SelectValue placeholder={translations.selectBrand} />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                {VEHICLE_BRANDS.map((brand) => (
+                {VEHICLE_BRANDS.filter(
+                  (b) => !Object.keys(GRID_TO_BRAND).includes(b.id)
+                ).map((brand) => (
                   <SelectItem key={brand.id} value={brand.id}>
-                    <div className="flex items-center gap-2">
-                      {brand.logo ? (
-                        <img src={brand.logo} alt="" className="h-5 w-5 object-contain" />
-                      ) : (
-                        <span className="inline-block h-5 w-5" />
-                      )}
-                      <span>{brand.name}</span>
-                    </div>
+                    {brand.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+        )}
+
+        {/* Model + Year row */}
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="model">{translations.model}</Label>
+            <Label>{translations.model}</Label>
             <Select
               value={formData.model}
               onValueChange={(v) => onUpdate({ model: v })}
-              disabled={!formData.brand}
+              disabled={!resolvedBrand || models.length === 0}
             >
-              <SelectTrigger>
+              <SelectTrigger className="rounded-xl">
                 <SelectValue placeholder={translations.selectModel} />
               </SelectTrigger>
               <SelectContent className="bg-popover">
@@ -102,34 +139,61 @@ export function VehicleStep({ formData, onUpdate, translations }: VehicleStepPro
               </SelectContent>
             </Select>
           </div>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="year">{translations.year}</Label>
-            <Input
-              id="year"
-              type="number"
-              placeholder={translations.yearPlaceholder || "e.g. 2020"}
+            <Label>{translations.year}</Label>
+            <Select
               value={formData.year}
-              onChange={(e) => onUpdate({ year: e.target.value })}
-            />
+              onValueChange={(v) => onUpdate({ year: v })}
+            >
+              <SelectTrigger className="rounded-xl">
+                <SelectValue placeholder={translations.yearPlaceholder || '2024'} />
+              </SelectTrigger>
+              <SelectContent className="bg-popover">
+                {YEAR_OPTIONS.map((year) => (
+                  <SelectItem key={year} value={year}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+        </div>
+
+        {/* Mileage + License Plate row */}
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="mileage">{translations.mileage}</Label>
             <div className="relative">
               <Input
                 id="mileage"
-                type="number"
+                type="text"
                 placeholder={translations.mileagePlaceholder}
-                value={formData.mileage}
-                onChange={(e) => onUpdate({ mileage: e.target.value })}
+                value={formatMileage(formData.mileage, language)}
+                onChange={(e) => onUpdate({ mileage: parseMileage(e.target.value) })}
+                className="rounded-xl pr-12"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                 km
               </span>
             </div>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="licensePlate">
+              {translations.licensePlate || 'License Plate'}
+            </Label>
+            <Input
+              id="licensePlate"
+              type="text"
+              placeholder={translations.licensePlatePlaceholder || 'e.g. B-AC 1234'}
+              value={formData.licensePlate || ''}
+              onChange={(e) => onUpdate({ licensePlate: e.target.value.toUpperCase() })}
+              className="rounded-xl uppercase"
+              style={{ letterSpacing: '1px' }}
+            />
+          </div>
         </div>
+
+        {/* Save vehicle checkbox */}
         <div className="flex items-center space-x-2">
           <Checkbox
             id="saveVehicle"

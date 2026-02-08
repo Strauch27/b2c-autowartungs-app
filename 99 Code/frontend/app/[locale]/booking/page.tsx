@@ -4,40 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Car, ArrowLeft, ArrowRight } from "lucide-react";
+import { Car, ArrowLeft, ArrowRight, Lock } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/useLovableTranslation";
 import { StepIndicator } from "@/components/booking/StepIndicator";
-import { ConciergeBanner } from "@/components/booking/ConciergeBanner";
 import { VehicleStep } from "@/components/booking/VehicleStep";
-import { ServiceStep } from "@/components/booking/ServiceStep";
+import { ServiceStep, serviceConfig } from "@/components/booking/ServiceStep";
 import { PickupStep } from "@/components/booking/PickupStep";
 import { ConfirmationStep } from "@/components/booking/ConfirmationStep";
 import { toast } from "sonner";
-import { ClipboardCheck, Droplets, Disc, Wind } from "lucide-react";
 import { bookingsApi, CreateBookingRequest } from "@/lib/api/bookings";
-
-const serviceConfig = [
-  {
-    id: "inspection",
-    price: 149,
-    icon: ClipboardCheck,
-  },
-  {
-    id: "oil",
-    price: 89,
-    icon: Droplets,
-  },
-  {
-    id: "brakes",
-    price: 199,
-    icon: Disc,
-  },
-  {
-    id: "ac",
-    price: 119,
-    icon: Wind,
-  },
-];
 
 export default function BookingPage() {
   const router = useRouter();
@@ -50,6 +25,7 @@ export default function BookingPage() {
     model: "",
     year: "",
     mileage: "",
+    licensePlate: "",
     saveVehicle: false,
     selectedServices: [] as string[],
     date: undefined as Date | undefined,
@@ -66,17 +42,20 @@ export default function BookingPage() {
     acceptTerms: false,
   });
 
-  const services = serviceConfig.map((config) => ({
-    ...config,
-    name: t.booking.step2.services[config.id as keyof typeof t.booking.step2.services].name,
-    description: t.booking.step2.services[config.id as keyof typeof t.booking.step2.services].description,
-  }));
+  const services = serviceConfig.map((config) => {
+    const serviceTranslation = t.booking?.step2?.services?.[config.id as keyof typeof t.booking.step2.services];
+    return {
+      ...config,
+      name: serviceTranslation?.name || config.id,
+      description: serviceTranslation?.description || '',
+    };
+  });
 
   const steps = [
-    t.booking.steps.vehicle,
-    t.booking.steps.service,
-    t.booking.steps.pickup,
-    t.booking.steps.confirm,
+    language === 'de' ? 'Fahrzeug' : 'Vehicle',
+    language === 'de' ? 'Service' : 'Service',
+    language === 'de' ? 'Termin' : 'Appointment',
+    language === 'de' ? 'Übersicht' : 'Summary',
   ];
 
   const handleNext = () => {
@@ -88,20 +67,14 @@ export default function BookingPage() {
   };
 
   const handleSubmit = async () => {
-    console.log('🔵 handleSubmit called');
-    console.log('📝 Form data:', formData);
-
     try {
       setIsSubmitting(true);
 
-      // Validate required fields
       if (!formData.date || !formData.time || !formData.returnDate || !formData.returnTime) {
-        console.error('❌ Validation failed: Missing required fields');
         toast.error(language === "de" ? "Bitte füllen Sie alle Felder aus" : "Please fill all fields");
         return;
       }
 
-      // Format data for API
       const bookingData: CreateBookingRequest = {
         customer: {
           email: formData.email,
@@ -130,12 +103,7 @@ export default function BookingPage() {
         }
       };
 
-      console.log('📤 Sending booking data:', bookingData);
-
-      // Call API
       const result = await bookingsApi.create(bookingData);
-
-      console.log('✅ Booking successful:', result);
 
       toast.success(
         language === "de" ? "Buchung erfolgreich!" : "Booking successful!",
@@ -146,7 +114,6 @@ export default function BookingPage() {
         }
       );
 
-      // Redirect to registration page with booking details
       setTimeout(() => {
         const params = new URLSearchParams({
           bookingNumber: result.bookingNumber,
@@ -159,7 +126,6 @@ export default function BookingPage() {
         router.push(`/${language}/booking/register?${params.toString()}`);
       }, 1500);
     } catch (error) {
-      console.error('❌ Booking error:', error);
       toast.error(
         language === "de" ? "Buchung fehlgeschlagen" : "Booking failed",
         {
@@ -178,11 +144,11 @@ export default function BookingPage() {
   const isStepValid = () => {
     switch (step) {
       case 1:
-        return formData.brand && formData.model && formData.year && formData.mileage;
+        return formData.brand && formData.brand !== 'andere' && formData.model && formData.year && formData.mileage;
       case 2:
         return formData.selectedServices.length > 0;
       case 3:
-        return formData.date && formData.time && formData.returnDate && formData.returnTime && formData.street && formData.zip && formData.city;
+        return formData.date && formData.time && formData.street && formData.zip && formData.city;
       case 4:
         return formData.email && formData.firstName && formData.lastName && formData.phone && formData.acceptTerms;
       default:
@@ -191,7 +157,7 @@ export default function BookingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" data-testid="booking-page">
       {/* Header */}
       <header className="border-b border-border bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -209,13 +175,20 @@ export default function BookingPage() {
         </div>
       </header>
 
-      {/* Concierge Banner */}
-      <ConciergeBanner
-        title={t.booking.conciergeBanner.title}
-        subtitle={t.booking.conciergeBanner.subtitle}
-      />
-
       <main className="container mx-auto max-w-2xl px-4 py-8">
+        {/* Section heading */}
+        <div className="text-center mb-8">
+          <span className="text-blue-500 font-semibold text-sm uppercase tracking-widest">
+            {language === 'de' ? 'Buchung' : 'Booking'}
+          </span>
+          <h2 className="text-2xl md:text-3xl font-bold mt-2">
+            {language === 'de' ? 'Service buchen' : 'Book a service'}
+          </h2>
+          <p className="text-muted-foreground mt-2 text-sm">
+            {language === 'de' ? 'In wenigen Schritten zum Wunschtermin.' : 'Your preferred appointment in just a few steps.'}
+          </p>
+        </div>
+
         {/* Progress */}
         <StepIndicator currentStep={step} steps={steps} />
 
@@ -227,9 +200,10 @@ export default function BookingPage() {
               model: formData.model,
               year: formData.year,
               mileage: formData.mileage,
+              licensePlate: formData.licensePlate,
               saveVehicle: formData.saveVehicle,
             }}
-            onUpdate={(data) => setFormData({ ...formData, ...data })}
+            onUpdate={(data) => setFormData(prev => ({ ...prev, ...data }))}
             translations={t.booking.step1}
           />
         )}
@@ -238,13 +212,13 @@ export default function BookingPage() {
         {step === 2 && (
           <ServiceStep
             selectedServices={formData.selectedServices}
-            onUpdate={(services) => setFormData({ ...formData, selectedServices: services })}
+            onUpdate={(services) => setFormData(prev => ({ ...prev, selectedServices: services }))}
             translations={t.booking.step2}
             language={language}
           />
         )}
 
-        {/* Step 3: Date & Address - Concierge Pickup */}
+        {/* Step 3: Appointment */}
         {step === 3 && (
           <PickupStep
             formData={{
@@ -256,17 +230,17 @@ export default function BookingPage() {
               zip: formData.zip,
               city: formData.city,
             }}
-            onUpdate={(data) => setFormData({ ...formData, ...data })}
+            onUpdate={(data) => setFormData(prev => ({ ...prev, ...data }))}
             translations={t.booking.step3}
             language={language}
           />
         )}
 
-        {/* Step 4: Payment */}
+        {/* Step 4: Summary */}
         {step === 4 && (
           <ConfirmationStep
             formData={formData}
-            onUpdate={(data) => setFormData({ ...formData, ...data })}
+            onUpdate={(data) => setFormData(prev => ({ ...prev, ...data }))}
             translations={t.booking.step4}
             services={services}
             language={language}
@@ -276,29 +250,36 @@ export default function BookingPage() {
         {/* Navigation */}
         <div className="mt-8 flex justify-between">
           {step > 1 ? (
-            <Button variant="outline" onClick={handleBack}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
+            <button
+              onClick={handleBack}
+              className="px-6 py-3.5 rounded-xl font-semibold border-2 border-gray-200 text-gray-600 hover:bg-gray-50 transition inline-flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
               {language === "de" ? "Zurück" : "Back"}
-            </Button>
+            </button>
           ) : (
             <div />
           )}
           {step < 4 ? (
-            <Button variant="cta" onClick={handleNext} disabled={!isStepValid()}>
+            <button
+              onClick={handleNext}
+              disabled={!isStepValid()}
+              className="btn-primary-landing px-8 py-3.5 rounded-xl font-semibold inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               {language === "de" ? "Weiter" : "Next"}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+              <ArrowRight className="w-4 h-4" />
+            </button>
           ) : (
-            <Button
-              variant="cta"
-              size="lg"
+            <button
               onClick={handleSubmit}
               disabled={!isStepValid() || isSubmitting}
+              className="btn-primary-landing px-8 py-3.5 rounded-xl font-bold inline-flex items-center gap-2 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
+              <Lock className="w-5 h-5" />
               {isSubmitting
                 ? (language === "de" ? "Wird gebucht..." : "Booking...")
-                : t.booking.step4.submit}
-            </Button>
+                : (language === "de" ? "Jetzt kostenpflichtig buchen" : "Book now (paid)")}
+            </button>
           )}
         </div>
       </main>

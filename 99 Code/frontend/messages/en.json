@@ -796,6 +796,8 @@
       "mileage": "Mileage",
       "mileagePlaceholder": "e.g. 45000",
       "saveVehicle": "Save vehicle for future bookings",
+      "licensePlate": "License Plate",
+      "licensePlatePlaceholder": "e.g. B-AC 1234",
       "next": "Continue to Service Selection"
     },
     "step2": {
@@ -816,6 +818,18 @@
         "ac": {
           "name": "AC Service",
           "description": "Maintain and refill AC system"
+        },
+        "tires": {
+          "name": "Tire Change",
+          "description": "Seasonal tire change incl. balancing"
+        },
+        "tuv": {
+          "name": "MOT / Inspection",
+          "description": "Main inspection with emissions test"
+        },
+        "maintenance": {
+          "name": "Full Service",
+          "description": "Complete service per manufacturer schedule"
         }
       },
       "from": "from",
@@ -904,6 +918,7 @@
     "noAccount": "Don't have an account?",
     "register": "Register now",
     "username": "Username",
+    "usernamePlaceholder": "Enter username",
     "loginError": "Login failed. Please check your credentials.",
     "loggingIn": "Logging in...",
     "loginButton": "Log In",
@@ -987,7 +1002,64 @@
     "notifications": "Notifications",
     "logout": "Logout",
     "takePhoto": "Take Photo",
-    "photoPreview": "Photo preview"
+    "photoPreview": "Photo preview",
+    "greeting": "Hello, {name}!",
+    "statusLabel": "Status",
+    "available": "Available",
+    "busy": "Busy",
+    "summaryToday": "{count} assignment today",
+    "summaryTodayPlural": "{count} assignments today",
+    "summaryPickups": "{count} Pickup",
+    "summaryPickupsPlural": "{count} Pickups",
+    "summaryReturns": "{count} Return",
+    "summaryReturnsPlural": "{count} Returns",
+    "currentAssignment": "Current Assignment",
+    "nextAssignment": "Next Assignment",
+    "completedToday": "Completed today ({count})",
+    "noCompletedToday": "No completed assignments today yet.",
+    "assigned": "Assigned",
+    "startRoute": "Start Route",
+    "arrived": "Arrived",
+    "completeHandover": "Complete Handover",
+    "callCustomer": "Call",
+    "navigateTo": "Navigation",
+    "detail": {
+      "back": "Back",
+      "title": "Assignment Details",
+      "currentStatus": "Current Status",
+      "enRouteToCustomer": "En Route to Customer",
+      "enRouteToWorkshop": "En Route to Workshop",
+      "atCustomerLocation": "Arrived at Customer",
+      "mapPlaceholder": "Google Maps Integration",
+      "estimatedTime": "~{minutes} min / {km} km",
+      "customerInfo": "Customer Information",
+      "vehicleInfo": "Vehicle Information",
+      "brand": "Brand",
+      "model": "Model",
+      "year": "Year",
+      "plate": "License Plate",
+      "color": "Color",
+      "mileage": "Mileage",
+      "handoverChecklist": "Handover Checklist",
+      "checkVehicleReceived": "Vehicle received",
+      "checkConditionDocumented": "Condition documented",
+      "checkKeysReceived": "Keys received",
+      "checkCustomerSignature": "Customer signature",
+      "photoDocumentation": "Document vehicle condition",
+      "openCamera": "Open Camera",
+      "customerSignature": "Customer Signature",
+      "clearSignature": "Clear",
+      "signHere": "Sign here",
+      "customerNote": "Note",
+      "completePickup": "Complete Pickup",
+      "completeReturn": "Complete Return"
+    },
+    "bottomNav": {
+      "tasks": "Tasks",
+      "stats": "Statistics",
+      "availability": "Availability",
+      "profile": "Profile"
+    }
   },
   "jockeyStats": {
     "title": "Earnings Statistics",
@@ -1018,7 +1090,9 @@
     "stats": {
       "ordersToday": "Orders Today",
       "inProgress": "In Progress",
-      "completed": "Completed"
+      "completed": "Completed",
+      "newOrders": "New Orders",
+      "revenueToday": "Revenue Today"
     },
     "orders": "Current Orders",
     "noOrders": "No orders available",
@@ -1066,6 +1140,64 @@
       "of": "of"
     },
     "links": {
+      "calendar": "Calendar",
+      "stats": "Statistics",
+      "team": "Team"
+    },
+    "kanban": {
+      "new": "New",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "accept": "Accept",
+      "complete": "Complete",
+      "addExtension": "+ Extension",
+      "viewDetails": "View Details",
+      "moreOrders": "+{count} more orders",
+      "dragToAdvance": "Drag to change status"
+    },
+    "detail": {
+      "back": "Back",
+      "changeStatus": "Change Status",
+      "markCompleted": "Mark as Completed",
+      "startWork": "Start Work",
+      "markArrived": "Mark as Arrived",
+      "statusTimeline": "Status Timeline",
+      "received": "Received",
+      "vehicleInfo": "Vehicle Information",
+      "brandModel": "Make / Model",
+      "plate": "License Plate",
+      "year": "Year",
+      "mileage": "Mileage",
+      "customerInfo": "Customer Information",
+      "pickupReturnAddress": "Pickup/Return Address",
+      "serviceDetails": "Service Details",
+      "service": "Service",
+      "pickup": "Pickup",
+      "returnDate": "Return",
+      "price": "Price",
+      "notes": "Notes",
+      "extensions": "Extensions",
+      "extensionApproved": "approved",
+      "newExtension": "+ New Extension",
+      "extensionItems": "Items",
+      "extensionTotal": "Total",
+      "extensionDescription": "Reason for extension...",
+      "extensionItemPlaceholder": "e.g., Timing belt",
+      "extensionQuantity": "Qty",
+      "extensionUnitPrice": "Unit Price",
+      "extensionItemTotal": "Total",
+      "addPosition": "+ Add Item",
+      "sendExtension": "Send Extension",
+      "cancelExtension": "Cancel",
+      "extensionNotice": "The customer will be notified and must approve the extension.",
+      "communication": "Notes & Communication",
+      "addNote": "Add note...",
+      "send": "Send",
+      "system": "System",
+      "orderNotFound": "Order not found"
+    },
+    "bottomNav": {
+      "orders": "Orders",
       "calendar": "Calendar",
       "stats": "Statistics",
       "team": "Team"
@@ -1432,5 +1564,142 @@
     "comingSoon": "Team Management - Coming Soon",
     "comingSoonText": "Here you will soon be able to manage your workshop employees, assign orders, and view working hours.",
     "backToDashboard": "Back to Dashboard"
+  },
+  "customerPortal": {
+    "header": {
+      "title": "AutoConcierge"
+    },
+    "nav": {
+      "home": "Home",
+      "booking": "Booking",
+      "chat": "Chat",
+      "profile": "Profile"
+    },
+    "greeting": {
+      "morning": "Good morning, {name}!",
+      "afternoon": "Good afternoon, {name}!",
+      "evening": "Good evening, {name}!",
+      "subtitle": "Here is your current overview.",
+      "noBookings": "You have no bookings yet. Book your first service now!",
+      "welcomeBack": "Welcome back, {name}!",
+      "welcomeGeneric": "Welcome back!"
+    },
+    "extensionAlert": {
+      "title": "{count} extension awaiting approval",
+      "titlePlural": "{count} extensions awaiting approval",
+      "subtitle": "{description} — {amount}",
+      "cta": "Review now"
+    },
+    "activeBooking": {
+      "title": "Active Booking",
+      "inProgress": "In Progress",
+      "viewDetails": "View Details",
+      "contactWorkshop": "Contact Workshop",
+      "estimatedCompletion": "Est. Completion"
+    },
+    "progressSteps": {
+      "booked": "Booked",
+      "pickedUp": "Picked Up",
+      "workshop": "Workshop",
+      "ready": "Ready",
+      "returned": "Returned"
+    },
+    "stats": {
+      "services": "Services",
+      "nextAppointment": "Next Appointment",
+      "rating": "Rating"
+    },
+    "pastBookings": {
+      "title": "Past Bookings",
+      "viewAll": "View All",
+      "completed": "Completed"
+    },
+    "bookingDetail": {
+      "title": "Booking Details",
+      "error": "Failed to load booking",
+      "copyBookingNumber": "Copy booking number",
+      "pickup": "Pickup",
+      "address": "Address",
+      "delivery": "Return",
+      "totalPrice": "Total Price",
+      "notes": "Notes",
+      "tabs": {
+        "details": "Details",
+        "extensions": "Extensions",
+        "activities": "Activities"
+      },
+      "status": {
+        "PENDING_PAYMENT": "Payment Pending",
+        "CONFIRMED": "Confirmed",
+        "PICKUP_ASSIGNED": "Pickup Scheduled",
+        "PICKED_UP": "Picked Up",
+        "AT_WORKSHOP": "At Workshop",
+        "IN_SERVICE": "Being Serviced",
+        "READY_FOR_RETURN": "Ready for Return",
+        "RETURN_ASSIGNED": "Return Scheduled",
+        "RETURNED": "Returned",
+        "DELIVERED": "Delivered",
+        "COMPLETED": "Completed",
+        "CANCELLED": "Cancelled"
+      },
+      "vehicle": {
+        "title": "Vehicle",
+        "brandModel": "Make & Model",
+        "year": "Year",
+        "mileage": "Mileage",
+        "plate": "License Plate"
+      },
+      "service": {
+        "title": "Service",
+        "mainService": "Main Service"
+      },
+      "pricing": {
+        "title": "Cost Overview",
+        "extension": "Extension",
+        "extensionPending": "PENDING",
+        "conciergeService": "Concierge Service",
+        "conciergeIncluded": "included",
+        "total": "Total",
+        "downloadInvoice": "Download Invoice"
+      }
+    },
+    "extensionCard": {
+      "approvalRequired": "Approval Required",
+      "requestedOn": "Requested on",
+      "totalAmount": "Total Amount",
+      "approveAndPay": "Approve & Pay — {amount}",
+      "decline": "Decline",
+      "approved": "Approved",
+      "approvedOn": "Approved on"
+    },
+    "extensionModal": {
+      "title": "Review Order Extension",
+      "subtitle": "The workshop has proposed additional work",
+      "workshopNote": "Workshop Note",
+      "items": "Items",
+      "totalAmount": "Total Amount",
+      "approveAndPay": "Approve & Pay — {amount}",
+      "decline": "Decline",
+      "processing": "Processing...",
+      "paymentSuccess": "Payment successful!",
+      "extensionApproved": "Extension approved"
+    },
+    "activities": {
+      "title": "Activity Log",
+      "current": "CURRENT",
+      "inWorkshop": "At Workshop",
+      "serviceInProgress": "Service being performed",
+      "extensionCreated": "Order extension created",
+      "vehiclePickedUp": "Vehicle picked up",
+      "jockeyPickedUp": "Jockey {name} has taken over your vehicle",
+      "jockeyEnRoute": "Jockey en route",
+      "pickupEstimate": "Pickup in approx. {minutes} minutes",
+      "bookingConfirmed": "Booking confirmed",
+      "bookingCreatedDesc": "Your booking {bookingNumber} was successfully created",
+      "extensionApproved": "Extension approved",
+      "extensionDeclined": "Extension declined",
+      "vehicleReturned": "Vehicle returned",
+      "serviceCompleted": "Service completed"
+    }
   }
 }

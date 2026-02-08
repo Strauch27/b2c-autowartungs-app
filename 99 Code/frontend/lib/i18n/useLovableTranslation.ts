@@ -206,6 +206,18 @@ export function useLovableTranslation() {
             name: booking('step2.services.ac.name'),
             description: booking('step2.services.ac.description'),
           },
+          tires: {
+            name: booking('step2.services.tires.name'),
+            description: booking('step2.services.tires.description'),
+          },
+          tuv: {
+            name: booking('step2.services.tuv.name'),
+            description: booking('step2.services.tuv.description'),
+          },
+          maintenance: {
+            name: booking('step2.services.maintenance.name'),
+            description: booking('step2.services.maintenance.description'),
+          },
         },
         from: booking('step2.from'),
         next: booking('step2.next'),

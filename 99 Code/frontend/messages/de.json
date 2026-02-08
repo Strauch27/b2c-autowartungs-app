@@ -811,6 +811,8 @@
       "mileage": "Kilometerstand",
       "mileagePlaceholder": "z.B. 45000",
       "saveVehicle": "Fahrzeug für zukünftige Buchungen speichern",
+      "licensePlate": "Kennzeichen",
+      "licensePlatePlaceholder": "z.B. B-AC 1234",
       "next": "Weiter zur Service-Auswahl"
     },
     "step2": {
@@ -831,6 +833,18 @@
         "ac": {
           "name": "Klimaservice",
           "description": "Klimaanlage warten und befüllen"
+        },
+        "tires": {
+          "name": "Reifenwechsel",
+          "description": "Saisonaler Reifenwechsel inkl. Auswuchten"
+        },
+        "tuv": {
+          "name": "TÜV / HU",
+          "description": "Hauptuntersuchung mit Abgasuntersuchung"
+        },
+        "maintenance": {
+          "name": "Wartung",
+          "description": "Komplettservice nach Herstellerplan"
         }
       },
       "from": "ab",
@@ -919,6 +933,7 @@
     "noAccount": "Noch kein Konto?",
     "register": "Jetzt registrieren",
     "username": "Benutzername",
+    "usernamePlaceholder": "Benutzername eingeben",
     "loginError": "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Zugangsdaten.",
     "loggingIn": "Anmelden...",
     "loginButton": "Anmelden",
@@ -1002,7 +1017,64 @@
     "notifications": "Benachrichtigungen",
     "logout": "Abmelden",
     "takePhoto": "Foto aufnehmen",
-    "photoPreview": "Foto-Vorschau"
+    "photoPreview": "Foto-Vorschau",
+    "greeting": "Hallo, {name}!",
+    "statusLabel": "Status",
+    "available": "Verfügbar",
+    "busy": "Beschäftigt",
+    "summaryToday": "{count} Auftrag heute",
+    "summaryTodayPlural": "{count} Aufträge heute",
+    "summaryPickups": "{count} Abholung",
+    "summaryPickupsPlural": "{count} Abholungen",
+    "summaryReturns": "{count} Rückgabe",
+    "summaryReturnsPlural": "{count} Rückgaben",
+    "currentAssignment": "Aktueller Auftrag",
+    "nextAssignment": "Nächster Auftrag",
+    "completedToday": "Heute erledigt ({count})",
+    "noCompletedToday": "Noch keine abgeschlossenen Aufträge heute.",
+    "assigned": "Zugewiesen",
+    "startRoute": "Route starten",
+    "arrived": "Angekommen",
+    "completeHandover": "Übergabe abschließen",
+    "callCustomer": "Anrufen",
+    "navigateTo": "Navigation",
+    "detail": {
+      "back": "Zurück",
+      "title": "Auftragsdetails",
+      "currentStatus": "Aktueller Status",
+      "enRouteToCustomer": "Unterwegs zum Kunden",
+      "enRouteToWorkshop": "Unterwegs zur Werkstatt",
+      "atCustomerLocation": "Beim Kunden angekommen",
+      "mapPlaceholder": "Google Maps Integration",
+      "estimatedTime": "~{minutes} Min. / {km} km",
+      "customerInfo": "Kundeninformationen",
+      "vehicleInfo": "Fahrzeuginformationen",
+      "brand": "Marke",
+      "model": "Modell",
+      "year": "Baujahr",
+      "plate": "Kennzeichen",
+      "color": "Farbe",
+      "mileage": "Kilometerstand",
+      "handoverChecklist": "Übergabe-Checkliste",
+      "checkVehicleReceived": "Fahrzeug empfangen",
+      "checkConditionDocumented": "Zustand dokumentiert",
+      "checkKeysReceived": "Schlüssel erhalten",
+      "checkCustomerSignature": "Unterschrift Kunde",
+      "photoDocumentation": "Fahrzeugzustand dokumentieren",
+      "openCamera": "Kamera öffnen",
+      "customerSignature": "Unterschrift des Kunden",
+      "clearSignature": "Löschen",
+      "signHere": "Hier unterschreiben",
+      "customerNote": "Hinweis",
+      "completePickup": "Abholung abschließen",
+      "completeReturn": "Rückgabe abschließen"
+    },
+    "bottomNav": {
+      "tasks": "Aufgaben",
+      "stats": "Statistiken",
+      "availability": "Verfügbarkeit",
+      "profile": "Profil"
+    }
   },
   "jockeyStats": {
     "title": "Verdienst-Statistiken",
@@ -1033,7 +1105,9 @@
     "stats": {
       "ordersToday": "Aufträge heute",
       "inProgress": "In Bearbeitung",
-      "completed": "Abgeschlossen"
+      "completed": "Abgeschlossen",
+      "newOrders": "Neue Aufträge",
+      "revenueToday": "Umsatz heute"
     },
     "orders": "Aktuelle Aufträge",
     "noOrders": "Keine Aufträge vorhanden",
@@ -1081,6 +1155,64 @@
       "of": "von"
     },
     "links": {
+      "calendar": "Kalender",
+      "stats": "Statistiken",
+      "team": "Team"
+    },
+    "kanban": {
+      "new": "Neu",
+      "inProgress": "In Bearbeitung",
+      "completed": "Abgeschlossen",
+      "accept": "Annehmen",
+      "complete": "Abschließen",
+      "addExtension": "+ Erweiterung",
+      "viewDetails": "Details ansehen",
+      "moreOrders": "+{count} weitere Aufträge",
+      "dragToAdvance": "Ziehen um Status zu ändern"
+    },
+    "detail": {
+      "back": "Zurück",
+      "changeStatus": "Status ändern",
+      "markCompleted": "Als abgeschlossen markieren",
+      "startWork": "Bearbeitung starten",
+      "markArrived": "Als angekommen markieren",
+      "statusTimeline": "Status-Verlauf",
+      "received": "Eingegangen",
+      "vehicleInfo": "Fahrzeuginformationen",
+      "brandModel": "Marke / Modell",
+      "plate": "Kennzeichen",
+      "year": "Baujahr",
+      "mileage": "Kilometerstand",
+      "customerInfo": "Kundeninformationen",
+      "pickupReturnAddress": "Abhol-/Rückgabeadresse",
+      "serviceDetails": "Service-Details",
+      "service": "Service",
+      "pickup": "Abholung",
+      "returnDate": "Rückgabe",
+      "price": "Preis",
+      "notes": "Notizen",
+      "extensions": "Erweiterungen",
+      "extensionApproved": "genehmigt",
+      "newExtension": "+ Neue Erweiterung",
+      "extensionItems": "Positionen",
+      "extensionTotal": "Gesamt",
+      "extensionDescription": "Grund für die Erweiterung...",
+      "extensionItemPlaceholder": "z.B. Zahnriemen",
+      "extensionQuantity": "Menge",
+      "extensionUnitPrice": "Einzelpreis",
+      "extensionItemTotal": "Gesamt",
+      "addPosition": "+ Position hinzufügen",
+      "sendExtension": "Erweiterung senden",
+      "cancelExtension": "Abbrechen",
+      "extensionNotice": "Der Kunde wird benachrichtigt und muss die Erweiterung genehmigen.",
+      "communication": "Notizen & Kommunikation",
+      "addNote": "Notiz hinzufügen...",
+      "send": "Senden",
+      "system": "System",
+      "orderNotFound": "Auftrag nicht gefunden"
+    },
+    "bottomNav": {
+      "orders": "Aufträge",
       "calendar": "Kalender",
       "stats": "Statistiken",
       "team": "Team"
@@ -1447,5 +1579,142 @@
     "comingSoon": "Mitarbeiterverwaltung - Kommt bald",
     "comingSoonText": "Hier können Sie bald Ihre Werkstatt-Mitarbeiter verwalten, Aufträge zuweisen und Arbeitszeiten einsehen.",
     "backToDashboard": "Zurück zum Dashboard"
+  },
+  "customerPortal": {
+    "header": {
+      "title": "AutoConcierge"
+    },
+    "nav": {
+      "home": "Home",
+      "booking": "Buchung",
+      "chat": "Chat",
+      "profile": "Profil"
+    },
+    "greeting": {
+      "morning": "Guten Morgen, {name}!",
+      "afternoon": "Guten Tag, {name}!",
+      "evening": "Guten Abend, {name}!",
+      "subtitle": "Hier ist Ihre aktuelle Übersicht.",
+      "noBookings": "Sie haben noch keine Buchungen. Buchen Sie jetzt Ihren ersten Service!",
+      "welcomeBack": "Willkommen zurück, {name}!",
+      "welcomeGeneric": "Willkommen zurück!"
+    },
+    "extensionAlert": {
+      "title": "{count} Erweiterung wartet auf Genehmigung",
+      "titlePlural": "{count} Erweiterungen warten auf Genehmigung",
+      "subtitle": "{description} — {amount}",
+      "cta": "Jetzt prüfen"
+    },
+    "activeBooking": {
+      "title": "Aktive Buchung",
+      "inProgress": "In Bearbeitung",
+      "viewDetails": "Details ansehen",
+      "contactWorkshop": "Kontakt Werkstatt",
+      "estimatedCompletion": "Voraussichtl. Fertigstellung"
+    },
+    "progressSteps": {
+      "booked": "Gebucht",
+      "pickedUp": "Abgeholt",
+      "workshop": "Werkstatt",
+      "ready": "Fertig",
+      "returned": "Zurückgegeben"
+    },
+    "stats": {
+      "services": "Services",
+      "nextAppointment": "Nächster Termin",
+      "rating": "Bewertung"
+    },
+    "pastBookings": {
+      "title": "Vergangene Buchungen",
+      "viewAll": "Alle anzeigen",
+      "completed": "Abgeschlossen"
+    },
+    "bookingDetail": {
+      "title": "Buchungsdetails",
+      "error": "Buchung konnte nicht geladen werden",
+      "copyBookingNumber": "Buchungsnummer kopieren",
+      "pickup": "Abholung",
+      "address": "Adresse",
+      "delivery": "Rückgabe",
+      "totalPrice": "Gesamtpreis",
+      "notes": "Notizen",
+      "tabs": {
+        "details": "Details",
+        "extensions": "Erweiterungen",
+        "activities": "Aktivitäten"
+      },
+      "status": {
+        "PENDING_PAYMENT": "Zahlung ausstehend",
+        "CONFIRMED": "Bestätigt",
+        "PICKUP_ASSIGNED": "Abholung geplant",
+        "PICKED_UP": "Abgeholt",
+        "AT_WORKSHOP": "In der Werkstatt",
+        "IN_SERVICE": "Wird bearbeitet",
+        "READY_FOR_RETURN": "Bereit zur Rückgabe",
+        "RETURN_ASSIGNED": "Rückgabe geplant",
+        "RETURNED": "Zurückgegeben",
+        "DELIVERED": "Zugestellt",
+        "COMPLETED": "Abgeschlossen",
+        "CANCELLED": "Storniert"
+      },
+      "vehicle": {
+        "title": "Fahrzeug",
+        "brandModel": "Marke & Modell",
+        "year": "Baujahr",
+        "mileage": "Kilometerstand",
+        "plate": "Kennzeichen"
+      },
+      "service": {
+        "title": "Service",
+        "mainService": "Hauptservice"
+      },
+      "pricing": {
+        "title": "Kostenübersicht",
+        "extension": "Erweiterung",
+        "extensionPending": "AUSSTEHEND",
+        "conciergeService": "Concierge-Service",
+        "conciergeIncluded": "inklusive",
+        "total": "Gesamt",
+        "downloadInvoice": "Rechnung herunterladen"
+      }
+    },
+    "extensionCard": {
+      "approvalRequired": "Genehmigung erforderlich",
+      "requestedOn": "Angefragt am",
+      "totalAmount": "Gesamtbetrag",
+      "approveAndPay": "Genehmigen & Bezahlen — {amount}",
+      "decline": "Ablehnen",
+      "approved": "Genehmigt",
+      "approvedOn": "Genehmigt am"
+    },
+    "extensionModal": {
+      "title": "Auftragserweiterung prüfen",
+      "subtitle": "Die Werkstatt hat zusätzliche Arbeiten vorgeschlagen",
+      "workshopNote": "Werkstatt-Hinweis",
+      "items": "Positionen",
+      "totalAmount": "Gesamtbetrag",
+      "approveAndPay": "Genehmigen & Bezahlen — {amount}",
+      "decline": "Ablehnen",
+      "processing": "Wird verarbeitet...",
+      "paymentSuccess": "Zahlung erfolgreich!",
+      "extensionApproved": "Erweiterung genehmigt"
+    },
+    "activities": {
+      "title": "Aktivitätenverlauf",
+      "current": "AKTUELL",
+      "inWorkshop": "In der Werkstatt",
+      "serviceInProgress": "Service wird durchgeführt",
+      "extensionCreated": "Auftragserweiterung erstellt",
+      "vehiclePickedUp": "Fahrzeug abgeholt",
+      "jockeyPickedUp": "Jockey {name} hat Ihr Fahrzeug übernommen",
+      "jockeyEnRoute": "Jockey unterwegs",
+      "pickupEstimate": "Abholung in ca. {minutes} Minuten",
+      "bookingConfirmed": "Buchung bestätigt",
+      "bookingCreatedDesc": "Ihre Buchung {bookingNumber} wurde erfolgreich angelegt",
+      "extensionApproved": "Erweiterung genehmigt",
+      "extensionDeclined": "Erweiterung abgelehnt",
+      "vehicleReturned": "Fahrzeug zurückgegeben",
+      "serviceCompleted": "Service abgeschlossen"
+    }
   }
 }

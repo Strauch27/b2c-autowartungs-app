@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import Header from '@/components/landing/Header';
 import Hero from '@/components/landing/Hero';
-import PortalCards from '@/components/landing/PortalCards';
-import ValueProps from '@/components/landing/ValueProps';
 import HowItWorks from '@/components/landing/HowItWorks';
-import FAQ from '@/components/landing/FAQ';
+import { ServicesShowcase } from '@/components/landing/services-showcase';
+import { TrustSocialProof } from '@/components/landing/trust-social-proof';
+import { CTABanner } from '@/components/landing/cta-banner';
 import Footer from '@/components/landing/Footer';
 
 export const metadata: Metadata = {
@@ -22,18 +22,14 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Header />
       <main>
         <Hero />
-        <PortalCards />
-        <ValueProps />
-        <section id="how-it-works">
-          <HowItWorks />
-        </section>
-        <section id="faq">
-          <FAQ />
-        </section>
+        <HowItWorks />
+        <ServicesShowcase />
+        <TrustSocialProof />
+        <CTABanner />
       </main>
       <Footer />
     </div>

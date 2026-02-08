@@ -8,10 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   ChevronLeft,
   ChevronRight,
-  ArrowLeft,
-  Wrench,
 } from "lucide-react";
-import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 
 // Placeholder order data for calendar skeleton
@@ -95,25 +92,7 @@ function CalendarContent() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-card">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-3">
-            <Link href={`/${language}/workshop/dashboard`}>
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t('backToDashboard')}
-              </Button>
-            </Link>
-          </div>
-          <div className="flex items-center gap-2">
-            <Wrench className="h-5 w-5 text-workshop" />
-            <h1 className="font-semibold">{t('title')}</h1>
-          </div>
-        </div>
-      </header>
-
+    <div className="bg-background">
       <main className="container mx-auto px-4 py-6">
         {/* Week navigation */}
         <div className="mb-6 flex items-center justify-between">
