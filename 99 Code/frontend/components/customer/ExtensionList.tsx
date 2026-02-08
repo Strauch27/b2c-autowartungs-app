@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import {
   AlertCircle,
+  AlertTriangle,
   CheckCircle,
   XCircle,
   Clock,
@@ -105,122 +106,162 @@ export function ExtensionList({
     );
   }
 
+  const pendingExtensions = extensions.filter(e => e.status === 'PENDING');
+  const otherExtensions = extensions.filter(e => e.status !== 'PENDING');
+  // Show pending first, then others
+  const sortedExtensions = [...pendingExtensions, ...otherExtensions];
+
   return (
     <>
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">{t('title')}</h3>
 
-        {extensions.map((extension) => (
-          <Card
-            key={extension.id}
-            className={`${
-              extension.status === "PENDING"
-                ? "border-yellow-300 bg-yellow-50/50"
-                : ""
-            }`}
-          >
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="text-base">
-                    {extension.description}
-                  </CardTitle>
-                  <CardDescription className="flex items-center gap-2">
-                    <Clock className="w-3 h-3" />
-                    {t('requestedOn')}: {formatDate(extension.createdAt)}
-                  </CardDescription>
-                </div>
-                {getStatusBadge(extension.status, extension.paidAt)}
-              </div>
-            </CardHeader>
+        {sortedExtensions.map((extension) => {
+          const isPending = extension.status === 'PENDING';
+          const isApproved = extension.status === 'APPROVED';
+          const items = Array.isArray(extension.items) ? extension.items : [];
 
-            <CardContent className="space-y-4">
-              {/* Items List */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">
-                  {t('items')}:
-                </p>
-                <div className="space-y-1">
-                  {extension.items.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between text-sm bg-white p-2 rounded border"
-                    >
-                      <span>
-                        {item.quantity}x {item.name}
-                      </span>
-                      <span className="font-medium">
-                        {formatPrice(item.price * item.quantity)}€
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Images */}
-              {extension.images && extension.images.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <ImageIcon className="w-4 h-4" />
-                    {t('images')}: {extension.images.length}
-                  </p>
-                  <div className="grid grid-cols-4 gap-2">
-                    {extension.images.slice(0, 4).map((image, index) => (
-                      <div
-                        key={index}
-                        className="aspect-square rounded-lg overflow-hidden bg-gray-100"
-                      >
-                        <img
-                          src={image}
-                          alt={`Extension evidence ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ))}
+          return (
+            <Card
+              key={extension.id}
+              className={
+                isPending
+                  ? "border-2 border-amber-400 bg-amber-50/70 shadow-md"
+                  : isApproved
+                  ? "border-2 border-green-300 bg-green-50/50"
+                  : ""
+              }
+            >
+              {/* Prominent alert header for PENDING extensions */}
+              {isPending && (
+                <div className="bg-amber-100 border-b border-amber-300 px-4 py-3 rounded-t-lg flex items-center gap-3">
+                  <div className="flex-shrink-0 bg-amber-500 rounded-full p-1.5">
+                    <AlertTriangle className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-amber-900">{t('approvalRequired')}</p>
+                    <p className="text-sm text-amber-800">{t('approvalRequiredDesc')}</p>
                   </div>
                 </div>
               )}
 
-              {/* Total Amount */}
-              <div className="flex items-center justify-between pt-4 border-t">
-                <span className="font-semibold">{t('totalAmount')}:</span>
-                <span className="text-2xl font-bold text-primary flex items-center gap-1">
-                  {formatPrice(extension.totalAmount)}
-                  <Euro className="w-5 h-5" />
-                </span>
-              </div>
-
-              {/* Action Button */}
-              {extension.status === "PENDING" && (
-                <Button
-                  onClick={() => handleViewDetails(extension)}
-                  className="w-full"
-                  variant="default"
-                >
-                  <AlertCircle className="w-4 h-4 mr-2" />
-                  {t('viewDetails')}
-                </Button>
+              {/* Green success header for APPROVED extensions */}
+              {isApproved && (
+                <div className="bg-green-100 border-b border-green-300 px-4 py-3 rounded-t-lg flex items-center gap-3">
+                  <div className="flex-shrink-0 bg-green-500 rounded-full p-1.5">
+                    <CheckCircle className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-green-900">{t('extensionApproved')}</p>
+                  </div>
+                </div>
               )}
 
-              {/* Approval/Decline/Paid Date */}
-              {extension.approvedAt && !extension.paidAt && (
-                <p className="text-xs text-muted-foreground text-center">
-                  {t('approvedOn')}: {formatDate(extension.approvedAt)}
-                </p>
-              )}
-              {extension.paidAt && (
-                <p className="text-xs text-green-600 font-medium text-center">
-                  {t('paidOn')}: {formatDate(extension.paidAt)}
-                </p>
-              )}
-              {extension.declinedAt && (
-                <p className="text-xs text-muted-foreground text-center">
-                  {t('declinedOn')}: {formatDate(extension.declinedAt)}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <CardTitle className="text-base">
+                      {extension.description}
+                    </CardTitle>
+                    <CardDescription className="flex items-center gap-2">
+                      <Clock className="w-3 h-3" />
+                      {t('requestedOn')}: {formatDate(extension.createdAt)}
+                    </CardDescription>
+                  </div>
+                  {getStatusBadge(extension.status, extension.paidAt)}
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-4">
+                {/* Items List - with defensive guard */}
+                {items.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {t('items')}:
+                    </p>
+                    <div className="space-y-1">
+                      {items.map((item, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between text-sm bg-white p-2 rounded border"
+                        >
+                          <span>
+                            {item.quantity}x {item.name}
+                          </span>
+                          <span className="font-medium">
+                            {formatPrice(item.price * item.quantity)}&euro;
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Images */}
+                {Array.isArray(extension.images) && extension.images.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4" />
+                      {t('images')}: {extension.images.length}
+                    </p>
+                    <div className="grid grid-cols-4 gap-2">
+                      {extension.images.slice(0, 4).map((image, index) => (
+                        <div
+                          key={index}
+                          className="aspect-square rounded-lg overflow-hidden bg-gray-100"
+                        >
+                          <img
+                            src={image}
+                            alt={`Extension evidence ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Total Amount */}
+                <div className="flex items-center justify-between pt-4 border-t">
+                  <span className="font-semibold">{t('totalAmount')}:</span>
+                  <span className="text-2xl font-bold text-primary flex items-center gap-1">
+                    {formatPrice(extension.totalAmount)}
+                    <Euro className="w-5 h-5" />
+                  </span>
+                </div>
+
+                {/* Action Button - prominent for PENDING */}
+                {isPending && (
+                  <Button
+                    onClick={() => handleViewDetails(extension)}
+                    className="w-full bg-amber-500 hover:bg-amber-600 text-white text-base py-6"
+                    size="lg"
+                  >
+                    <AlertTriangle className="w-5 h-5 mr-2" />
+                    {t('approveAndPay')}
+                  </Button>
+                )}
+
+                {/* Approval/Decline/Paid Date */}
+                {extension.approvedAt && !extension.paidAt && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    {t('approvedOn')}: {formatDate(extension.approvedAt)}
+                  </p>
+                )}
+                {extension.paidAt && (
+                  <p className="text-xs text-green-600 font-medium text-center">
+                    {t('paidOn')}: {formatDate(extension.paidAt)}
+                  </p>
+                )}
+                {extension.declinedAt && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    {t('declinedOn')}: {formatDate(extension.declinedAt)}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Extension Approval Modal */}

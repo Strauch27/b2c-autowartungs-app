@@ -11,8 +11,8 @@
  *   3. Workshop Received (login -> dashboard AT_WORKSHOP -> order details)
  *   4. Workshop In Service (dashboard IN_SERVICE -> order details)
  *   5. Extension Flow (workshop creates -> customer reviews -> approves -> pays -> workshop sees approved)
- *   6. Workshop Completed (dashboard READY_FOR_RETURN -> order details)
- *   7. Jockey Return (return assignment -> complete)
+ *   6. Workshop Completed (dashboard READY_FOR_RETURN -> advance to RETURN_ASSIGNED)
+ *   7. Jockey Return (dashboard -> en_route -> at_location -> handover complete)
  *   8. Customer Final (dashboard completed -> booking details)
  *
  * Run:
@@ -710,6 +710,13 @@ test.describe.serial('DE Unified Walkthrough', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
+    // Debug: log actual extension API response
+    const extDebug = await apiRequest('GET', `/api/bookings/${bookingId}/extensions`, customerToken);
+    console.log(`    Extension API response: ${JSON.stringify(extDebug).substring(0, 500)}`);
+    if (extDebug.data?.[0]) {
+      console.log(`    items type: ${typeof extDebug.data[0].items}, isArray: ${Array.isArray(extDebug.data[0].items)}`);
+    }
+
     // Click extensions tab
     const extensionsTab = page.locator('button[role="tab"]').filter({ hasText: /Erweiterungen|Extensions/i });
     if (await extensionsTab.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -732,9 +739,9 @@ test.describe.serial('DE Unified Walkthrough', () => {
       await page.waitForTimeout(3000);
     }
 
-    // Click the extension action button (AlertCircle icon = review/action needed)
+    // Click the extension action button (AlertTriangle icon = approve & pay)
     const extensionActionBtn = page.locator('[role="tabpanel"] button').filter({
-      has: page.locator('svg.lucide-alert-circle'),
+      has: page.locator('svg.lucide-triangle-alert'),
     }).first();
     if (await extensionActionBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await extensionActionBtn.click();
@@ -756,16 +763,16 @@ test.describe.serial('DE Unified Walkthrough', () => {
       await page.waitForTimeout(3000);
     }
 
-    // Open review modal
+    // Open review modal via the prominent amber button
     const extensionActionBtn = page.locator('[role="tabpanel"] button').filter({
-      has: page.locator('svg.lucide-alert-circle'),
+      has: page.locator('svg.lucide-triangle-alert'),
     }).first();
     if (await extensionActionBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await extensionActionBtn.click();
       await page.waitForTimeout(1000);
     }
 
-    // Click approve button
+    // Click approve button in the modal
     const approveBtn = page.locator('[role="dialog"] button').filter({
       hasText: /Genehmigen|Approve|bezahlen|Pay/i,
     }).first();
@@ -870,8 +877,19 @@ test.describe.serial('DE Unified Walkthrough', () => {
       await page.keyboard.press('Escape');
       await page.waitForTimeout(500);
     }
+  });
 
-    // Find return assignment for Phase 7
+  test('P6-02 - Setup: Advance to RETURN_ASSIGNED (creates return assignment)', async () => {
+    // Advance to RETURN_ASSIGNED so the test controller creates the jockey return assignment
+    if (bookingId) {
+      const advanceRes = await apiRequest('POST', '/api/test/advance-booking', customerToken, {
+        bookingId,
+        targetStatus: 'RETURN_ASSIGNED',
+      });
+      console.log(`    Advance to RETURN_ASSIGNED: ${JSON.stringify(advanceRes)}`);
+    }
+
+    // Find the return assignment
     const assignmentsRes = await apiRequest('GET', '/api/jockeys/assignments?limit=50', jockeyToken);
     const assignments = assignmentsRes.data?.assignments || [];
     const ret = assignments.find(
@@ -879,26 +897,47 @@ test.describe.serial('DE Unified Walkthrough', () => {
     );
     if (ret) returnAssignmentId = ret.id || ret._id;
     console.log(`    Return assignment: ${returnAssignmentId}`);
+    expect(returnAssignmentId).toBeTruthy();
   });
 
   // ==========================================================================
   // PHASE 7: JOCKEY RETURN
   // ==========================================================================
 
-  test('P7-01 - Jockey: Return assignment', async ({ page }) => {
+  test('P7-01 - Jockey: Dashboard with return assignment', async ({ page }) => {
+    await injectToken(page, jockeyToken);
+    await page.goto(`/${LOCALE}/jockey/dashboard`);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
+    await shot(page, 'jockey-return-assignment');
+  });
+
+  test('P7-02 - Jockey: Return en route', async ({ page }) => {
+    if (returnAssignmentId) {
+      await apiRequest('PATCH', `/api/jockeys/assignments/${returnAssignmentId}/status`, jockeyToken, { status: 'EN_ROUTE' });
+    }
     await injectToken(page, jockeyToken);
     await page.goto(`/${LOCALE}/jockey/dashboard`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1500);
-    await shot(page, 'jockey-return-assignment');
+    await shot(page, 'jockey-return-en-route');
   });
 
-  test('P7-02 - Jockey: Return complete', async ({ page }) => {
+  test('P7-03 - Jockey: Return at location', async ({ page }) => {
     if (returnAssignmentId) {
-      await apiRequest('PATCH', `/api/jockeys/assignments/${returnAssignmentId}/status`, jockeyToken, { status: 'EN_ROUTE' });
       await apiRequest('PATCH', `/api/jockeys/assignments/${returnAssignmentId}/status`, jockeyToken, { status: 'AT_LOCATION' });
+    }
+    await injectToken(page, jockeyToken);
+    await page.goto(`/${LOCALE}/jockey/dashboard`);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1500);
+    await shot(page, 'jockey-return-at-location');
+  });
+
+  test('P7-04 - Jockey: Return complete (handover)', async ({ page }) => {
+    if (returnAssignmentId) {
       await apiRequest('POST', `/api/jockeys/assignments/${returnAssignmentId}/complete`, jockeyToken, {
-        handoverData: { photos: [], notes: 'Fahrzeug erfolgreich zurückgebracht' },
+        handoverData: { photos: [], notes: 'Fahrzeug erfolgreich an Kunden zurückgegeben' },
       });
     }
     await injectToken(page, jockeyToken);
@@ -923,21 +962,15 @@ test.describe.serial('DE Unified Walkthrough', () => {
     await shot(page, 'customer-dashboard-final');
   });
 
-  test('P8-02 - Customer: Booking details final (with extension)', async ({ page }) => {
+  test('P8-02 - Customer: Booking details final (Rechnung)', async ({ page }) => {
     if (customerToken) {
       await page.goto(`/${LOCALE}`);
       await page.evaluate((t) => localStorage.setItem('auth_token', t), customerToken);
     }
-    await page.goto(`/${LOCALE}/customer/bookings/${bookingId}?tab=extensions`);
+    // Show Details tab (invoice view) with final status
+    await page.goto(`/${LOCALE}/customer/bookings/${bookingId}`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
-
-    // Click extensions tab to show final extension state
-    const extensionsTab = page.locator('button[role="tab"]').filter({ hasText: /Erweiterungen|Extensions/i });
-    if (await extensionsTab.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await extensionsTab.click();
-      await page.waitForTimeout(1500);
-    }
     await shot(page, 'customer-booking-details-final');
   });
 

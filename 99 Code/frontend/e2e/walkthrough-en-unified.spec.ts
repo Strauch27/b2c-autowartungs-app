@@ -11,8 +11,8 @@
  *   3. Workshop Received   (advance to AT_WORKSHOP, workshop sees received order)
  *   4. Workshop In Service (advance to IN_SERVICE, workshop sees in-progress order)
  *   5. Extension Flow      (workshop creates extension, customer approves + pays)
- *   6. Workshop Completed  (advance to READY_FOR_RETURN, workshop sees completed)
- *   7. Jockey Return       (jockey completes return delivery)
+ *   6. Workshop Completed  (advance to READY_FOR_RETURN, then RETURN_ASSIGNED)
+ *   7. Jockey Return       (dashboard -> en_route -> at_location -> handover complete)
  *   8. Customer Final      (customer sees completed booking with extension)
  *
  * Run:
@@ -840,6 +840,13 @@ test.describe.serial('EN Unified Walkthrough — Booking + Extension Lifecycle',
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
+    // Debug: log actual extension API response
+    const extDebug = await apiRequest('GET', `/api/bookings/${bookingId}/extensions`, customerToken);
+    console.log(`    Extension API response: ${JSON.stringify(extDebug).substring(0, 500)}`);
+    if (extDebug.data?.[0]) {
+      console.log(`    items type: ${typeof extDebug.data[0].items}, isArray: ${Array.isArray(extDebug.data[0].items)}`);
+    }
+
     // Click extensions tab
     const extensionsTab = page.locator('button[role="tab"]').filter({ hasText: /Extensions?/i });
     if (await extensionsTab.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -862,9 +869,9 @@ test.describe.serial('EN Unified Walkthrough — Booking + Extension Lifecycle',
       await page.waitForTimeout(3000);
     }
 
-    // Open extension review modal via the alert-circle button
+    // Open extension review modal via the prominent amber button (AlertTriangle icon)
     const extensionActionBtn = page.locator('[role="tabpanel"] button').filter({
-      has: page.locator('svg.lucide-alert-circle'),
+      has: page.locator('svg.lucide-triangle-alert'),
     }).first();
     if (await extensionActionBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await extensionActionBtn.click();
@@ -886,9 +893,9 @@ test.describe.serial('EN Unified Walkthrough — Booking + Extension Lifecycle',
       await page.waitForTimeout(3000);
     }
 
-    // Open review modal
+    // Open review modal via the prominent amber button
     const extensionActionBtn = page.locator('[role="tabpanel"] button').filter({
-      has: page.locator('svg.lucide-alert-circle'),
+      has: page.locator('svg.lucide-triangle-alert'),
     }).first();
     if (await extensionActionBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await extensionActionBtn.click();
@@ -919,9 +926,9 @@ test.describe.serial('EN Unified Walkthrough — Booking + Extension Lifecycle',
       await page.waitForTimeout(3000);
     }
 
-    // Open review modal
+    // Open review modal via the prominent amber button
     const extensionActionBtn = page.locator('[role="tabpanel"] button').filter({
-      has: page.locator('svg.lucide-alert-circle'),
+      has: page.locator('svg.lucide-triangle-alert'),
     }).first();
     if (await extensionActionBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await extensionActionBtn.click();
@@ -1030,33 +1037,65 @@ test.describe.serial('EN Unified Walkthrough — Booking + Extension Lifecycle',
       await page.keyboard.press('Escape');
       await page.waitForTimeout(500);
     }
+  });
 
-    // Find return assignment for the next phase
+  test('Phase 6 — 38b: Advance to RETURN_ASSIGNED (creates return assignment)', async () => {
+    // Advance to RETURN_ASSIGNED so the test controller creates the jockey return assignment
+    if (bookingId) {
+      const advanceRes = await apiRequest('POST', '/api/test/advance-booking', customerToken, {
+        bookingId,
+        targetStatus: 'RETURN_ASSIGNED',
+      });
+      console.log(`    Advance to RETURN_ASSIGNED: ${JSON.stringify(advanceRes)}`);
+    }
+
+    // Find the return assignment
     const assignmentsRes = await apiRequest('GET', '/api/jockeys/assignments?limit=50', jockeyToken);
     const assignments = assignmentsRes.data?.assignments || [];
     const ret = assignments.find((a: any) => a.type === 'RETURN' && a.status !== 'COMPLETED');
     if (ret) returnAssignmentId = ret.id || ret._id;
     console.log(`    Return assignment: ${returnAssignmentId}`);
+    expect(returnAssignmentId).toBeTruthy();
   });
 
   // ==========================================================================
   // PHASE 7: JOCKEY RETURN
   // ==========================================================================
 
-  test('Phase 7 — 39: Jockey return assignment', async ({ page }) => {
+  test('Phase 7 — 39: Jockey dashboard with return assignment', async ({ page }) => {
+    await injectToken(page, jockeyToken);
+    await page.goto(`/${LOCALE}/jockey/dashboard`);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
+    await shot(page, 'jockey-return-assignment');
+  });
+
+  test('Phase 7 — 40: Jockey return en route', async ({ page }) => {
+    if (returnAssignmentId) {
+      await apiRequest('PATCH', `/api/jockeys/assignments/${returnAssignmentId}/status`, jockeyToken, { status: 'EN_ROUTE' });
+    }
     await injectToken(page, jockeyToken);
     await page.goto(`/${LOCALE}/jockey/dashboard`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1500);
-    await shot(page, 'jockey-return-assignment');
+    await shot(page, 'jockey-return-en-route');
   });
 
-  test('Phase 7 — 40: Jockey return complete', async ({ page }) => {
+  test('Phase 7 — 41: Jockey return at location', async ({ page }) => {
     if (returnAssignmentId) {
-      await apiRequest('PATCH', `/api/jockeys/assignments/${returnAssignmentId}/status`, jockeyToken, { status: 'EN_ROUTE' });
       await apiRequest('PATCH', `/api/jockeys/assignments/${returnAssignmentId}/status`, jockeyToken, { status: 'AT_LOCATION' });
+    }
+    await injectToken(page, jockeyToken);
+    await page.goto(`/${LOCALE}/jockey/dashboard`);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1500);
+    await shot(page, 'jockey-return-at-location');
+  });
+
+  test('Phase 7 — 42: Jockey return complete (handover)', async ({ page }) => {
+    if (returnAssignmentId) {
       await apiRequest('POST', `/api/jockeys/assignments/${returnAssignmentId}/complete`, jockeyToken, {
-        handoverData: { photos: [], notes: 'Vehicle successfully returned after extension service' },
+        handoverData: { photos: [], notes: 'Vehicle successfully returned to customer' },
       });
     }
     await injectToken(page, jockeyToken);
@@ -1070,7 +1109,7 @@ test.describe.serial('EN Unified Walkthrough — Booking + Extension Lifecycle',
   // PHASE 8: CUSTOMER FINAL STATE
   // ==========================================================================
 
-  test('Phase 8 — 41: Customer dashboard final', async ({ page }) => {
+  test('Phase 8 — 43: Customer dashboard final', async ({ page }) => {
     if (customerToken) {
       await page.goto(`/${LOCALE}`);
       await page.evaluate((t) => localStorage.setItem('auth_token', t), customerToken);
@@ -1081,21 +1120,15 @@ test.describe.serial('EN Unified Walkthrough — Booking + Extension Lifecycle',
     await shot(page, 'customer-dashboard-final');
   });
 
-  test('Phase 8 — 42: Customer booking details final (with extension)', async ({ page }) => {
+  test('Phase 8 — 44: Customer booking details final (invoice)', async ({ page }) => {
     if (customerToken) {
       await page.goto(`/${LOCALE}`);
       await page.evaluate((t) => localStorage.setItem('auth_token', t), customerToken);
     }
-    await page.goto(`/${LOCALE}/customer/bookings/${bookingId}?tab=extensions`);
+    // Show Details tab (invoice view) with final status
+    await page.goto(`/${LOCALE}/customer/bookings/${bookingId}`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
-
-    // Show the extensions tab in the final state
-    const extensionsTab = page.locator('button[role="tab"]').filter({ hasText: /Extensions?/i });
-    if (await extensionsTab.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await extensionsTab.click();
-      await page.waitForTimeout(1500);
-    }
     await shot(page, 'customer-booking-details-final');
   });
 

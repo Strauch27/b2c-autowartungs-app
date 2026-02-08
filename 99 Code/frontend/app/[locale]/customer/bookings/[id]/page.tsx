@@ -19,6 +19,7 @@ import {
   Calendar,
   MapPin,
   AlertCircle,
+  AlertTriangle,
   Loader2,
 } from "lucide-react";
 import { bookingsApi, BookingResponse, ExtensionResponse } from "@/lib/api/bookings";
@@ -65,6 +66,8 @@ function BookingDetailContent() {
       notes: "Notizen",
       noNotes: "Keine Notizen",
       pendingExtensions: "Ausstehende Genehmigungen",
+      pendingBanner: "Sie haben {count} ausstehende Auftragserweiterung(en)",
+      reviewNow: "Jetzt prüfen",
     },
     en: {
       back: "Back",
@@ -88,6 +91,8 @@ function BookingDetailContent() {
       notes: "Notes",
       noNotes: "No notes",
       pendingExtensions: "Pending Approvals",
+      pendingBanner: "You have {count} pending extension(s)",
+      reviewNow: "Review now",
     },
   };
 
@@ -95,6 +100,11 @@ function BookingDetailContent() {
 
   useEffect(() => {
     fetchBooking();
+  }, [bookingId]);
+
+  useEffect(() => {
+    // Always load extensions to show the pending count in the banner
+    fetchExtensions();
   }, [bookingId]);
 
   useEffect(() => {
@@ -247,6 +257,27 @@ function BookingDetailContent() {
             {getStatusBadge(booking.status)}
           </div>
         </div>
+
+        {/* Pending Extension Alert Banner */}
+        {pendingExtensionsCount > 0 && (
+          <div className="mb-4 bg-amber-50 border-2 border-amber-400 rounded-lg p-4 flex items-center gap-4 shadow-sm">
+            <div className="flex-shrink-0 bg-amber-500 rounded-full p-2">
+              <AlertTriangle className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-amber-900">
+                {texts.pendingBanner.replace('{count}', String(pendingExtensionsCount))}
+              </p>
+            </div>
+            <Button
+              variant="default"
+              className="bg-amber-500 hover:bg-amber-600 text-white"
+              onClick={() => setActiveTab("extensions")}
+            >
+              {texts.reviewNow}
+            </Button>
+          </div>
+        )}
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>

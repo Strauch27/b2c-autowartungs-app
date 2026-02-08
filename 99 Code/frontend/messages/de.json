@@ -1214,7 +1214,13 @@
     "approvedOn": "Genehmigt am",
     "declinedOn": "Abgelehnt am",
     "paidOn": "Bezahlt am",
-    "images": "Fotos"
+    "images": "Fotos",
+    "approvalRequired": "Genehmigung erforderlich",
+    "approvalRequiredDesc": "Die Werkstatt hat zusätzliche Arbeiten vorgeschlagen, die Ihre Genehmigung erfordern.",
+    "approveAndPay": "Genehmigen & Bezahlen",
+    "extensionApproved": "Erweiterung genehmigt",
+    "pendingBanner": "Sie haben {count} ausstehende Auftragserweiterung(en)",
+    "reviewNow": "Jetzt prüfen"
   },
   "extensionApproval": {
     "reviewTitle": "Auftragserweiterung prüfen",

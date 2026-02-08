@@ -19,6 +19,7 @@ import {
   Loader2,
   Search,
   ArrowUpDown,
+  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
@@ -109,6 +110,7 @@ function DashboardContent() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed' | 'cancelled'>('all');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [searchQuery, setSearchQuery] = useState('');
+  const [pendingExtensions, setPendingExtensions] = useState<Record<string, number>>({});
 
   useEffect(() => {
     async function fetchBookings() {
@@ -128,6 +130,27 @@ function DashboardContent() {
 
     fetchBookings();
   }, [language]);
+
+  // Fetch pending extension counts for active bookings
+  useEffect(() => {
+    async function fetchPendingExtensions() {
+      const activeBookingsList = bookings.filter(
+        b => !['DELIVERED', 'CANCELLED', 'RETURNED', 'COMPLETED'].includes(b.status)
+      );
+      const counts: Record<string, number> = {};
+      for (const booking of activeBookingsList) {
+        try {
+          const exts = await bookingsApi.getExtensions(booking.id);
+          const pending = exts.filter(e => e.status === 'PENDING').length;
+          if (pending > 0) counts[booking.id] = pending;
+        } catch {
+          // ignore per-booking errors
+        }
+      }
+      if (Object.keys(counts).length > 0) setPendingExtensions(counts);
+    }
+    if (bookings.length > 0) fetchPendingExtensions();
+  }, [bookings]);
 
   const handleLogout = () => {
     router.push(`/${locale}`);
@@ -443,6 +466,21 @@ function DashboardContent() {
                           </Button>
                         </div>
                       </div>
+                      {/* Pending Extension Alert */}
+                      {pendingExtensions[booking.id] && (
+                        <div
+                          className="mt-3 bg-amber-50 border border-amber-300 rounded-lg p-2.5 flex items-center gap-2 cursor-pointer hover:bg-amber-100 transition-colors"
+                          onClick={() => router.push(`/${locale}/customer/bookings/${booking.id}?tab=extensions`)}
+                        >
+                          <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                          <span className="text-sm font-medium text-amber-800">
+                            {language === "de"
+                              ? `${pendingExtensions[booking.id]} Erweiterung(en) wartet auf Genehmigung`
+                              : `${pendingExtensions[booking.id]} extension(s) awaiting approval`}
+                          </span>
+                          <ChevronRight className="h-4 w-4 text-amber-600 ml-auto" />
+                        </div>
+                      )}
                       {/* Progress indicator */}
                       {!isCancelled && (
                         <div className="mt-3 flex items-center gap-1">

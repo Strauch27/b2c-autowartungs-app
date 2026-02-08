@@ -1199,7 +1199,13 @@
     "approvedOn": "Approved on",
     "declinedOn": "Declined on",
     "paidOn": "Paid on",
-    "images": "Photos"
+    "images": "Photos",
+    "approvalRequired": "Approval Required",
+    "approvalRequiredDesc": "The workshop has proposed additional work that requires your approval.",
+    "approveAndPay": "Approve & Pay",
+    "extensionApproved": "Extension Approved",
+    "pendingBanner": "You have {count} pending extension(s)",
+    "reviewNow": "Review now"
   },
   "extensionApproval": {
     "reviewTitle": "Review Order Extension",
