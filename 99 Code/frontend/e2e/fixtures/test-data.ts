@@ -7,25 +7,25 @@
 
 export const TEST_USERS = {
   workshop: {
-    username: 'werkstatt1',
-    password: 'password123',
-    email: 'werkstatt@test.de',
-    displayName: 'Werkstatt Witten',
+    username: 'testworkshop',
+    password: 'Test123!',
+    email: 'workshop@test.com',
+    displayName: 'Test Workshop',
     role: 'workshop',
   },
   jockey: {
-    username: 'jockey1',
-    password: 'password123',
-    email: 'jockey@test.de',
-    displayName: 'Hans Fahrer',
+    username: 'testjockey',
+    password: 'Test123!',
+    email: 'jockey@test.com',
+    displayName: 'Test Jockey',
     role: 'jockey',
   },
   customer: {
-    email: 'kunde@test.de',
-    password: 'password123', // Note: Magic Link in production, password for tests
-    firstName: 'Max',
-    lastName: 'Mustermann',
-    phone: '+49170123456',
+    email: 'customer@test.com',
+    password: 'Test123!',
+    firstName: 'Test',
+    lastName: 'Customer',
+    phone: '+49 123 456789',
   },
   guestCustomer: {
     email: 'guest.test@example.com',

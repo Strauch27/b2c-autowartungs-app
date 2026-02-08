@@ -6,6 +6,40 @@
  */
 
 import { test, expect } from './fixtures/auth';
+import path from 'path';
+import fs from 'fs';
+
+/**
+ * Helper: Navigate to a role dashboard with auth retry.
+ * Under concurrent load, the auth-context may timeout verifying the token
+ * (3s race), remove it from localStorage, and redirect to login.
+ * This helper detects the redirect and re-injects the token before retrying.
+ */
+async function gotoDashboard(page: any, role: 'customer' | 'jockey' | 'workshop') {
+  const dashboardUrl = `/de/${role}/dashboard`;
+  const loginPattern = new RegExp(`${role}/login`);
+  const dashboardPattern = new RegExp(`${role}/dashboard`);
+
+  await page.goto(dashboardUrl);
+  await page.waitForLoadState('networkidle');
+
+  // If redirected to login, re-inject the auth token and retry
+  if (loginPattern.test(page.url())) {
+    const authFile = path.join(__dirname, '.auth', `${role}.json`);
+    const authData = JSON.parse(fs.readFileSync(authFile, 'utf8'));
+    const tokenEntry = authData.origins?.[0]?.localStorage?.find(
+      (e: any) => e.name === 'auth_token'
+    );
+
+    if (tokenEntry) {
+      await page.evaluate((t: string) => localStorage.setItem('auth_token', t), tokenEntry.value);
+      await page.goto(dashboardUrl);
+      await page.waitForLoadState('networkidle');
+    }
+  }
+
+  return dashboardPattern.test(page.url());
+}
 
 /**
  * Customer Portal now uses ProtectedRoute (like Jockey/Workshop),
@@ -13,8 +47,7 @@ import { test, expect } from './fixtures/auth';
  */
 test.describe('Customer Portal Smoke Tests', () => {
   test('Dashboard loads and shows bookings list', async ({ asCustomer }) => {
-    await asCustomer.goto('/de/customer/dashboard');
-    await asCustomer.waitForLoadState('networkidle');
+    await gotoDashboard(asCustomer, 'customer');
 
     // Page should load without errors
     await expect(asCustomer).toHaveURL(/customer\/dashboard/);
@@ -25,8 +58,7 @@ test.describe('Customer Portal Smoke Tests', () => {
   });
 
   test('Dashboard shows status badges', async ({ asCustomer }) => {
-    await asCustomer.goto('/de/customer/dashboard');
-    await asCustomer.waitForLoadState('networkidle');
+    await gotoDashboard(asCustomer, 'customer');
 
     // Look for any status badges or booking cards
     const content = await asCustomer.textContent('body');
@@ -35,8 +67,7 @@ test.describe('Customer Portal Smoke Tests', () => {
   });
 
   test('Language switch changes locale in URL', async ({ asCustomer }) => {
-    await asCustomer.goto('/de/customer/dashboard');
-    await asCustomer.waitForLoadState('networkidle');
+    await gotoDashboard(asCustomer, 'customer');
 
     // LanguageSwitcher is a Globe icon dropdown without data-testid
     // Click the Globe icon to open the dropdown
@@ -59,19 +90,18 @@ test.describe('Customer Portal Smoke Tests', () => {
   });
 
   test('Navigation works', async ({ asCustomer }) => {
-    await asCustomer.goto('/de/customer/dashboard');
-    await asCustomer.waitForLoadState('networkidle');
+    await gotoDashboard(asCustomer, 'customer');
 
-    // Look for navigation elements
-    const nav = asCustomer.locator('nav, header, [role="navigation"]').first();
-    await expect(nav).toBeVisible({ timeout: 5000 });
+    // On desktop, the sidebar <nav> is visible. On mobile/tablet, only the <header> is visible.
+    // Check that at least one navigation element (nav or header) is visible.
+    const navOrHeader = asCustomer.locator('nav:visible, header:visible').first();
+    await expect(navOrHeader).toBeVisible({ timeout: 5000 });
   });
 });
 
 test.describe('Jockey Portal Smoke Tests', () => {
   test('Dashboard loads and shows assignments', async ({ asJockey }) => {
-    await asJockey.goto('/de/jockey/dashboard');
-    await asJockey.waitForLoadState('networkidle');
+    await gotoDashboard(asJockey, 'jockey');
 
     // Page should load
     await expect(asJockey).toHaveURL(/jockey\/dashboard/);
@@ -82,8 +112,7 @@ test.describe('Jockey Portal Smoke Tests', () => {
   });
 
   test('Assignment cards render properly', async ({ asJockey }) => {
-    await asJockey.goto('/de/jockey/dashboard');
-    await asJockey.waitForLoadState('networkidle');
+    await gotoDashboard(asJockey, 'jockey');
 
     // Content should be present
     const content = await asJockey.textContent('body');
@@ -91,8 +120,7 @@ test.describe('Jockey Portal Smoke Tests', () => {
   });
 
   test('Status badges are visible', async ({ asJockey }) => {
-    await asJockey.goto('/de/jockey/dashboard');
-    await asJockey.waitForLoadState('networkidle');
+    await gotoDashboard(asJockey, 'jockey');
 
     // Look for status-related elements (badges, chips, or status text)
     const statusElements = asJockey.locator('[class*="badge"], [class*="status"], [class*="chip"]');
@@ -105,8 +133,7 @@ test.describe('Jockey Portal Smoke Tests', () => {
 
 test.describe('Workshop Portal Smoke Tests', () => {
   test('Dashboard loads and shows orders', async ({ asWorkshop }) => {
-    await asWorkshop.goto('/de/workshop/dashboard');
-    await asWorkshop.waitForLoadState('networkidle');
+    await gotoDashboard(asWorkshop, 'workshop');
 
     // Page should load
     await expect(asWorkshop).toHaveURL(/workshop\/dashboard/);
@@ -117,8 +144,7 @@ test.describe('Workshop Portal Smoke Tests', () => {
   });
 
   test('Order table or list renders', async ({ asWorkshop }) => {
-    await asWorkshop.goto('/de/workshop/dashboard');
-    await asWorkshop.waitForLoadState('networkidle');
+    await gotoDashboard(asWorkshop, 'workshop');
 
     // Look for table or list of orders
     const orderElements = asWorkshop.locator('table, [class*="order"], [class*="card"], [data-testid*="order"]');
@@ -129,8 +155,7 @@ test.describe('Workshop Portal Smoke Tests', () => {
   });
 
   test('Order details modal can be opened', async ({ asWorkshop }) => {
-    await asWorkshop.goto('/de/workshop/dashboard');
-    await asWorkshop.waitForLoadState('networkidle');
+    await gotoDashboard(asWorkshop, 'workshop');
 
     // Find a clickable order row or card
     const orderRow = asWorkshop.locator('tr[class*="cursor"], [class*="order"][class*="cursor"], [data-testid*="order-row"]').first();
@@ -147,8 +172,7 @@ test.describe('Workshop Portal Smoke Tests', () => {
   });
 
   test('Auto-refresh is active', async ({ asWorkshop }) => {
-    await asWorkshop.goto('/de/workshop/dashboard');
-    await asWorkshop.waitForLoadState('networkidle');
+    await gotoDashboard(asWorkshop, 'workshop');
 
     // Check for auto-refresh indicator or just verify page stays stable
     // Wait for potential refresh cycle

@@ -1,7 +1,7 @@
 import { chromium, FullConfig } from '@playwright/test';
 import path from 'path';
 
-const API_URL = process.env.PLAYWRIGHT_API_URL || process.env.API_URL || 'http://localhost:5002';
+const API_URL = process.env.PLAYWRIGHT_API_URL || process.env.API_URL || 'http://localhost:5001';
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 
 async function globalSetup(config: FullConfig) {
@@ -10,16 +10,21 @@ async function globalSetup(config: FullConfig) {
 
   console.log('\n🔐 Global Setup: API-based auth token generation\n');
 
-  // 1. Reset the database (best effort - warn if fails)
-  try {
-    const resetRes = await fetch(`${API_URL}/api/test/reset`, { method: 'POST' });
-    if (!resetRes.ok) {
-      console.warn(`  ⚠️  DB reset failed (${resetRes.status}). Tests may use stale data.`);
-    } else {
-      console.log('  ✅ Database reset and seeded');
+  // 1. Reset the database only if PLAYWRIGHT_RESET_DB=true (opt-in to avoid
+  // disrupting concurrent test suites like the demo smoke test)
+  if (process.env.PLAYWRIGHT_RESET_DB === 'true') {
+    try {
+      const resetRes = await fetch(`${API_URL}/api/test/reset`, { method: 'POST' });
+      if (!resetRes.ok) {
+        console.warn(`  ⚠️  DB reset failed (${resetRes.status}). Tests may use stale data.`);
+      } else {
+        console.log('  ✅ Database reset and seeded');
+      }
+    } catch {
+      console.warn('  ⚠️  Could not reach test reset endpoint. Running against existing data.');
     }
-  } catch {
-    console.warn('  ⚠️  Could not reach test reset endpoint. Running against existing data.');
+  } else {
+    console.log('  ℹ️  Skipping DB reset (set PLAYWRIGHT_RESET_DB=true to enable)');
   }
 
   // 2. Get tokens for each role and save authenticated browser state
@@ -43,17 +48,15 @@ async function globalSetup(config: FullConfig) {
       const { token } = await tokenRes.json();
 
       // Create browser context, inject token into localStorage, save state
+      // Note: We only navigate to baseURL (not the dashboard) to avoid triggering
+      // auth-context API calls that can fail under load and clear the token.
       const context = await browser.newContext();
       const page = await context.newPage();
 
       await page.goto(baseURL);
       await page.evaluate((t) => localStorage.setItem('auth_token', t), token);
 
-      // Navigate to role dashboard to verify auth works
-      await page.goto(`${baseURL}/de/${roleLower}/dashboard`);
-      await page.waitForLoadState('networkidle');
-
-      // Save authenticated state
+      // Save authenticated state immediately (no dashboard navigation needed)
       const authFile = path.join(authDir, `${roleLower}.json`);
       await context.storageState({ path: authFile });
       console.log(`  ✅ Auth state saved for ${role} → ${authFile}`);

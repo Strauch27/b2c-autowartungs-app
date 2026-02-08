@@ -17,9 +17,9 @@ export class ApiHelper {
    */
   async login(role: 'customer' | 'jockey' | 'workshop', credentials?: { email?: string; username?: string; password?: string }): Promise<string> {
     const defaults: Record<string, { email?: string; username?: string; password: string; endpoint: string }> = {
-      customer: { email: 'kunde@test.de', password: 'password123', endpoint: '/auth/customer/login' },
-      jockey: { username: 'jockey1', password: 'password123', endpoint: '/auth/jockey/login' },
-      workshop: { username: 'werkstatt1', password: 'password123', endpoint: '/auth/workshop/login' },
+      customer: { email: 'customer@test.com', password: 'Test123!', endpoint: '/auth/customer/login' },
+      jockey: { username: 'testjockey', password: 'Test123!', endpoint: '/auth/jockey/login' },
+      workshop: { username: 'testworkshop', password: 'Test123!', endpoint: '/auth/workshop/login' },
     };
 
     const config = defaults[role];

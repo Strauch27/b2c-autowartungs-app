@@ -16,8 +16,28 @@ import { TEST_USERS, TEST_VEHICLES, TEST_ADDRESSES } from './fixtures/test-data'
 const API_URL = process.env.API_URL || 'http://localhost:5001/api';
 const locale = 'de';
 
-// Helper: login as customer via the UI and return the page
+// Helper: login as customer by injecting auth token via API (avoids rate limiting)
 async function loginAsCustomer(page: import('@playwright/test').Page) {
+  const baseUrl = process.env.PLAYWRIGHT_API_URL || 'http://localhost:5001';
+  try {
+    const res = await fetch(`${baseUrl}/api/test/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'CUSTOMER', email: TEST_USERS.customer.email }),
+    });
+    const data = await res.json();
+    if (data.token) {
+      await page.goto(`/${locale}`);
+      await page.evaluate((token) => {
+        localStorage.setItem('auth_token', token);
+      }, data.token);
+      await page.goto(`/${locale}/customer/dashboard`);
+      await page.waitForLoadState('networkidle');
+      return;
+    }
+  } catch {
+    // Fallback to UI login if API fails
+  }
   await page.goto(`/${locale}/customer/login`);
   await page.waitForLoadState('networkidle');
   await page.locator('input[type="email"]').first().fill(TEST_USERS.customer.email);

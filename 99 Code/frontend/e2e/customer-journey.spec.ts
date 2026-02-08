@@ -17,7 +17,7 @@ const CUSTOMER = {
 const VEHICLE = {
   brand: 'bmw',       // value used in Select
   brandLabel: 'BMW',   // display text
-  model: '320i',
+  model: '3er',
   year: '2020',
   mileage: '45000',
 };

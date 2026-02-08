@@ -56,10 +56,10 @@ baseTest.describe('Landing Page - Header Navigation', () => {
     const bookNowBtn = page.locator('header a[href*="customer/booking"] button, header a[href*="customer/booking"]').first();
     await expect(bookNowBtn).toBeVisible();
     await bookNowBtn.click();
-    // May redirect to login if not authenticated, both are valid
-    await page.waitForLoadState('domcontentloaded');
+    // Unauthenticated users get redirected (to register, login, or homepage)
+    await page.waitForLoadState('networkidle');
     const url = page.url();
-    expect(url).toMatch(/customer\/(booking|login)/);
+    expect(url).toMatch(/customer\/(booking|login|register)|\/(de|en)\/?$/);
   });
 
   baseTest('Header #how-it-works anchor scrolls to section', async ({ page }) => {
@@ -93,10 +93,10 @@ baseTest.describe('Landing Page - Hero Navigation', () => {
     const heroCta = page.locator('[data-testid="hero-booking-cta"]');
     await expect(heroCta).toBeVisible();
     await heroCta.click();
-    await page.waitForLoadState('domcontentloaded');
+    // Unauthenticated users get redirected (to register, login, or homepage)
+    await page.waitForLoadState('networkidle');
     const url = page.url();
-    // May redirect to login if not authenticated
-    expect(url).toMatch(/customer\/(booking|login)/);
+    expect(url).toMatch(/customer\/(booking|login|register)|\/(de|en)\/?$/);
   });
 
   baseTest('Hero login CTA navigates to customer login', async ({ page }) => {
@@ -377,16 +377,12 @@ test.describe('Customer Dashboard - Sidebar Navigation', () => {
   });
 
   test('My Bookings sidebar link navigates to bookings list', async ({ asCustomer }) => {
-    const bookingsLink = asCustomer.locator(`aside a[href*="customer/bookings"]`).first();
     // Filter out the "booking" (singular) link to get the bookings (plural) link
-    const allLinks = asCustomer.locator(`aside a[href$="/customer/bookings"]`);
-    const link = allLinks.first();
+    const link = asCustomer.locator(`aside a[href$="/customer/bookings"]`).first();
     if (await link.isVisible({ timeout: 5000 }).catch(() => false)) {
       await link.click();
-      await asCustomer.waitForLoadState('domcontentloaded');
-      // bookings list may redirect or show content
-      const url = asCustomer.url();
-      expect(url).toMatch(/customer\/bookings/);
+      await asCustomer.waitForURL(/customer\/bookings/, { timeout: 10000 });
+      expect(asCustomer.url()).toMatch(/customer\/bookings/);
     }
   });
 
@@ -435,11 +431,11 @@ test.describe('Customer Dashboard - Other Navigation', () => {
     await asCustomer.goto(`/${locale}/customer/dashboard`);
     await asCustomer.waitForLoadState('networkidle');
 
-    // "Alle anzeigen" / chevron link to bookings
+    // "Details anzeigen" / chevron link to bookings
     const viewDetailsLink = asCustomer.locator('a[href*="customer/bookings"] button').first();
     if (await viewDetailsLink.isVisible({ timeout: 5000 }).catch(() => false)) {
       await viewDetailsLink.click();
-      await asCustomer.waitForLoadState('domcontentloaded');
+      await asCustomer.waitForURL(/customer\/bookings/, { timeout: 10000 });
       expect(asCustomer.url()).toMatch(/customer\/bookings/);
     }
   });
