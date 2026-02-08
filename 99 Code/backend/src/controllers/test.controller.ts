@@ -178,6 +178,142 @@ export async function resetDatabase(req: Request, res: Response): Promise<void> 
   }
 }
 
+/**
+ * Advance a booking to a target status, stepping through valid FSM transitions.
+ * POST /api/test/advance-booking
+ * Body: { bookingId: string, targetStatus: string }
+ */
+export async function advanceBooking(req: Request, res: Response): Promise<void> {
+  try {
+    const { bookingId, targetStatus } = req.body;
+
+    if (!bookingId || !targetStatus) {
+      res.status(400).json({ error: 'bookingId and targetStatus are required' });
+      return;
+    }
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { customer: true, vehicle: true }
+    });
+
+    if (!booking) {
+      res.status(404).json({ error: 'Booking not found' });
+      return;
+    }
+
+    // Define the happy-path FSM order
+    const FSM_PATH = [
+      'PENDING_PAYMENT', 'CONFIRMED', 'PICKUP_ASSIGNED', 'PICKED_UP',
+      'AT_WORKSHOP', 'IN_SERVICE', 'READY_FOR_RETURN', 'RETURN_ASSIGNED', 'RETURNED'
+    ];
+
+    const currentIdx = FSM_PATH.indexOf(booking.status);
+    const targetIdx = FSM_PATH.indexOf(targetStatus);
+
+    if (targetIdx < 0) {
+      res.status(400).json({ error: `Unknown target status: ${targetStatus}` });
+      return;
+    }
+
+    if (currentIdx >= targetIdx) {
+      res.json({ ok: true, message: `Booking already at ${booking.status}`, status: booking.status });
+      return;
+    }
+
+    // Find first available jockey for assignments
+    const jockey = await prisma.user.findFirst({ where: { role: 'JOCKEY', isActive: true } });
+
+    // Advance step by step
+    for (let i = currentIdx + 1; i <= targetIdx; i++) {
+      const nextStatus = FSM_PATH[i];
+
+      // Create jockey assignment when advancing to PICKUP_ASSIGNED
+      if (nextStatus === 'PICKUP_ASSIGNED' && jockey) {
+        const existingAssignment = await prisma.jockeyAssignment.findFirst({
+          where: { bookingId: booking.id, type: 'PICKUP' }
+        });
+        if (!existingAssignment) {
+          await prisma.jockeyAssignment.create({
+            data: {
+              bookingId: booking.id,
+              jockeyId: jockey.id,
+              type: 'PICKUP',
+              status: 'ASSIGNED',
+              scheduledTime: new Date(),
+              customerName: `${booking.customer?.firstName || 'Test'} ${booking.customer?.lastName || 'Customer'}`,
+              customerPhone: booking.customer?.phone || '',
+              customerAddress: booking.pickupAddress,
+              customerCity: booking.pickupCity,
+              customerPostalCode: booking.pickupPostalCode,
+              vehicleBrand: booking.vehicle?.brand || '',
+              vehicleModel: booking.vehicle?.model || '',
+              vehicleLicensePlate: booking.vehicle?.licensePlate || '',
+            }
+          });
+        }
+      }
+
+      // Complete pickup assignment when advancing past PICKED_UP
+      if (nextStatus === 'PICKED_UP') {
+        await prisma.jockeyAssignment.updateMany({
+          where: { bookingId: booking.id, type: 'PICKUP', status: { not: 'COMPLETED' } },
+          data: { status: 'COMPLETED', completedAt: new Date() }
+        });
+      }
+
+      // Create return assignment when advancing to RETURN_ASSIGNED
+      if (nextStatus === 'RETURN_ASSIGNED' && jockey) {
+        const existingReturn = await prisma.jockeyAssignment.findFirst({
+          where: { bookingId: booking.id, type: 'RETURN' }
+        });
+        if (!existingReturn) {
+          await prisma.jockeyAssignment.create({
+            data: {
+              bookingId: booking.id,
+              jockeyId: jockey.id,
+              type: 'RETURN',
+              status: 'ASSIGNED',
+              scheduledTime: new Date(),
+              customerName: `${booking.customer?.firstName || 'Test'} ${booking.customer?.lastName || 'Customer'}`,
+              customerPhone: booking.customer?.phone || '',
+              customerAddress: booking.pickupAddress,
+              customerCity: booking.pickupCity,
+              customerPostalCode: booking.pickupPostalCode,
+              vehicleBrand: booking.vehicle?.brand || '',
+              vehicleModel: booking.vehicle?.model || '',
+              vehicleLicensePlate: booking.vehicle?.licensePlate || '',
+            }
+          });
+        }
+      }
+
+      // Complete return assignment when advancing to RETURNED
+      if (nextStatus === 'RETURNED') {
+        await prisma.jockeyAssignment.updateMany({
+          where: { bookingId: booking.id, type: 'RETURN', status: { not: 'COMPLETED' } },
+          data: { status: 'COMPLETED', completedAt: new Date() }
+        });
+      }
+
+      // Set paidAt when confirming
+      const extraData: any = {};
+      if (nextStatus === 'CONFIRMED') extraData.paidAt = new Date();
+
+      await prisma.booking.update({
+        where: { id: booking.id },
+        data: { status: nextStatus as any, ...extraData }
+      });
+    }
+
+    const updated = await prisma.booking.findUnique({ where: { id: bookingId } });
+    res.json({ ok: true, status: updated?.status, previousStatus: booking.status });
+  } catch (error) {
+    console.error('Error advancing booking:', error);
+    res.status(500).json({ error: 'Failed to advance booking' });
+  }
+}
+
 const ROLE_EMAIL_MAP: Record<string, string> = {
   CUSTOMER: 'customer@test.com',
   JOCKEY: 'jockey@test.com',

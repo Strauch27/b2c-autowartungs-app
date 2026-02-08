@@ -495,13 +495,17 @@ test.describe.serial('EN Booking Walkthrough', () => {
   // PHASE 2: JOCKEY PICKUP
   // ==========================================================================
 
-  test('18 - Setup: Get role tokens', async () => {
+  test('18 - Setup: Get role tokens and advance booking', async () => {
     jockeyToken = await getTestToken('JOCKEY');
     workshopToken = await getTestToken('WORKSHOP');
 
-    // Ensure booking is in PICKUP_ASSIGNED state via demo payment
+    // Advance booking to PICKUP_ASSIGNED via test endpoint (bypasses need for payment intent)
     if (bookingId) {
-      await apiRequest('POST', '/api/demo/payment/confirm', customerToken, { bookingId });
+      const advanceRes = await apiRequest('POST', '/api/test/advance-booking', customerToken, {
+        bookingId,
+        targetStatus: 'PICKUP_ASSIGNED',
+      });
+      console.log(`    Advance to PICKUP_ASSIGNED: ${JSON.stringify(advanceRes)}`);
     }
   });
 
@@ -574,45 +578,107 @@ test.describe.serial('EN Booking Walkthrough', () => {
     await shot(page, '03-workshop-01-login-page');
   });
 
-  test('23 - Workshop: Dashboard', async ({ page }) => {
+  test('23 - Workshop: Dashboard AT_WORKSHOP (Received)', async ({ page }) => {
+    // Advance booking to AT_WORKSHOP via test endpoint
+    if (bookingId) {
+      const advanceRes = await apiRequest('POST', '/api/test/advance-booking', customerToken, {
+        bookingId,
+        targetStatus: 'AT_WORKSHOP',
+      });
+      console.log(`    Advance to AT_WORKSHOP: ${JSON.stringify(advanceRes)}`);
+    }
+
     await injectToken(page, workshopToken);
     await page.goto(`/${LOCALE}/workshop/dashboard`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
-    await shot(page, '03-workshop-02-dashboard');
+
+    // Verify badge shows "Received" (pending)
+    const badge = page.locator('[data-testid="booking-status"]').first();
+    await expect(badge).toBeVisible({ timeout: 10000 });
+    console.log(`    Dashboard badge text: ${await badge.textContent()}`);
+    await shot(page, '03-workshop-02-dashboard-received');
+
+    // Open order details modal to show timeline
+    const orderRow = page.locator('tr', { hasText: bookingNumber }).first();
+    if (await orderRow.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const detailsBtn = orderRow.locator('button:has-text("Details")');
+      await detailsBtn.click();
+      await page.waitForTimeout(1000);
+      await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 5000 });
+      await shot(page, '03-workshop-03-order-details-received');
+      // Close modal
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+    }
   });
 
-  test('24 - Workshop: AT_WORKSHOP', async ({ page }) => {
-    if (bookingNumber) {
-      await apiRequest('PUT', `/api/workshops/orders/${bookingNumber}/status`, workshopToken, { status: 'AT_WORKSHOP' });
+  test('24 - Workshop: IN_SERVICE (In Progress)', async ({ page }) => {
+    if (bookingId) {
+      const advanceRes = await apiRequest('POST', '/api/test/advance-booking', customerToken, {
+        bookingId,
+        targetStatus: 'IN_SERVICE',
+      });
+      console.log(`    Advance to IN_SERVICE: ${JSON.stringify(advanceRes)}`);
     }
+
     await injectToken(page, workshopToken);
     await page.goto(`/${LOCALE}/workshop/dashboard`);
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
-    await shot(page, '03-workshop-03-at-workshop');
+    await page.waitForTimeout(2000);
+
+    // Verify badge shows "In Progress" (inProgress)
+    const badge = page.locator('[data-testid="booking-status"]').first();
+    await expect(badge).toBeVisible({ timeout: 10000 });
+    console.log(`    Dashboard badge text: ${await badge.textContent()}`);
+    await shot(page, '03-workshop-04-dashboard-in-progress');
+
+    // Open order details modal to show timeline + action buttons
+    const orderRow = page.locator('tr', { hasText: bookingNumber }).first();
+    if (await orderRow.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const detailsBtn = orderRow.locator('button:has-text("Details")');
+      await detailsBtn.click();
+      await page.waitForTimeout(1000);
+      await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 5000 });
+      await shot(page, '03-workshop-05-order-details-in-progress');
+      // Close modal
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+    }
   });
 
-  test('25 - Workshop: IN_SERVICE', async ({ page }) => {
-    if (bookingNumber) {
-      await apiRequest('PUT', `/api/workshops/orders/${bookingNumber}/status`, workshopToken, { status: 'IN_SERVICE' });
+  test('25 - Workshop: READY_FOR_RETURN (Completed)', async ({ page }) => {
+    if (bookingId) {
+      const advanceRes = await apiRequest('POST', '/api/test/advance-booking', customerToken, {
+        bookingId,
+        targetStatus: 'READY_FOR_RETURN',
+      });
+      console.log(`    Advance to READY_FOR_RETURN: ${JSON.stringify(advanceRes)}`);
     }
+
     await injectToken(page, workshopToken);
     await page.goto(`/${LOCALE}/workshop/dashboard`);
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
-    await shot(page, '03-workshop-04-service-in-progress');
-  });
+    await page.waitForTimeout(2000);
 
-  test('26 - Workshop: READY_FOR_RETURN', async ({ page }) => {
-    if (bookingNumber) {
-      await apiRequest('PUT', `/api/workshops/orders/${bookingNumber}/status`, workshopToken, { status: 'READY_FOR_RETURN' });
+    // Verify badge shows "Completed" (completed)
+    const badge = page.locator('[data-testid="booking-status"]').first();
+    await expect(badge).toBeVisible({ timeout: 10000 });
+    console.log(`    Dashboard badge text: ${await badge.textContent()}`);
+    await shot(page, '03-workshop-06-dashboard-completed');
+
+    // Open order details modal to show completed timeline
+    const orderRow = page.locator('tr', { hasText: bookingNumber }).first();
+    if (await orderRow.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const detailsBtn = orderRow.locator('button:has-text("Details")');
+      await detailsBtn.click();
+      await page.waitForTimeout(1000);
+      await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 5000 });
+      await shot(page, '03-workshop-07-order-details-completed');
+      // Close modal
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
     }
-    await injectToken(page, workshopToken);
-    await page.goto(`/${LOCALE}/workshop/dashboard`);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
-    await shot(page, '03-workshop-05-service-complete');
 
     // Find return assignment
     const assignmentsRes = await apiRequest('GET', '/api/jockeys/assignments?limit=50', jockeyToken);
