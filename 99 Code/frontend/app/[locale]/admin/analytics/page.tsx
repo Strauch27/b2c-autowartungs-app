@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { apiClient } from '@/lib/api/client';
 import {
   TrendingUp,
@@ -139,7 +140,7 @@ function ErrorMessage({ message }: { message: string }) {
 // MAIN COMPONENT
 // ============================================================================
 
-export default function AdminAnalyticsPage() {
+function AdminAnalyticsContent() {
   const [dashboard, setDashboard] = useState<PerformanceDashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -539,5 +540,13 @@ export default function AdminAnalyticsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AdminAnalyticsPage() {
+  return (
+    <ProtectedRoute requiredRole="admin">
+      <AdminAnalyticsContent />
+    </ProtectedRoute>
   );
 }

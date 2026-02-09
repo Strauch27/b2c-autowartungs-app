@@ -15,7 +15,9 @@ import {
   Download,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/useLovableTranslation";
+import { useTranslations } from "next-intl";
 import { bookingsApi } from "@/lib/api/bookings";
+import { resolveVehicleDisplay } from "@/lib/constants/vehicles";
 import { Suspense } from "react";
 
 function ConfirmationContent() {
@@ -24,6 +26,8 @@ function ConfirmationContent() {
   const searchParams = useSearchParams();
   const locale = params.locale as string;
   const { language } = useLanguage();
+  const t = useTranslations("bookingConfirmation");
+  const tPayment = useTranslations("bookingPayment");
   const bookingId = searchParams.get("bookingId");
 
   const [booking, setBooking] = useState<any>(null);
@@ -32,7 +36,7 @@ function ConfirmationContent() {
 
   useEffect(() => {
     if (!bookingId) {
-      setError(language === "de" ? "Keine Buchungs-ID angegeben" : "No booking ID provided");
+      setError(tPayment("noBookingId"));
       setLoading(false);
       return;
     }
@@ -47,7 +51,7 @@ function ConfirmationContent() {
       setBooking(data);
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : (language === "de" ? "Buchung konnte nicht geladen werden" : "Failed to fetch booking");
+        err instanceof Error ? err.message : tPayment("error");
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -69,7 +73,7 @@ function ConfirmationContent() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="text-gray-600">{language === "de" ? "Bestätigung wird geladen..." : "Loading confirmation..."}</p>
+          <p className="text-gray-600">{t("loading")}</p>
         </div>
       </div>
     );
@@ -80,13 +84,13 @@ function ConfirmationContent() {
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           <Alert variant="destructive">
-            <h3 className="font-semibold mb-2">{language === "de" ? "Fehler" : "Error"}</h3>
-            <p className="text-sm">{error || (language === "de" ? "Ungültige Buchung" : "Invalid booking")}</p>
+            <h3 className="font-semibold mb-2">{tPayment("error")}</h3>
+            <p className="text-sm">{error || tPayment("invalidBooking")}</p>
             <button
               onClick={() => router.push(`/${locale}/customer/dashboard`)}
               className="mt-4 text-sm underline hover:no-underline"
             >
-              {language === "de" ? "Zum Dashboard" : "Go to Dashboard"}
+              {tPayment("goToDashboard")}
             </button>
           </Alert>
         </div>
@@ -103,11 +107,9 @@ function ConfirmationContent() {
             <CheckCircle2 className="h-10 w-10 text-green-600" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold mb-2">{language === "de" ? "Buchung bestätigt!" : "Booking Confirmed!"}</h1>
+            <h1 className="text-3xl font-bold mb-2">{t("title")}</h1>
             <p className="text-gray-600">
-              {language === "de"
-                ? "Ihre Buchung wurde erfolgreich bestätigt. Wir haben Ihnen eine Bestätigungs-E-Mail an Ihre registrierte E-Mail-Adresse gesendet."
-                : "Your booking has been successfully confirmed. We've sent a confirmation email to your registered email address."}
+              {t("subtitle")}
             </p>
           </div>
         </div>
@@ -119,12 +121,12 @@ function ConfirmationContent() {
 
         {/* Booking Details */}
         <Card className="p-6">
-          <h2 className="text-xl font-bold mb-4">{language === "de" ? "Buchungsdetails" : "Booking Details"}</h2>
+          <h2 className="text-xl font-bold mb-4">{t("bookingDetails")}</h2>
 
           <div className="space-y-4">
             {/* Booking Number */}
             <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm text-gray-600 mb-1">{language === "de" ? "Buchungsnummer" : "Booking Number"}</p>
+              <p className="text-sm text-gray-600 mb-1">{t("bookingNumber")}</p>
               <p className="text-2xl font-bold">{booking.bookingNumber}</p>
             </div>
 
@@ -132,7 +134,7 @@ function ConfirmationContent() {
             <div className="flex items-start space-x-3">
               <Car className="h-5 w-5 text-primary mt-1" />
               <div>
-                <p className="font-medium">{language === "de" ? "Service" : "Service"}</p>
+                <p className="font-medium">{t("service")}</p>
                 <p className="text-sm text-gray-600">{booking.serviceType}</p>
               </div>
             </div>
@@ -141,10 +143,9 @@ function ConfirmationContent() {
             <div className="flex items-start space-x-3">
               <Car className="h-5 w-5 text-primary mt-1" />
               <div>
-                <p className="font-medium">{language === "de" ? "Fahrzeug" : "Vehicle"}</p>
+                <p className="font-medium">{t("vehicle")}</p>
                 <p className="text-sm text-gray-600">
-                  {booking.vehicle.brand} {booking.vehicle.model} (
-                  {booking.vehicle.year})
+                  {(() => { const v = resolveVehicleDisplay(booking.vehicle.brand, booking.vehicle.model); return `${v.brandName} ${v.modelName} (${booking.vehicle.year})`; })()}
                 </p>
               </div>
             </div>
@@ -153,7 +154,7 @@ function ConfirmationContent() {
             <div className="flex items-start space-x-3">
               <Calendar className="h-5 w-5 text-primary mt-1" />
               <div>
-                <p className="font-medium">{language === "de" ? "Abholdatum & -zeit" : "Pickup Date & Time"}</p>
+                <p className="font-medium">{t("pickupDateTime")}</p>
                 <p className="text-sm text-gray-600">
                   {formatDate(booking.pickupDate)}
                 </p>
@@ -167,7 +168,7 @@ function ConfirmationContent() {
             <div className="flex items-start space-x-3">
               <MapPin className="h-5 w-5 text-primary mt-1" />
               <div>
-                <p className="font-medium">{language === "de" ? "Abholadresse" : "Pickup Address"}</p>
+                <p className="font-medium">{t("pickupAddress")}</p>
                 <p className="text-sm text-gray-600">{booking.pickupAddress}</p>
                 <p className="text-xs text-gray-500 mt-1">
                   {booking.pickupPostalCode} {booking.pickupCity}
@@ -179,7 +180,7 @@ function ConfirmationContent() {
 
         {/* Next Steps */}
         <Card className="p-6 bg-blue-50 border-blue-200">
-          <h3 className="font-semibold text-blue-900 mb-4">{language === "de" ? "Was passiert als Nächstes?" : "What happens next?"}</h3>
+          <h3 className="font-semibold text-blue-900 mb-4">{t("whatNext.title")}</h3>
           <ol className="space-y-3">
             <li className="flex items-start space-x-3">
               <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
@@ -187,10 +188,10 @@ function ConfirmationContent() {
               </span>
               <div>
                 <p className="font-medium text-blue-900">
-                  {language === "de" ? "Sie erhalten eine Bestätigungs-E-Mail" : "You'll receive a confirmation email"}
+                  {t("whatNext.step1Title")}
                 </p>
                 <p className="text-sm text-blue-800">
-                  {language === "de" ? "Überprüfen Sie Ihren Posteingang für die Buchungsdetails und Quittung" : "Check your inbox for the booking details and receipt"}
+                  {t("whatNext.step1Desc")}
                 </p>
               </div>
             </li>
@@ -200,10 +201,10 @@ function ConfirmationContent() {
               </span>
               <div>
                 <p className="font-medium text-blue-900">
-                  {language === "de" ? "Ein Jockey wird zugewiesen" : "A jockey will be assigned"}
+                  {t("whatNext.step2Title")}
                 </p>
                 <p className="text-sm text-blue-800">
-                  {language === "de" ? "Sie werden benachrichtigt, wenn ein Jockey Ihrer Buchung zugewiesen wird" : "You'll be notified when a jockey is assigned to your booking"}
+                  {t("whatNext.step2Desc")}
                 </p>
               </div>
             </li>
@@ -213,10 +214,10 @@ function ConfirmationContent() {
               </span>
               <div>
                 <p className="font-medium text-blue-900">
-                  {language === "de" ? "Fahrzeugabholung zur geplanten Zeit" : "Vehicle pickup at scheduled time"}
+                  {t("whatNext.step3Title")}
                 </p>
                 <p className="text-sm text-blue-800">
-                  {language === "de" ? "Stellen Sie sicher, dass Ihr Fahrzeug zur geplanten Abholzeit bereit ist" : "Make sure your vehicle is ready at the scheduled pickup time"}
+                  {t("whatNext.step3Desc")}
                 </p>
               </div>
             </li>
@@ -226,10 +227,10 @@ function ConfirmationContent() {
               </span>
               <div>
                 <p className="font-medium text-blue-900">
-                  {language === "de" ? "Service-Abschluss und Lieferung" : "Service completion and delivery"}
+                  {t("whatNext.step4Title")}
                 </p>
                 <p className="text-sm text-blue-800">
-                  {language === "de" ? "Verfolgen Sie Ihren Buchungsstatus in Ihrem Dashboard" : "Track your booking status in your dashboard"}
+                  {t("whatNext.step4Desc")}
                 </p>
               </div>
             </li>
@@ -243,7 +244,7 @@ function ConfirmationContent() {
             className="flex-1"
             size="lg"
           >
-            {language === "de" ? "Zum Dashboard" : "Go to Dashboard"}
+            {t("actions.goToDashboard")}
           </Button>
           <Button
             variant="outline"
@@ -260,16 +261,16 @@ function ConfirmationContent() {
             size="lg"
           >
             <Download className="mr-2 h-4 w-4" />
-            {language === "de" ? "Bestätigung drucken" : "Print Confirmation"}
+            {t("actions.printConfirmation")}
           </Button>
         </div>
 
         {/* Support */}
         <div className="text-center text-sm text-gray-600">
           <p>
-            {language === "de" ? "Brauchen Sie Hilfe?" : "Need help?"}{" "}
+            {t("support.needHelp")}{" "}
             <a href={`/${locale}/support`} className="text-primary hover:underline">
-              {language === "de" ? "Kontaktieren Sie unser Support-Team" : "Contact our support team"}
+              {t("support.contactSupport")}
             </a>
           </p>
         </div>

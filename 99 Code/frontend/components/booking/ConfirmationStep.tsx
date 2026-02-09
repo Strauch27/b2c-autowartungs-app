@@ -113,7 +113,11 @@ export function ConfirmationStep({
               {selectedServicesList.map((service) => (
                 <div key={service.id} className="flex justify-between items-center mt-1">
                   <p className="font-semibold">{service.name}</p>
-                  <span className="font-semibold">{service.price} EUR</span>
+                  <span className="font-semibold">
+                    {service.price > 0
+                      ? `${service.price} EUR`
+                      : (language === 'de' ? 'Preis auf Anfrage' : 'Price on request')}
+                  </span>
                 </div>
               ))}
             </div>
@@ -159,7 +163,11 @@ export function ConfirmationStep({
           <div className="border-t-2 border-border pt-4">
             <div className="flex justify-between items-center">
               <span className="text-lg font-bold">{translations.total}</span>
-              <span className="text-2xl font-bold text-amber-500">{totalPrice} EUR</span>
+              <span className="text-2xl font-bold text-amber-500">
+                {totalPrice > 0
+                  ? `${totalPrice} EUR`
+                  : (language === 'de' ? 'Auf Anfrage' : 'On request')}
+              </span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {language === 'de' ? 'inkl. MwSt. | Festpreis-Garantie' : 'incl. VAT | Fixed price guarantee'}

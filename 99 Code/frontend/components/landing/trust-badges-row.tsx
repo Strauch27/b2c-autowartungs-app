@@ -1,38 +1,31 @@
 'use client';
 
-import { Shield, Euro, Calendar, Award, Lock, Zap, CheckCircle, Users } from 'lucide-react';
+import { Shield, Euro, Calendar, Users } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/useLovableTranslation';
 
-const badges = [
-  {
-    icon: Shield,
-    text: 'TÜV Zertifiziert',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
+const translations = {
+  de: {
+    badges: ['TÜV Zertifiziert', 'Festpreis-Garantie', 'Kostenlose Stornierung', '200+ Werkstätten'],
   },
-  {
-    icon: Euro,
-    text: 'Festpreis-Garantie',
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
+  en: {
+    badges: ['TÜV Certified', 'Fixed Price Guarantee', 'Free Cancellation', '200+ Workshops'],
   },
-  {
-    icon: Calendar,
-    text: 'Kostenlose Stornierung',
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-  },
-  {
-    icon: Users,
-    text: '200+ Werkstätten',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
-  },
+};
+
+const badgeStyles = [
+  { icon: Shield, color: 'text-blue-600', bgColor: 'bg-blue-50' },
+  { icon: Euro, color: 'text-green-600', bgColor: 'bg-green-50' },
+  { icon: Calendar, color: 'text-purple-600', bgColor: 'bg-purple-50' },
+  { icon: Users, color: 'text-orange-600', bgColor: 'bg-orange-50' },
 ];
 
 export function TrustBadgesRow() {
+  const { language } = useLanguage();
+  const t = translations[language] || translations.de;
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto py-8">
-      {badges.map((badge, index) => {
+      {badgeStyles.map((badge, index) => {
         const Icon = badge.icon;
         return (
           <div
@@ -43,7 +36,7 @@ export function TrustBadgesRow() {
               <Icon className={`h-6 w-6 ${badge.color}`} />
             </div>
             <span className="text-sm font-semibold text-center text-gray-700">
-              {badge.text}
+              {t.badges[index]}
             </span>
           </div>
         );

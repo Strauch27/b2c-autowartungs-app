@@ -26,8 +26,8 @@ export default function PrivacyPage() {
         <div className="prose prose-gray max-w-none space-y-6">
           <p className="text-muted-foreground">
             {language === 'de'
-              ? 'Diese Datenschutzerklärung wird in Kürze vervollständigt. Bei Fragen wenden Sie sich bitte an info@autoconcierge.de.'
-              : 'This privacy policy will be completed shortly. For questions, please contact info@autoconcierge.de.'}
+              ? 'Diese Datenschutzerklärung wird in Kürze vervollständigt. Bei Fragen wenden Sie sich bitte an info@ronya.de.'
+              : 'This privacy policy will be completed shortly. For questions, please contact info@ronya.de.'}
           </p>
         </div>
       </div>

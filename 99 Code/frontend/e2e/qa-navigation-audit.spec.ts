@@ -309,7 +309,7 @@ baseTest.describe('Support Page Navigation', () => {
     const emailLink = page.locator('a[href^="mailto:"]').first();
     await expect(emailLink).toBeVisible();
     const href = await emailLink.getAttribute('href');
-    expect(href).toContain('mailto:info@autoconcierge.de');
+    expect(href).toContain('mailto:info@ronya.de');
   });
 
   baseTest('Phone contact link has correct tel href', async ({ page }) => {

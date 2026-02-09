@@ -148,10 +148,10 @@ function BookingSuccessContent() {
               {language === 'de' ? 'Fragen? Kontaktieren Sie uns unter' : 'Questions? Contact us at'}
             </p>
             <a
-              href="mailto:info@autowartung.de"
+              href="mailto:info@ronya.de"
               className="text-blue-600 hover:text-blue-700 font-semibold text-lg hover:underline"
             >
-              info@autowartung.de
+              info@ronya.de
             </a>
           </div>
         </div>

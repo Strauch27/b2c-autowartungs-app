@@ -9,7 +9,7 @@ interface StatusTimelineProps {
 }
 
 export function StatusTimeline({ currentStatus, timestamps = {} }: StatusTimelineProps) {
-  const t = useTranslations('workshopDashboard.detail');
+  const t = useTranslations('workshopModal.orderDetails.steps');
 
   const steps = [
     {
@@ -19,21 +19,16 @@ export function StatusTimeline({ currentStatus, timestamps = {} }: StatusTimelin
     },
     {
       key: 'inProgress',
-      label: t('statusTimeline') === 'Status Timeline' ? 'In Progress' : 'In Bearbeitung',
+      label: t('inProgress'),
       completed: currentStatus === 'inProgress' || currentStatus === 'completed',
       current: currentStatus === 'inProgress',
     },
     {
       key: 'completed',
-      label: t('markCompleted').replace('Als abgeschlossen markieren', 'Abgeschlossen').replace('Mark as Completed', 'Completed'),
+      label: t('completed'),
       completed: currentStatus === 'completed',
     },
   ];
-
-  // Provide cleaner labels using the i18n keys
-  steps[0].label = t('received');
-  steps[1].label = t('statusTimeline') !== 'Status-Verlauf' ? 'In Progress' : 'In Bearbeitung';
-  steps[2].label = t('statusTimeline') !== 'Status-Verlauf' ? 'Completed' : 'Abgeschlossen';
 
   return (
     <div className="flex items-center gap-0" data-testid="status-timeline">

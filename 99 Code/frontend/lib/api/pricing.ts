@@ -61,3 +61,60 @@ export async function calculateMultiplePrices(
   const results = await Promise.all(promises);
   return Object.fromEntries(results) as Record<ServiceType, PriceResponse>;
 }
+
+/** Maps wizard service IDs to backend ServiceType route params */
+const WIZARD_TO_BACKEND: Record<string, string> = {
+  inspection: 'INSPECTION',
+  oil: 'OIL_SERVICE',
+  brakes: 'BRAKE_SERVICE',
+  tuv: 'TUV',
+  ac: 'CLIMATE_SERVICE',
+};
+
+/** Conservative fallback prices (match backend defaults) */
+const FALLBACK_PRICES: Record<string, number> = {
+  inspection: 250,
+  oil: 180,
+  brakes: 400,
+  tuv: 120,
+  ac: 150,
+};
+
+/**
+ * Calculate prices for all wizard services in one go.
+ * Returns a map of wizard service ID → price in EUR.
+ * Falls back to hardcoded estimates on error.
+ */
+export async function calculateWizardServicePrices(
+  vehicle: { brand: string; model: string; year: number; mileage: number },
+  wizardServiceIds: string[]
+): Promise<Record<string, number>> {
+  const prices: Record<string, number> = {};
+
+  const params = new URLSearchParams({
+    brand: vehicle.brand,
+    model: vehicle.model,
+    year: vehicle.year.toString(),
+    mileage: vehicle.mileage.toString(),
+  });
+
+  await Promise.all(
+    wizardServiceIds.map(async (wizardId) => {
+      const backendType = WIZARD_TO_BACKEND[wizardId];
+      if (!backendType) return;
+
+      try {
+        const response = await apiClient.get<{
+          success: boolean;
+          data: { price: number };
+        }>(`/api/services/${backendType}/price?${params.toString()}`);
+
+        prices[wizardId] = response.data.price;
+      } catch {
+        prices[wizardId] = FALLBACK_PRICES[wizardId] ?? 0;
+      }
+    })
+  );
+
+  return prices;
+}

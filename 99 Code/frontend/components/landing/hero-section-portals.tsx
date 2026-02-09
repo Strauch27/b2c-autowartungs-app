@@ -5,10 +5,44 @@ import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Star, Car, Users, Wrench } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/useLovableTranslation';
+
+const translations = {
+  de: {
+    socialProof: '4.5 aus 1.247 Bewertungen',
+    concierge: 'Wir holen Ihr Auto ab & bringen es zurück',
+    customerTitle: 'Kunden',
+    customerDesc: 'Buchen Sie Ihre Fahrzeugwartung bequem online mit Festpreis-Garantie',
+    signIn: 'Anmelden',
+    bookNow: 'Jetzt buchen',
+    driverTitle: 'Fahrer',
+    driverDesc: 'Verwalten Sie Ihre Abholungen und Lieferungen',
+    driverLogin: 'Fahrer-Login',
+    workshopTitle: 'Werkstatt',
+    workshopDesc: 'Verwalten Sie Aufträge und Werkstatt-Kapazitäten',
+    workshopLogin: 'Werkstatt-Login',
+  },
+  en: {
+    socialProof: '4.5 from 1,247 reviews',
+    concierge: 'We pick up your car & bring it back',
+    customerTitle: 'Customers',
+    customerDesc: 'Book your vehicle maintenance conveniently online with fixed-price guarantee',
+    signIn: 'Sign in',
+    bookNow: 'Book now',
+    driverTitle: 'Drivers',
+    driverDesc: 'Manage your pickups and deliveries',
+    driverLogin: 'Driver Login',
+    workshopTitle: 'Workshop',
+    workshopDesc: 'Manage orders and workshop capacities',
+    workshopLogin: 'Workshop Login',
+  },
+};
 
 export function HeroSectionPortals() {
   const t = useTranslations('landing.hero');
   const tFixedPrice = useTranslations('landing.fixedPrice');
+  const { language } = useLanguage();
+  const i = translations[language] || translations.de;
   const params = useParams();
   const locale = params.locale as string;
 
@@ -23,7 +57,7 @@ export function HeroSectionPortals() {
                 <Star key={star} className="h-4 w-4 fill-amber-400 text-amber-400" />
               ))}
             </div>
-            <span className="text-sm font-semibold text-gray-900">4.5 aus 1.247 Bewertungen</span>
+            <span className="text-sm font-semibold text-gray-900">{i.socialProof}</span>
           </div>
         </div>
 
@@ -49,7 +83,7 @@ export function HeroSectionPortals() {
             <div className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-50 to-orange-50 rounded-full border-2 border-blue-200 shadow-medium">
               <span className="text-2xl">🚗</span>
               <span className="text-base font-semibold text-gray-900">
-                Wir holen Ihr Auto ab & bringen es zurück
+                {i.concierge}
               </span>
               <span className="text-2xl">✓</span>
             </div>
@@ -66,23 +100,23 @@ export function HeroSectionPortals() {
               </div>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
-              Kunden
+              {i.customerTitle}
             </h2>
             <p className="text-gray-600 mb-6 text-center">
-              Buchen Sie Ihre Fahrzeugwartung bequem online mit Festpreis-Garantie
+              {i.customerDesc}
             </p>
             <div className="space-y-3">
               <Link
                 href={`/${locale}/customer/login`}
                 className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg text-center transition-colors"
               >
-                Anmelden
+                {i.signIn}
               </Link>
               <Link
                 href={`/${locale}/customer/login`}
                 className="block w-full border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold py-3 px-6 rounded-lg text-center transition-colors"
               >
-                Jetzt buchen
+                {i.bookNow}
               </Link>
             </div>
           </div>
@@ -95,17 +129,17 @@ export function HeroSectionPortals() {
               </div>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
-              Fahrer
+              {i.driverTitle}
             </h2>
             <p className="text-gray-600 mb-6 text-center">
-              Verwalten Sie Ihre Abholungen und Lieferungen
+              {i.driverDesc}
             </p>
             <div className="space-y-3">
               <Link
                 href={`/${locale}/jockey/login`}
                 className="block w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg text-center transition-colors"
               >
-                Fahrer-Login
+                {i.driverLogin}
               </Link>
             </div>
           </div>
@@ -118,17 +152,17 @@ export function HeroSectionPortals() {
               </div>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
-              Werkstatt
+              {i.workshopTitle}
             </h2>
             <p className="text-gray-600 mb-6 text-center">
-              Verwalten Sie Aufträge und Werkstatt-Kapazitäten
+              {i.workshopDesc}
             </p>
             <div className="space-y-3">
               <Link
                 href={`/${locale}/workshop/login`}
                 className="block w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-lg text-center transition-colors"
               >
-                Werkstatt-Login
+                {i.workshopLogin}
               </Link>
             </div>
           </div>

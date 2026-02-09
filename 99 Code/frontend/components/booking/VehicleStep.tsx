@@ -133,7 +133,7 @@ export function VehicleStep({ formData, onUpdate, translations }: VehicleStepPro
               <SelectContent className="bg-popover">
                 {models.map((model) => (
                   <SelectItem key={model.id} value={model.id}>
-                    {model.name}
+                    {language === 'en' && model.nameEn ? model.nameEn : model.name}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useLanguage } from "@/lib/i18n/useLovableTranslation";
+import { useTranslations } from "next-intl";
 
 interface HandoverModalProps {
   open: boolean;
@@ -42,7 +42,7 @@ const HandoverModal = ({
   assignment,
   onComplete,
 }: HandoverModalProps) => {
-  const { language } = useLanguage();
+  const t = useTranslations('handoverModal');
   const [photos, setPhotos] = useState<string[]>([]);
   const [signature, setSignature] = useState<string | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -56,51 +56,6 @@ const HandoverModal = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-
-  const t = {
-    de: {
-      title: "Fahrzeugübergabe dokumentieren",
-      description: "Dokumentieren Sie die Übergabe für",
-      photos: "Fahrzeugfotos",
-      photosDesc: "Fotografieren Sie den Fahrzeugzustand",
-      addPhoto: "Foto hinzufügen",
-      takePhoto: "Kamera",
-      signature: "Kundenunterschrift",
-      signatureDesc: "Lassen Sie den Kunden unterschreiben",
-      clearSignature: "Löschen",
-      checklist: "Checkliste",
-      keysReceived: "Fahrzeugschlüssel erhalten",
-      documentsPhotographed: "Fahrzeugschein fotografiert",
-      conditionDocumented: "Zustand dokumentiert",
-      notes: "Anmerkungen",
-      notesPlaceholder: "Besondere Hinweise oder Beschädigungen...",
-      cancel: "Abbrechen",
-      complete: "Übergabe abschließen",
-      success: "Übergabe erfolgreich dokumentiert!",
-    },
-    en: {
-      title: "Document Vehicle Handover",
-      description: "Document the handover for",
-      photos: "Vehicle Photos",
-      photosDesc: "Photograph the vehicle condition",
-      addPhoto: "Add Photo",
-      takePhoto: "Camera",
-      signature: "Customer Signature",
-      signatureDesc: "Have the customer sign",
-      clearSignature: "Clear",
-      checklist: "Checklist",
-      keysReceived: "Vehicle keys received",
-      documentsPhotographed: "Registration documented",
-      conditionDocumented: "Condition documented",
-      notes: "Notes",
-      notesPlaceholder: "Special notes or damages...",
-      cancel: "Cancel",
-      complete: "Complete Handover",
-      success: "Handover documented successfully!",
-    },
-  };
-
-  const texts = t[language];
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -185,7 +140,7 @@ const HandoverModal = ({
 
   const handleComplete = () => {
     if (isValid) {
-      toast.success(texts.success);
+      toast.success(t('success'));
       onComplete({
         photos,
         customerSignature: signature!,
@@ -201,10 +156,10 @@ const HandoverModal = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Pencil className="h-5 w-5 text-jockey" />
-            {texts.title}
+            {t('title')}
           </DialogTitle>
           <DialogDescription>
-            {texts.description} {assignment.customer} - {assignment.vehicle}
+            {t('description')} {assignment.customer} - {assignment.vehicle}
           </DialogDescription>
         </DialogHeader>
 
@@ -213,9 +168,9 @@ const HandoverModal = ({
           <div className="space-y-3">
             <Label className="flex items-center gap-2">
               <Camera className="h-4 w-4" />
-              {texts.photos}
+              {t('photos')}
             </Label>
-            <p className="text-sm text-muted-foreground">{texts.photosDesc}</p>
+            <p className="text-sm text-muted-foreground">{t('photosDesc')}</p>
             
             <div className="grid grid-cols-3 gap-2">
               {photos.map((photo, index) => (
@@ -238,7 +193,7 @@ const HandoverModal = ({
                 className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary"
               >
                 <Upload className="h-6 w-6" />
-                <span className="text-xs">{texts.addPhoto}</span>
+                <span className="text-xs">{t('addPhoto')}</span>
               </button>
             </div>
             {/* J8: Camera capture button */}
@@ -249,10 +204,10 @@ const HandoverModal = ({
                 size="sm"
                 className="min-h-[44px]"
                 onClick={() => cameraInputRef.current?.click()}
-                aria-label={texts.takePhoto}
+                aria-label={t('takePhoto')}
               >
                 <Camera className="mr-2 h-4 w-4" />
-                {texts.takePhoto}
+                {t('takePhoto')}
               </Button>
               <Button
                 type="button"
@@ -260,10 +215,10 @@ const HandoverModal = ({
                 size="sm"
                 className="min-h-[44px]"
                 onClick={() => fileInputRef.current?.click()}
-                aria-label={texts.addPhoto}
+                aria-label={t('addPhoto')}
               >
                 <Upload className="mr-2 h-4 w-4" />
-                {texts.addPhoto}
+                {t('addPhoto')}
               </Button>
             </div>
             {/* TODO: Photos are currently held in local state only. Implement backend upload when endpoint is available. */}
@@ -290,16 +245,16 @@ const HandoverModal = ({
             <div className="flex items-center justify-between">
               <Label className="flex items-center gap-2">
                 <Pencil className="h-4 w-4" />
-                {texts.signature}
+                {t('signature')}
               </Label>
               {signature && (
                 <Button variant="ghost" size="sm" onClick={clearSignature}>
                   <X className="mr-1 h-3 w-3" />
-                  {texts.clearSignature}
+                  {t('clearSignature')}
                 </Button>
               )}
             </div>
-            <p className="text-sm text-muted-foreground">{texts.signatureDesc}</p>
+            <p className="text-sm text-muted-foreground">{t('signatureDesc')}</p>
             
             <div className="rounded-lg border-2 border-border bg-card">
               <canvas
@@ -319,14 +274,14 @@ const HandoverModal = ({
             {signature && (
               <div className="flex items-center gap-2 text-sm text-success">
                 <CheckCircle className="h-4 w-4" />
-                {language === "de" ? "Unterschrift erfasst" : "Signature captured"}
+                {t('signatureCaptured')}
               </div>
             )}
           </div>
 
           {/* Checklist */}
           <div className="space-y-3">
-            <Label>{texts.checklist}</Label>
+            <Label>{t('checklist')}</Label>
             <div className="space-y-3 rounded-lg border border-border p-4">
               <div className="flex items-center space-x-3">
                 <Checkbox
@@ -337,7 +292,7 @@ const HandoverModal = ({
                   }
                 />
                 <Label htmlFor="keys" className="font-normal">
-                  {texts.keysReceived}
+                  {t('keysReceived')}
                 </Label>
               </div>
               <div className="flex items-center space-x-3">
@@ -349,7 +304,7 @@ const HandoverModal = ({
                   }
                 />
                 <Label htmlFor="documents" className="font-normal">
-                  {texts.documentsPhotographed}
+                  {t('documentsPhotographed')}
                 </Label>
               </div>
               <div className="flex items-center space-x-3">
@@ -361,7 +316,7 @@ const HandoverModal = ({
                   }
                 />
                 <Label htmlFor="condition" className="font-normal">
-                  {texts.conditionDocumented}
+                  {t('conditionDocumented')}
                 </Label>
               </div>
             </div>
@@ -369,10 +324,10 @@ const HandoverModal = ({
 
           {/* Notes */}
           <div className="space-y-3">
-            <Label htmlFor="notes">{texts.notes}</Label>
+            <Label htmlFor="notes">{t('notes')}</Label>
             <Textarea
               id="notes"
-              placeholder={texts.notesPlaceholder}
+              placeholder={t('notesPlaceholder')}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
@@ -384,9 +339,7 @@ const HandoverModal = ({
             <div className="flex items-start gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>
-                {language === "de"
-                  ? "Bitte fügen Sie mindestens ein Foto hinzu, erfassen Sie die Unterschrift und vervollständigen Sie die Checkliste."
-                  : "Please add at least one photo, capture the signature, and complete the checklist."}
+                {t('validationWarning')}
               </span>
             </div>
           )}
@@ -397,19 +350,19 @@ const HandoverModal = ({
               variant="outline"
               className="flex-1 min-h-[44px]"
               onClick={() => onOpenChange(false)}
-              aria-label={texts.cancel}
+              aria-label={t('cancel')}
             >
-              {texts.cancel}
+              {t('cancel')}
             </Button>
             <Button
               variant="jockey"
               className="flex-1 min-h-[44px]"
               onClick={handleComplete}
               disabled={!isValid}
-              aria-label={texts.complete}
+              aria-label={t('complete')}
             >
               <Check className="mr-2 h-4 w-4" />
-              {texts.complete}
+              {t('complete')}
             </Button>
           </div>
         </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, ClipboardCheck, Droplets, Disc, RefreshCw, Shield, Settings } from "lucide-react";
+import { Check, ClipboardCheck, Droplets, Disc, Shield, Snowflake } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ServiceStepProps {
@@ -13,59 +13,49 @@ interface ServiceStepProps {
     from: string;
   };
   language: 'de' | 'en';
+  prices: Record<string, number>;
+  pricesLoading: boolean;
 }
 
 const serviceConfig = [
   {
     id: "inspection",
-    price: 149,
     icon: ClipboardCheck,
     colorClass: 'bg-blue-50 text-blue-500',
     priceColor: 'text-blue-500',
   },
   {
     id: "oil",
-    price: 89,
     icon: Droplets,
     colorClass: 'bg-amber-50 text-amber-500',
     priceColor: 'text-amber-500',
   },
   {
     id: "brakes",
-    price: 199,
     icon: Disc,
     colorClass: 'bg-red-50 text-red-500',
     priceColor: 'text-red-500',
   },
   {
-    id: "tires",
-    price: 59,
-    icon: RefreshCw,
-    colorClass: 'bg-green-50 text-green-500',
-    priceColor: 'text-green-500',
-  },
-  {
     id: "tuv",
-    price: 119,
     icon: Shield,
     colorClass: 'bg-purple-50 text-purple-500',
     priceColor: 'text-purple-500',
   },
   {
-    id: "maintenance",
-    price: 249,
-    icon: Settings,
-    colorClass: 'bg-indigo-50 text-indigo-500',
-    priceColor: 'text-indigo-500',
+    id: "ac",
+    icon: Snowflake,
+    colorClass: 'bg-cyan-50 text-cyan-500',
+    priceColor: 'text-cyan-500',
   },
 ];
 
 export { serviceConfig };
 
-export function ServiceStep({ selectedServices, onUpdate, translations, language }: ServiceStepProps) {
+export function ServiceStep({ selectedServices, onUpdate, translations, language, prices, pricesLoading }: ServiceStepProps) {
   const totalPrice = serviceConfig
     .filter((s) => selectedServices.includes(s.id))
-    .reduce((sum, s) => sum + s.price, 0);
+    .reduce((sum, s) => sum + (prices[s.id] ?? 0), 0);
 
   return (
     <Card className="card-premium animate-fade-in" data-testid="service-step">
@@ -83,6 +73,7 @@ export function ServiceStep({ selectedServices, onUpdate, translations, language
             const serviceTranslation = translations.services[config.id as keyof typeof translations.services];
             const name = serviceTranslation?.name || config.id;
             const description = serviceTranslation?.description || '';
+            const price = prices[config.id];
 
             return (
               <button
@@ -111,7 +102,13 @@ export function ServiceStep({ selectedServices, onUpdate, translations, language
                 <h4 className="font-bold mb-1">{name}</h4>
                 <p className="text-muted-foreground text-xs mb-3">{description}</p>
                 <span className={`font-bold ${config.priceColor}`}>
-                  {translations.from} {config.price} EUR
+                  {pricesLoading ? (
+                    <span className="inline-block h-4 w-16 bg-gray-200 rounded animate-pulse" />
+                  ) : price != null ? (
+                    `${translations.from} ${price} EUR`
+                  ) : (
+                    '–'
+                  )}
                 </span>
               </button>
             );
@@ -125,7 +122,11 @@ export function ServiceStep({ selectedServices, onUpdate, translations, language
               {language === "de" ? "Zwischensumme" : "Subtotal"}
             </span>
             <span className="font-bold text-xl text-blue-600">
-              {totalPrice} EUR
+              {pricesLoading ? (
+                <span className="inline-block h-5 w-20 bg-blue-200 rounded animate-pulse" />
+              ) : (
+                `${totalPrice} EUR`
+              )}
             </span>
           </div>
         )}

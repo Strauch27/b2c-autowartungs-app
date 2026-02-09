@@ -2,6 +2,7 @@
 
 import { Star, CheckCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { useLanguage } from '@/lib/i18n/useLovableTranslation';
 
 interface Testimonial {
   id: string;
@@ -15,52 +16,108 @@ interface Testimonial {
   verified: boolean;
 }
 
-const testimonials: Testimonial[] = [
-  {
-    id: '1',
-    author: 'Michael Schmidt',
-    authorInitials: 'MS',
-    rating: 5,
-    date: '15.01.2026',
-    text: 'Fantastischer Service! Die Buchung war super einfach und der Festpreis hat genau gestimmt. Werkstatt war professionell und freundlich.',
-    service: 'Inspektion',
-    vehicle: 'VW Golf',
-    verified: true,
+const translations = {
+  de: {
+    heading: 'Das sagen unsere Kunden',
+    subheading: 'Über 1.200 verifizierte Bewertungen mit ⌀ 4.5★',
+    testimonials: [
+      {
+        id: '1',
+        author: 'Michael Schmidt',
+        authorInitials: 'MS',
+        rating: 5,
+        date: '15.01.2026',
+        text: 'Fantastischer Service! Die Buchung war super einfach und der Festpreis hat genau gestimmt. Werkstatt war professionell und freundlich.',
+        service: 'Inspektion',
+        vehicle: 'VW Golf',
+        verified: true,
+      },
+      {
+        id: '2',
+        author: 'Sarah Müller',
+        authorInitials: 'SM',
+        rating: 5,
+        date: '10.01.2026',
+        text: 'Endlich eine Plattform die hält was sie verspricht. Keine versteckten Kosten, transparente Preise und schnelle Terminvergabe.',
+        service: 'Ölwechsel',
+        vehicle: 'BMW 3er',
+        verified: true,
+      },
+      {
+        id: '3',
+        author: 'Thomas Weber',
+        authorInitials: 'TW',
+        rating: 5,
+        date: '08.01.2026',
+        text: 'Kann ich nur empfehlen! Die Werkstatt war top, der Preis fair und die digitale Freigabe hat mir viel Zeit gespart.',
+        service: 'Bremsen',
+        vehicle: 'Audi A4',
+        verified: true,
+      },
+      {
+        id: '4',
+        author: 'Julia Klein',
+        authorInitials: 'JK',
+        rating: 5,
+        date: '05.01.2026',
+        text: 'Super Erfahrung! Besonders gut fand ich die kostenlose Stornierung. Musste meinen Termin verlegen und das ging problemlos.',
+        service: 'Hauptuntersuchung',
+        vehicle: 'Mercedes C-Klasse',
+        verified: true,
+      },
+    ] as Testimonial[],
   },
-  {
-    id: '2',
-    author: 'Sarah Müller',
-    authorInitials: 'SM',
-    rating: 5,
-    date: '10.01.2026',
-    text: 'Endlich eine Plattform die hält was sie verspricht. Keine versteckten Kosten, transparente Preise und schnelle Terminvergabe.',
-    service: 'Ölwechsel',
-    vehicle: 'BMW 3er',
-    verified: true,
+  en: {
+    heading: 'What our customers say',
+    subheading: 'Over 1,200 verified reviews with an average of 4.5★',
+    testimonials: [
+      {
+        id: '1',
+        author: 'Michael Schmidt',
+        authorInitials: 'MS',
+        rating: 5,
+        date: '15.01.2026',
+        text: 'Fantastic service! Booking was super easy and the fixed price was spot on. The workshop was professional and friendly.',
+        service: 'Inspection',
+        vehicle: 'VW Golf',
+        verified: true,
+      },
+      {
+        id: '2',
+        author: 'Sarah Müller',
+        authorInitials: 'SM',
+        rating: 5,
+        date: '10.01.2026',
+        text: 'Finally a platform that delivers on its promises. No hidden costs, transparent pricing, and fast appointment scheduling.',
+        service: 'Oil Change',
+        vehicle: 'BMW 3 Series',
+        verified: true,
+      },
+      {
+        id: '3',
+        author: 'Thomas Weber',
+        authorInitials: 'TW',
+        rating: 5,
+        date: '08.01.2026',
+        text: 'Highly recommend! The workshop was excellent, the price was fair, and the digital approval saved me a lot of time.',
+        service: 'Brakes',
+        vehicle: 'Audi A4',
+        verified: true,
+      },
+      {
+        id: '4',
+        author: 'Julia Klein',
+        authorInitials: 'JK',
+        rating: 5,
+        date: '05.01.2026',
+        text: 'Great experience! I especially liked the free cancellation. Had to reschedule my appointment and it was no problem at all.',
+        service: 'General Inspection',
+        vehicle: 'Mercedes C-Class',
+        verified: true,
+      },
+    ] as Testimonial[],
   },
-  {
-    id: '3',
-    author: 'Thomas Weber',
-    authorInitials: 'TW',
-    rating: 5,
-    date: '08.01.2026',
-    text: 'Kann ich nur empfehlen! Die Werkstatt war top, der Preis fair und die digitale Freigabe hat mir viel Zeit gespart.',
-    service: 'Bremsen',
-    vehicle: 'Audi A4',
-    verified: true,
-  },
-  {
-    id: '4',
-    author: 'Julia Klein',
-    authorInitials: 'JK',
-    rating: 5,
-    date: '05.01.2026',
-    text: 'Super Erfahrung! Besonders gut fand ich die kostenlose Stornierung. Musste meinen Termin verlegen und das ging problemlos.',
-    service: 'Hauptuntersuchung',
-    vehicle: 'Mercedes C-Klasse',
-    verified: true,
-  },
-];
+};
 
 function StarRating({ rating }: { rating: number }) {
   return (
@@ -80,20 +137,23 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 export function TestimonialsSection() {
+  const { language } = useLanguage();
+  const t = translations[language] || translations.de;
+
   return (
     <section className="py-20 px-4 bg-white">
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Das sagen unsere Kunden
+            {t.heading}
           </h2>
           <p className="text-xl text-gray-600">
-            Über 1.200 verifizierte Bewertungen mit ⌀ 4.5★
+            {t.subheading}
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {testimonials.map((testimonial) => (
+          {t.testimonials.map((testimonial) => (
             <Card key={testimonial.id} className="border-2 hover:shadow-strong transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4 mb-4">

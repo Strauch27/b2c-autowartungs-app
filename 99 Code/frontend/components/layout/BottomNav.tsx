@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   Home,
   ClipboardList,
@@ -25,40 +26,45 @@ interface BottomNavProps {
   portal: 'customer' | 'jockey' | 'workshop';
 }
 
-function getNavItems(portal: BottomNavProps['portal'], locale: string): NavItem[] {
-  const base = `/${locale}`;
-
-  switch (portal) {
-    case 'customer':
-      return [
-        { href: `${base}/customer/dashboard`, icon: <Home className="h-5 w-5" />, label: 'Dashboard' },
-        { href: `${base}/customer/bookings`, icon: <ClipboardList className="h-5 w-5" />, label: 'Buchungen' },
-        { href: `${base}/booking`, icon: <Plus className="h-6 w-6" />, label: 'Neu', isAccent: true },
-        { href: `${base}/customer/vehicles`, icon: <Car className="h-5 w-5" />, label: 'Fahrzeuge' },
-        { href: `${base}/customer/profile`, icon: <User className="h-5 w-5" />, label: 'Profil' },
-      ];
-    case 'jockey':
-      return [
-        { href: `${base}/jockey/dashboard`, icon: <ClipboardList className="h-5 w-5" />, label: 'Aufgaben' },
-        { href: `${base}/jockey/stats`, icon: <BarChart3 className="h-5 w-5" />, label: 'Statistiken' },
-        { href: `${base}/jockey/availability`, icon: <CalendarDays className="h-5 w-5" />, label: 'Verfügbarkeit' },
-        { href: `${base}/jockey/profile`, icon: <User className="h-5 w-5" />, label: 'Profil' },
-      ];
-    case 'workshop':
-      return [
-        { href: `${base}/workshop/dashboard`, icon: <ClipboardList className="h-5 w-5" />, label: 'Aufträge' },
-        { href: `${base}/workshop/calendar`, icon: <CalendarDays className="h-5 w-5" />, label: 'Kalender' },
-        { href: `${base}/workshop/stats`, icon: <BarChart3 className="h-5 w-5" />, label: 'Statistiken' },
-        { href: `${base}/workshop/team`, icon: <Users className="h-5 w-5" />, label: 'Team' },
-      ];
-  }
-}
-
 export function BottomNav({ portal }: BottomNavProps) {
   const pathname = usePathname();
   const params = useParams();
   const locale = (params.locale as string) || 'de';
-  const items = getNavItems(portal, locale);
+  const tCustomer = useTranslations('customerDashboard.nav');
+  const tJockey = useTranslations('jockeyDashboard.bottomNav');
+  const tWorkshop = useTranslations('workshopDashboard.bottomNav');
+
+  const base = `/${locale}`;
+
+  let items: NavItem[];
+
+  switch (portal) {
+    case 'customer':
+      items = [
+        { href: `${base}/customer/dashboard`, icon: <Home className="h-5 w-5" />, label: tCustomer('dashboard') },
+        { href: `${base}/customer/bookings`, icon: <ClipboardList className="h-5 w-5" />, label: tCustomer('myBookings') },
+        { href: `${base}/booking`, icon: <Plus className="h-6 w-6" />, label: tCustomer('newBooking'), isAccent: true },
+        { href: `${base}/customer/vehicles`, icon: <Car className="h-5 w-5" />, label: tCustomer('vehicles') },
+        { href: `${base}/customer/profile`, icon: <User className="h-5 w-5" />, label: tCustomer('profile') },
+      ];
+      break;
+    case 'jockey':
+      items = [
+        { href: `${base}/jockey/dashboard`, icon: <ClipboardList className="h-5 w-5" />, label: tJockey('tasks') },
+        { href: `${base}/jockey/stats`, icon: <BarChart3 className="h-5 w-5" />, label: tJockey('stats') },
+        { href: `${base}/jockey/availability`, icon: <CalendarDays className="h-5 w-5" />, label: tJockey('availability') },
+        { href: `${base}/jockey/profile`, icon: <User className="h-5 w-5" />, label: tJockey('profile') },
+      ];
+      break;
+    case 'workshop':
+      items = [
+        { href: `${base}/workshop/dashboard`, icon: <ClipboardList className="h-5 w-5" />, label: tWorkshop('orders') },
+        { href: `${base}/workshop/calendar`, icon: <CalendarDays className="h-5 w-5" />, label: tWorkshop('calendar') },
+        { href: `${base}/workshop/stats`, icon: <BarChart3 className="h-5 w-5" />, label: tWorkshop('stats') },
+        { href: `${base}/workshop/team`, icon: <Users className="h-5 w-5" />, label: tWorkshop('team') },
+      ];
+      break;
+  }
 
   return (
     <nav

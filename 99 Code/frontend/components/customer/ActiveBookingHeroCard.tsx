@@ -1,10 +1,12 @@
 'use client';
 
+import Image from 'next/image';
 import { Car, Settings, Clock, Phone, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useParams, useRouter } from 'next/navigation';
 import { BookingResponse } from '@/lib/api/bookings';
 import { BookingProgressTimeline } from './BookingProgressTimeline';
+import { resolveVehicleDisplay } from '@/lib/constants/vehicles';
 
 const statusProgress: Record<string, number> = {
   PENDING_PAYMENT: 0,
@@ -73,17 +75,32 @@ export function ActiveBookingHeroCard({ booking }: ActiveBookingHeroCardProps) {
             {/* Info rows */}
             <div className="grid grid-cols-1 gap-3 mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Car className="w-5 h-5 text-gray-600" />
+                <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {booking.vehicle ? (() => {
+                    const v = resolveVehicleDisplay(booking.vehicle.brand, booking.vehicle.model);
+                    return v.brandLogo ? (
+                      <Image src={v.brandLogo} alt={v.brandName} width={28} height={28} className="object-contain" unoptimized />
+                    ) : (
+                      <Car className="w-5 h-5 text-gray-600" />
+                    );
+                  })() : (
+                    <Car className="w-5 h-5 text-gray-600" />
+                  )}
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-900">
                     {booking.vehicle
-                      ? `${booking.vehicle.brand} ${booking.vehicle.model} · ${booking.vehicle.year}`
+                      ? (() => {
+                          const v = resolveVehicleDisplay(booking.vehicle.brand, booking.vehicle.model);
+                          return `${v.brandName} ${v.modelName} · ${booking.vehicle.year}`;
+                        })()
                       : '-'}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {booking.vehicle?.licensePlate || ''}
+                    {[
+                      booking.vehicle?.licensePlate,
+                      booking.vehicle?.mileage ? `${Number(booking.vehicle.mileage).toLocaleString(locale === 'de' ? 'de-DE' : 'en-US')} km` : null,
+                    ].filter(Boolean).join(' · ')}
                   </p>
                 </div>
               </div>

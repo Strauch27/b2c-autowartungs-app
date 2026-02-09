@@ -205,6 +205,7 @@ async function main() {
 
   await prisma.priceMatrix.createMany({
     data: priceMatrixData,
+    skipDuplicates: true,
   });
   console.log(`✓ Created ${priceMatrixData.length} PriceMatrix entries`);
 

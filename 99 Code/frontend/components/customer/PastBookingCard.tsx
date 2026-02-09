@@ -1,10 +1,12 @@
 'use client';
 
+import Image from 'next/image';
 import { Car, Check, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useParams, useRouter } from 'next/navigation';
 import { BookingResponse } from '@/lib/api/bookings';
 import { formatEuro } from '@/lib/utils/currency';
+import { resolveVehicleDisplay } from '@/lib/constants/vehicles';
 
 interface PastBookingCardProps {
   booking: BookingResponse;
@@ -31,8 +33,11 @@ export function PastBookingCard({ booking, index }: PastBookingCardProps) {
     { day: 'numeric', month: 'short', year: 'numeric' }
   );
 
-  const vehicleStr = booking.vehicle
-    ? `${booking.vehicle.brand} ${booking.vehicle.model}`
+  const resolved = booking.vehicle
+    ? resolveVehicleDisplay(booking.vehicle.brand, booking.vehicle.model)
+    : null;
+  const vehicleStr = resolved
+    ? `${resolved.brandName} ${resolved.modelName}`
     : '';
 
   return (
@@ -42,8 +47,12 @@ export function PastBookingCard({ booking, index }: PastBookingCardProps) {
       data-testid={`past-booking-card-${index}`}
     >
       <div className="flex items-center gap-3 flex-1 min-w-0">
-        <div className="w-11 h-11 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
-          <Car className="w-6 h-6 text-gray-500" />
+        <div className="w-11 h-11 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+          {resolved?.brandLogo ? (
+            <Image src={resolved.brandLogo} alt={resolved.brandName} width={28} height={28} className="object-contain" unoptimized />
+          ) : (
+            <Car className="w-6 h-6 text-gray-500" />
+          )}
         </div>
         <div className="min-w-0">
           <p className="text-sm font-semibold text-gray-900">{serviceLabel}</p>

@@ -37,9 +37,9 @@ export function LandingFooter() {
           <div>
             <h4 className="text-white font-semibold mb-4">{t('legal.title')}</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href={`/${locale}`} className="hover:text-white">{t('legal.imprint')}</Link></li>
-              <li><Link href={`/${locale}`} className="hover:text-white">{t('legal.privacy')}</Link></li>
-              <li><Link href={`/${locale}`} className="hover:text-white">{t('legal.terms')}</Link></li>
+              <li><Link href={`/${locale}/imprint`} className="hover:text-white">{t('legal.imprint')}</Link></li>
+              <li><Link href={`/${locale}/privacy`} className="hover:text-white">{t('legal.privacy')}</Link></li>
+              <li><Link href={`/${locale}/terms`} className="hover:text-white">{t('legal.terms')}</Link></li>
             </ul>
           </div>
           <div>
@@ -47,7 +47,7 @@ export function LandingFooter() {
             <ul className="space-y-2 text-sm">
               <li>{t('contact.email')}</li>
               <li>{t('contact.hours')}</li>
-              <li className="pt-2"><Link href={`/${locale}`} className="hover:text-white">{t('contact.help')}</Link></li>
+              <li className="pt-2"><Link href={`/${locale}/support`} className="hover:text-white">{t('contact.help')}</Link></li>
             </ul>
           </div>
         </div>

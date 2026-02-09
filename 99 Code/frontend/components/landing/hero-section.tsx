@@ -5,10 +5,24 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Calculator, CheckCircle, Star } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/useLovableTranslation';
+
+const translations = {
+  de: {
+    socialProof: '4.5 aus 1.247 Bewertungen',
+    concierge: 'Wir holen Ihr Auto ab & bringen es zurück',
+  },
+  en: {
+    socialProof: '4.5 from 1,247 reviews',
+    concierge: 'We pick up your car & bring it back',
+  },
+};
 
 export function HeroSection() {
   const t = useTranslations('landing.hero');
   const tFixedPrice = useTranslations('landing.fixedPrice');
+  const { language } = useLanguage();
+  const i = translations[language] || translations.de;
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string || 'de';
@@ -29,7 +43,7 @@ export function HeroSection() {
                 <Star key={star} className="h-4 w-4 fill-amber-400 text-amber-400" />
               ))}
             </div>
-            <span className="text-sm font-semibold text-gray-900">4.5 aus 1.247 Bewertungen</span>
+            <span className="text-sm font-semibold text-gray-900">{i.socialProof}</span>
           </div>
         </div>
 
@@ -55,7 +69,7 @@ export function HeroSection() {
             <div className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-50 to-orange-50 rounded-full border-2 border-blue-200 shadow-medium">
               <span className="text-2xl">🚗</span>
               <span className="text-base font-semibold text-gray-900">
-                Wir holen Ihr Auto ab & bringen es zurück
+                {i.concierge}
               </span>
               <span className="text-2xl">✓</span>
             </div>

@@ -7,6 +7,40 @@
 
 import { useEffect, useState } from 'react';
 import { Bell, CheckCircle, Clock, AlertCircle, Package, Truck, Wrench } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/useLovableTranslation';
+
+const translations = {
+  de: {
+    errorLoading: 'Fehler beim Laden der Benachrichtigungen',
+    noNotifications: 'Keine Benachrichtigungen',
+    noNotificationsDesc: 'Sie haben noch keine Benachrichtigungen erhalten.',
+    title: 'Benachrichtigungen',
+    markAllRead: 'Alle als gelesen markieren',
+    justNow: 'Gerade eben',
+    minutesAgo: (n: number) => `vor ${n} Min.`,
+    hoursAgo: (n: number) => `vor ${n} Std.`,
+    daysAgo: (n: number) => `vor ${n} Tag${n > 1 ? 'en' : ''}`,
+    prev: 'Zurück',
+    next: 'Weiter',
+    pageOf: (p: number, t: number) => `Seite ${p} von ${t}`,
+    dateLocale: 'de-DE',
+  },
+  en: {
+    errorLoading: 'Error loading notifications',
+    noNotifications: 'No notifications',
+    noNotificationsDesc: "You don't have any notifications yet.",
+    title: 'Notifications',
+    markAllRead: 'Mark all as read',
+    justNow: 'Just now',
+    minutesAgo: (n: number) => `${n} min ago`,
+    hoursAgo: (n: number) => `${n} hr${n > 1 ? 's' : ''} ago`,
+    daysAgo: (n: number) => `${n} day${n > 1 ? 's' : ''} ago`,
+    prev: 'Previous',
+    next: 'Next',
+    pageOf: (p: number, t: number) => `Page ${p} of ${t}`,
+    dateLocale: 'en-US',
+  },
+};
 
 interface Notification {
   id: string;
@@ -53,6 +87,8 @@ const notificationColors: Record<string, string> = {
 };
 
 export function NotificationList({ apiUrl, authToken }: NotificationListProps) {
+  const { language } = useLanguage();
+  const i = translations[language] || translations.de;
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -149,12 +185,12 @@ export function NotificationList({ apiUrl, authToken }: NotificationListProps) {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Gerade eben';
-    if (diffMins < 60) return `vor ${diffMins} Min.`;
-    if (diffHours < 24) return `vor ${diffHours} Std.`;
-    if (diffDays < 7) return `vor ${diffDays} Tag${diffDays > 1 ? 'en' : ''}`;
+    if (diffMins < 1) return i.justNow;
+    if (diffMins < 60) return i.minutesAgo(diffMins);
+    if (diffHours < 24) return i.hoursAgo(diffHours);
+    if (diffDays < 7) return i.daysAgo(diffDays);
 
-    return date.toLocaleDateString('de-DE', {
+    return date.toLocaleDateString(i.dateLocale, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -172,7 +208,7 @@ export function NotificationList({ apiUrl, authToken }: NotificationListProps) {
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-sm text-red-600">Fehler beim Laden der Benachrichtigungen: {error}</p>
+        <p className="text-sm text-red-600">{i.errorLoading}: {error}</p>
       </div>
     );
   }
@@ -181,9 +217,9 @@ export function NotificationList({ apiUrl, authToken }: NotificationListProps) {
     return (
       <div className="text-center py-12">
         <Bell className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-        <h3 className="text-lg font-medium text-gray-900 mb-1">Keine Benachrichtigungen</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-1">{i.noNotifications}</h3>
         <p className="text-sm text-gray-500">
-          Sie haben noch keine Benachrichtigungen erhalten.
+          {i.noNotificationsDesc}
         </p>
       </div>
     );
@@ -195,13 +231,13 @@ export function NotificationList({ apiUrl, authToken }: NotificationListProps) {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">Benachrichtigungen</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{i.title}</h2>
         {unreadCount > 0 && (
           <button
             onClick={markAllAsRead}
             className="text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
-            Alle als gelesen markieren
+            {i.markAllRead}
           </button>
         )}
       </div>
@@ -257,11 +293,11 @@ export function NotificationList({ apiUrl, authToken }: NotificationListProps) {
             disabled={page === 1}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Zurück
+            {i.prev}
           </button>
 
           <span className="text-sm text-gray-600">
-            Seite {page} von {totalPages}
+            {i.pageOf(page, totalPages)}
           </span>
 
           <button
@@ -269,7 +305,7 @@ export function NotificationList({ apiUrl, authToken }: NotificationListProps) {
             disabled={page === totalPages}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Weiter
+            {i.next}
           </button>
         </div>
       )}

@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Car, Wrench } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { resolveVehicleDisplay } from "@/lib/constants/vehicles";
 
 interface PaymentSummaryProps {
   booking: {
@@ -91,7 +92,7 @@ export function PaymentSummary({ booking }: PaymentSummaryProps) {
           <div>
             <p className="font-medium">{t('vehicle')}</p>
             <p className="text-sm text-gray-600">
-              {booking.vehicle.brand} {booking.vehicle.model} ({booking.vehicle.year})
+              {(() => { const v = resolveVehicleDisplay(booking.vehicle.brand, booking.vehicle.model); return `${v.brandName} ${v.modelName} (${booking.vehicle.year})`; })()}
             </p>
             {booking.vehicle.licensePlate && (
               <p className="text-xs text-gray-500 mt-1">

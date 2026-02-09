@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Globe } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/useLovableTranslation";
+import { useRouter, usePathname, useParams } from "next/navigation";
 
 type Language = 'de' | 'en';
 
@@ -19,8 +20,20 @@ const languages: { code: Language; label: string; flag: string }[] = [
 
 const LanguageSwitcher = () => {
   const { language, setLanguage } = useLanguage();
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useParams();
+  const currentLocale = (params.locale as string) || 'de';
 
   const currentLanguage = languages.find((l) => l.code === language);
+
+  const switchLanguage = (newLang: Language) => {
+    // Update URL locale segment
+    const newPath = pathname.replace(`/${currentLocale}`, `/${newLang}`);
+    router.push(newPath);
+    // Also update in-memory state
+    setLanguage(newLang);
+  };
 
   return (
     <DropdownMenu>
@@ -34,7 +47,7 @@ const LanguageSwitcher = () => {
         {languages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
-            onSelect={() => setLanguage(lang.code)}
+            onSelect={() => switchLanguage(lang.code)}
             className={language === lang.code ? "bg-accent" : ""}
           >
             <span className="mr-2">{lang.flag}</span>

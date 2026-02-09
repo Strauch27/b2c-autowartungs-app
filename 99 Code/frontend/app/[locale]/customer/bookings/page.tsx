@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useLanguage } from "@/lib/i18n/useLovableTranslation";
+import { useTranslations } from "next-intl";
 import { bookingsApi, BookingResponse } from "@/lib/api/bookings";
 import { toast } from "sonner";
+import { resolveVehicleDisplay } from "@/lib/constants/vehicles";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,27 +44,20 @@ const statusColors: Record<string, string> = {
   PENDING_PAYMENT: "bg-gray-100 text-gray-800",
 };
 
-const statusLabels: Record<string, { de: string; en: string }> = {
-  PENDING_PAYMENT: { de: "Zahlung ausstehend", en: "Payment Pending" },
-  CONFIRMED: { de: "Bestätigt", en: "Confirmed" },
-  PICKUP_ASSIGNED: { de: "Abholung geplant", en: "Pickup Scheduled" },
-  PICKED_UP: { de: "Abgeholt", en: "Picked Up" },
-  AT_WORKSHOP: { de: "In Werkstatt", en: "At Workshop" },
-  IN_SERVICE: { de: "Wird bearbeitet", en: "In Service" },
-  IN_WORKSHOP: { de: "In Werkstatt", en: "In Workshop" },
-  READY_FOR_RETURN: { de: "Bereit zur Rückgabe", en: "Ready for Return" },
-  RETURN_ASSIGNED: { de: "Rückgabe geplant", en: "Return Scheduled" },
-  RETURNED: { de: "Zurückgebracht", en: "Returned" },
-  DELIVERED: { de: "Abgeschlossen", en: "Completed" },
-  COMPLETED: { de: "Abgeschlossen", en: "Completed" },
-  CANCELLED: { de: "Storniert", en: "Cancelled" },
-};
+// Status keys that exist in customerPortal.bookingDetail.status namespace
+const STATUS_KEYS = [
+  "PENDING_PAYMENT", "CONFIRMED", "PICKUP_ASSIGNED", "PICKED_UP",
+  "AT_WORKSHOP", "IN_SERVICE", "READY_FOR_RETURN", "RETURN_ASSIGNED",
+  "RETURNED", "DELIVERED", "COMPLETED", "CANCELLED",
+] as const;
 
 function BookingsContent() {
   const router = useRouter();
   const params = useParams();
   const locale = (params.locale as string) || "de";
   const { language } = useLanguage();
+  const tStatus = useTranslations("customerPortal.bookingDetail.status");
+  const tDashboard = useTranslations("customerDashboard");
 
   const [bookings, setBookings] = useState<BookingResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -134,7 +129,7 @@ function BookingsContent() {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">
-              {language === "de" ? "Meine Buchungen" : "My Bookings"}
+              {tDashboard("nav.myBookings")}
             </h1>
             <p className="text-muted-foreground">
               {language === "de"
@@ -147,7 +142,7 @@ function BookingsContent() {
             onClick={() => router.push(`/${locale}/customer/dashboard`)}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {language === "de" ? "Dashboard" : "Dashboard"}
+            {tDashboard("nav.dashboard")}
           </Button>
         </div>
 
@@ -205,7 +200,10 @@ function BookingsContent() {
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {booking.vehicle
-                            ? `${booking.vehicle.brand} ${booking.vehicle.model} (${booking.vehicle.year})`
+                            ? (() => {
+                                const v = resolveVehicleDisplay(booking.vehicle.brand, booking.vehicle.model);
+                                return `${v.brandName} ${v.modelName} (${booking.vehicle.year})`;
+                              })()
                             : language === "de"
                             ? "Fahrzeug"
                             : "Vehicle"}
@@ -230,8 +228,9 @@ function BookingsContent() {
                           "bg-gray-100 text-gray-800"
                         }
                       >
-                        {statusLabels[booking.status]?.[language] ||
-                          booking.status}
+                        {STATUS_KEYS.includes(booking.status as any)
+                          ? tStatus(booking.status as any)
+                          : booking.status}
                       </Badge>
 
                       <div className="flex gap-2">

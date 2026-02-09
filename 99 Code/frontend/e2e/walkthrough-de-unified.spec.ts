@@ -86,6 +86,10 @@ async function hideBannerAndOverlays(page: Page) {
     const portal = document.querySelector('nextjs-portal');
     if (portal) (portal as HTMLElement).style.display = 'none';
     document.querySelectorAll('[data-nextjs-toast]').forEach(el => (el as HTMLElement).style.display = 'none');
+    // Fix sticky headers appearing mid-page in fullPage screenshots
+    document.querySelectorAll('[data-testid="top-bar"]').forEach(el => {
+      (el as HTMLElement).style.position = 'relative';
+    });
   }).catch(() => {});
 }
 

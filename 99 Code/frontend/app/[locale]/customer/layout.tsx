@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { PortalLayout } from '@/components/layout/PortalLayout';
 import { NotificationCenter } from '@/components/customer/NotificationCenter';
@@ -11,6 +12,16 @@ export default function CustomerLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isPublicPage =
+    pathname.endsWith('/login') ||
+    pathname.endsWith('/register') ||
+    pathname.endsWith('/verify');
+
+  if (isPublicPage) {
+    return <>{children}</>;
+  }
+
   return (
     <ProtectedRoute requiredRole="customer">
       <CustomerLayoutInner>{children}</CustomerLayoutInner>

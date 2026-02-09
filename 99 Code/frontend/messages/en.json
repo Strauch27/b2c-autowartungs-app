@@ -210,7 +210,22 @@
         "payNow": "Pay now",
         "discount": "First booking discount (20%)"
       }
-    }
+    },
+    "accountDialog": {
+      "title": "Create an account?",
+      "subtitle": "Create an account now to book even faster next time.",
+      "benefit1": "Even faster next time",
+      "benefit2": "View service history",
+      "benefit3": "Exclusive offers",
+      "email": "Email",
+      "password": "Password",
+      "passwordPlaceholder": "At least 8 characters",
+      "noThanks": "No, thanks",
+      "createAccount": "Create account"
+    },
+    "welcomeBack": "Welcome back!",
+    "lastBooking": "Your last service: {service} for {vehicle}",
+    "bookAgain": "Book again"
   },
   "vehicleSelection": {
     "title": "Select Vehicle",
@@ -1564,6 +1579,28 @@
     "comingSoon": "Team Management - Coming Soon",
     "comingSoonText": "Here you will soon be able to manage your workshop employees, assign orders, and view working hours.",
     "backToDashboard": "Back to Dashboard"
+  },
+  "handoverModal": {
+    "title": "Document Vehicle Handover",
+    "description": "Document the handover for",
+    "photos": "Vehicle Photos",
+    "photosDesc": "Photograph the vehicle condition",
+    "addPhoto": "Add Photo",
+    "takePhoto": "Camera",
+    "signature": "Customer Signature",
+    "signatureDesc": "Have the customer sign",
+    "clearSignature": "Clear",
+    "signatureCaptured": "Signature captured",
+    "checklist": "Checklist",
+    "keysReceived": "Vehicle keys received",
+    "documentsPhotographed": "Registration documented",
+    "conditionDocumented": "Condition documented",
+    "notes": "Notes",
+    "notesPlaceholder": "Special notes or damages...",
+    "cancel": "Cancel",
+    "complete": "Complete Handover",
+    "success": "Handover documented successfully!",
+    "validationWarning": "Please add at least one photo, capture the signature, and complete the checklist."
   },
   "customerPortal": {
     "header": {

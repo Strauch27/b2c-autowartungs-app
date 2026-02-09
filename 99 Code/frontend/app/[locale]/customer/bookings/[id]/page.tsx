@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { bookingsApi, BookingResponse, ExtensionResponse } from '@/lib/api/bookings';
 import { formatEuro } from '@/lib/utils/currency';
+import Image from 'next/image';
 import {
   Car,
   Calendar,
@@ -19,6 +20,7 @@ import { BookingProgressTimeline } from '@/components/customer/BookingProgressTi
 import { BookingActivityTimeline } from '@/components/customer/BookingActivityTimeline';
 import { ExtensionList } from '@/components/customer/ExtensionList';
 import { toast } from 'sonner';
+import { resolveVehicleDisplay } from '@/lib/constants/vehicles';
 
 const statusProgress: Record<string, number> = {
   PENDING_PAYMENT: 0,
@@ -159,18 +161,34 @@ function BookingDetailContent() {
           {/* Vehicle */}
           <div className="animate-card bg-white rounded-2xl shadow-sm border border-gray-100 p-4" data-testid="vehicle-card">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Car className="w-5 h-5 text-gray-600" />
+              <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                {booking.vehicle ? (() => {
+                  const v = resolveVehicleDisplay(booking.vehicle.brand, booking.vehicle.model);
+                  return v.brandLogo ? (
+                    <Image src={v.brandLogo} alt={v.brandName} width={28} height={28} className="object-contain" unoptimized />
+                  ) : (
+                    <Car className="w-5 h-5 text-gray-600" />
+                  );
+                })() : (
+                  <Car className="w-5 h-5 text-gray-600" />
+                )}
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-900">
                   {booking.vehicle
-                    ? `${booking.vehicle.brand} ${booking.vehicle.model}`
+                    ? (() => {
+                        const v = resolveVehicleDisplay(booking.vehicle.brand, booking.vehicle.model);
+                        return `${v.brandName} ${v.modelName}`;
+                      })()
                     : '-'}
                 </p>
                 <p className="text-xs text-gray-500">
                   {booking.vehicle
-                    ? `${booking.vehicle.year} \u00B7 ${booking.vehicle.mileage?.toLocaleString()} km \u00B7 ${booking.vehicle.licensePlate || ''}`
+                    ? [
+                        booking.vehicle.year,
+                        booking.vehicle.mileage ? `${Number(booking.vehicle.mileage).toLocaleString()} km` : null,
+                        booking.vehicle.licensePlate,
+                      ].filter(Boolean).join(' \u00B7 ')
                     : ''}
                 </p>
               </div>

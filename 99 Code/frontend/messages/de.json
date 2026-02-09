@@ -1580,6 +1580,28 @@
     "comingSoonText": "Hier können Sie bald Ihre Werkstatt-Mitarbeiter verwalten, Aufträge zuweisen und Arbeitszeiten einsehen.",
     "backToDashboard": "Zurück zum Dashboard"
   },
+  "handoverModal": {
+    "title": "Fahrzeugübergabe dokumentieren",
+    "description": "Dokumentieren Sie die Übergabe für",
+    "photos": "Fahrzeugfotos",
+    "photosDesc": "Fotografieren Sie den Fahrzeugzustand",
+    "addPhoto": "Foto hinzufügen",
+    "takePhoto": "Kamera",
+    "signature": "Kundenunterschrift",
+    "signatureDesc": "Lassen Sie den Kunden unterschreiben",
+    "clearSignature": "Löschen",
+    "signatureCaptured": "Unterschrift erfasst",
+    "checklist": "Checkliste",
+    "keysReceived": "Fahrzeugschlüssel erhalten",
+    "documentsPhotographed": "Fahrzeugschein fotografiert",
+    "conditionDocumented": "Zustand dokumentiert",
+    "notes": "Anmerkungen",
+    "notesPlaceholder": "Besondere Hinweise oder Beschädigungen...",
+    "cancel": "Abbrechen",
+    "complete": "Übergabe abschließen",
+    "success": "Übergabe erfolgreich dokumentiert!",
+    "validationWarning": "Bitte fügen Sie mindestens ein Foto hinzu, erfassen Sie die Unterschrift und vervollständigen Sie die Checkliste."
+  },
   "customerPortal": {
     "header": {
       "title": "AutoConcierge"

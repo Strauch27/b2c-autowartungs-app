@@ -15,11 +15,15 @@ import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 import { Loader2, UserPlus, Car } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export default function RegisterPage() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string || 'de';
+  const tLogin = useTranslations("login");
+  const tContact = useTranslations("lovableBooking.step4.contact");
+  const tAccount = useTranslations("booking.accountDialog");
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
@@ -132,13 +136,13 @@ export default function RegisterPage() {
               {/* Email */}
               <div className="space-y-2">
                 <Label htmlFor="email">
-                  {locale === "de" ? "E-Mail-Adresse" : "Email Address"} *
+                  {tLogin("email")} *
                 </Label>
                 <Input
                   id="email"
                   name="email"
                   type="email"
-                  placeholder={locale === "de" ? "ihre@email.de" : "your@email.com"}
+                  placeholder={tLogin("emailPlaceholder")}
                   value={formData.email}
                   onChange={handleChange}
                   required
@@ -148,13 +152,13 @@ export default function RegisterPage() {
               {/* First Name */}
               <div className="space-y-2">
                 <Label htmlFor="firstName">
-                  {locale === "de" ? "Vorname" : "First Name"} *
+                  {tContact("firstName")} *
                 </Label>
                 <Input
                   id="firstName"
                   name="firstName"
                   type="text"
-                  placeholder={locale === "de" ? "Max" : "John"}
+                  placeholder={tContact("firstNamePlaceholder")}
                   value={formData.firstName}
                   onChange={handleChange}
                   required
@@ -164,13 +168,13 @@ export default function RegisterPage() {
               {/* Last Name */}
               <div className="space-y-2">
                 <Label htmlFor="lastName">
-                  {locale === "de" ? "Nachname" : "Last Name"} *
+                  {tContact("lastName")} *
                 </Label>
                 <Input
                   id="lastName"
                   name="lastName"
                   type="text"
-                  placeholder={locale === "de" ? "Mustermann" : "Doe"}
+                  placeholder={tContact("lastNamePlaceholder")}
                   value={formData.lastName}
                   onChange={handleChange}
                   required
@@ -180,7 +184,7 @@ export default function RegisterPage() {
               {/* Phone */}
               <div className="space-y-2">
                 <Label htmlFor="phone">
-                  {locale === "de" ? "Telefonnummer" : "Phone Number"} *
+                  {tContact("phone")} *
                 </Label>
                 <Input
                   id="phone"
@@ -196,13 +200,13 @@ export default function RegisterPage() {
               {/* Password */}
               <div className="space-y-2">
                 <Label htmlFor="password">
-                  {locale === "de" ? "Passwort" : "Password"} *
+                  {tLogin("password")} *
                 </Label>
                 <Input
                   id="password"
                   name="password"
                   type="password"
-                  placeholder={locale === "de" ? "Mindestens 8 Zeichen" : "At least 8 characters"}
+                  placeholder={tAccount("passwordPlaceholder")}
                   value={formData.password}
                   onChange={handleChange}
                   required

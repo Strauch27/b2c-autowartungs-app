@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import { apiClient } from '@/lib/api/client';
 import { tokenStorage } from '@/lib/auth/token-storage';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,8 @@ import { Suspense } from 'react';
 function VerifyContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const params = useParams();
+  const locale = (params.locale as string) || 'de';
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>(
     'verifying'
   );
@@ -29,7 +31,7 @@ function VerifyContent() {
         const response = await apiClient.post<{ token: string }>('/api/auth/customer/verify', { token });
         tokenStorage.setToken(response.token);
         setStatus('success');
-        router.push('/customer/dashboard');
+        router.push(`/${locale}/customer/dashboard`);
       } catch (err) {
         setStatus('error');
         setError(
@@ -84,7 +86,7 @@ function VerifyContent() {
             </h2>
             <p className="text-slate-600 mb-6">{error}</p>
             <Button
-              onClick={() => (window.location.href = '/customer/login')}
+              onClick={() => router.push(`/${locale}/customer/login`)}
               className="w-full"
             >
               Zurück zum Login

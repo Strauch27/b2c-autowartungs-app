@@ -71,16 +71,16 @@ const Footer = () => {
             <h3 className="mb-6 text-lg font-semibold">{t.aboutUs}</h3>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="text-gray-400 transition-colors hover:text-white">{t.team}</a>
+                <span className="text-gray-400">{t.team}</span>
               </li>
               <li>
-                <a href="#" className="text-gray-400 transition-colors hover:text-white">{t.partnerWorkshops}</a>
+                <span className="text-gray-400">{t.partnerWorkshops}</span>
               </li>
               <li>
-                <a href="#" className="text-gray-400 transition-colors hover:text-white">{t.careers}</a>
+                <span className="text-gray-400">{t.careers}</span>
               </li>
               <li>
-                <a href="#" className="text-gray-400 transition-colors hover:text-white">{t.press}</a>
+                <span className="text-gray-400">{t.press}</span>
               </li>
             </ul>
           </div>
@@ -105,7 +105,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-400 transition-colors hover:text-white">{t.cookies}</a>
+                <span className="text-gray-400">{t.cookies}</span>
               </li>
             </ul>
           </div>
@@ -116,7 +116,7 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-gray-400">
                 <Mail className="h-4 w-4" />
-                <span>info@autoconcierge.de</span>
+                <span>info@ronya.de</span>
               </li>
               <li className="flex items-center gap-2 text-gray-400">
                 <Phone className="h-4 w-4" />

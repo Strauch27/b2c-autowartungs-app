@@ -10,11 +10,29 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Calculator, CheckCircle, Star } from 'lucide-react';
 import { ABTestWrapper, useABTest, trackABTestConversion } from '@/components/ab-test/ab-test-wrapper';
 import { AB_TEST_EVENTS } from '@/lib/ab-tests/config';
+import { useLanguage } from '@/lib/i18n/useLovableTranslation';
+
+const inlineTranslations = {
+  de: {
+    socialProof: '4.5 aus 1.247 Bewertungen',
+    findAppointment: 'Termin finden',
+    ariaPlz: 'Postleitzahl eingeben',
+    ariaSearch: 'Werkstatt suchen',
+  },
+  en: {
+    socialProof: '4.5 from 1,247 reviews',
+    findAppointment: 'Find appointment',
+    ariaPlz: 'Enter postal code',
+    ariaSearch: 'Search workshop',
+  },
+};
 
 export function HeroSectionAB() {
   const t = useTranslations('landing.hero');
   const tFixedPrice = useTranslations('landing.fixedPrice');
   const tWorkshop = useTranslations('workshop');
+  const { language } = useLanguage();
+  const i = inlineTranslations[language] || inlineTranslations.de;
   const [plz, setPlz] = useState('');
   const router = useRouter();
   const params = useParams();
@@ -31,7 +49,7 @@ export function HeroSectionAB() {
     : 'bg-primary hover:bg-primary/90';
 
   // Dynamic CTA copy
-  const ctaText = ctaCopyVariant === 'alternative' ? 'Termin finden' : t('cta');
+  const ctaText = ctaCopyVariant === 'alternative' ? i.findAppointment : t('cta');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +58,7 @@ export function HeroSectionAB() {
         cta_type: 'plz_search',
         plz
       });
-      router.push(`/${locale}/workshops?plz=${plz}`);
+      router.push(`/${locale}/booking?plz=${plz}`);
     }
   };
 
@@ -63,7 +81,7 @@ export function HeroSectionAB() {
             <Star key={star} className="h-4 w-4 fill-amber-400 text-amber-400" />
           ))}
         </div>
-        <span className="text-sm font-semibold text-gray-900">4.5 aus 1.247 Bewertungen</span>
+        <span className="text-sm font-semibold text-gray-900">{i.socialProof}</span>
       </div>
     </div>
   );
@@ -118,7 +136,7 @@ export function HeroSectionAB() {
               onChange={(e) => setPlz(e.target.value.replace(/\D/g, '').slice(0, 5))}
               className="h-12 text-center text-base"
               maxLength={5}
-              aria-label="Postleitzahl eingeben"
+              aria-label={i.ariaPlz}
             />
             <Button
               type="submit"
@@ -126,7 +144,7 @@ export function HeroSectionAB() {
               variant="outline"
               className="h-12 px-6"
               data-testid="workshop-search-button"
-              aria-label="Werkstatt suchen"
+              aria-label={i.ariaSearch}
             >
               {tWorkshop('search')}
             </Button>

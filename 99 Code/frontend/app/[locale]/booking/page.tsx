@@ -13,6 +13,7 @@ import { PickupStep } from "@/components/booking/PickupStep";
 import { ConfirmationStep } from "@/components/booking/ConfirmationStep";
 import { toast } from "sonner";
 import { bookingsApi, CreateBookingRequest } from "@/lib/api/bookings";
+import { calculateWizardServicePrices } from "@/lib/api/pricing";
 
 export default function BookingPage() {
   const router = useRouter();
@@ -20,6 +21,9 @@ export default function BookingPage() {
 
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dynamicPrices, setDynamicPrices] = useState<Record<string, number>>({});
+  const [pricesLoading, setPricesLoading] = useState(false);
+  const [pricesCacheKey, setPricesCacheKey] = useState('');
   const [formData, setFormData] = useState({
     brand: "",
     model: "",
@@ -45,9 +49,10 @@ export default function BookingPage() {
   const services = serviceConfig.map((config) => {
     const serviceTranslation = t.booking?.step2?.services?.[config.id as keyof typeof t.booking.step2.services];
     return {
-      ...config,
+      id: config.id,
       name: serviceTranslation?.name || config.id,
       description: serviceTranslation?.description || '',
+      price: dynamicPrices[config.id] ?? 0,
     };
   });
 
@@ -59,6 +64,31 @@ export default function BookingPage() {
   ];
 
   const handleNext = () => {
+    if (step === 1) {
+      // Moving to services step – fetch dynamic prices
+      const cacheKey = `${formData.brand}-${formData.model}-${formData.year}-${formData.mileage}`;
+      if (cacheKey !== pricesCacheKey) {
+        setPricesLoading(true);
+        const vehicle = {
+          brand: formData.brand,
+          model: formData.model,
+          year: parseInt(formData.year),
+          mileage: parseInt(formData.mileage),
+        };
+        const allServiceIds = serviceConfig.map((s) => s.id);
+        calculateWizardServicePrices(vehicle, allServiceIds)
+          .then((prices) => {
+            setDynamicPrices(prices);
+            setPricesCacheKey(cacheKey);
+          })
+          .catch(() => {
+            // Fallback: prices stay empty, ServiceStep shows '–'
+          })
+          .finally(() => {
+            setPricesLoading(false);
+          });
+      }
+    }
     if (step < 4) setStep(step + 1);
   };
 
@@ -215,6 +245,8 @@ export default function BookingPage() {
             onUpdate={(services) => setFormData(prev => ({ ...prev, selectedServices: services }))}
             translations={t.booking.step2}
             language={language}
+            prices={dynamicPrices}
+            pricesLoading={pricesLoading}
           />
         )}
 

@@ -41,8 +41,8 @@ export default function SupportPage() {
               <p className="text-sm text-muted-foreground mb-3">
                 {language === 'de' ? 'Schreiben Sie uns eine E-Mail' : 'Send us an email'}
               </p>
-              <a href="mailto:info@autoconcierge.de" className="text-primary hover:underline text-sm font-medium">
-                info@autoconcierge.de
+              <a href="mailto:info@ronya.de" className="text-primary hover:underline text-sm font-medium">
+                info@ronya.de
               </a>
             </CardContent>
           </Card>
@@ -58,7 +58,7 @@ export default function SupportPage() {
               <p className="text-sm text-muted-foreground mb-3">
                 {language === 'de' ? 'Mo-Fr 9-18 Uhr' : 'Mon-Fri 9am-6pm'}
               </p>
-              <a href="tel:+493012345689" className="text-primary hover:underline text-sm font-medium">
+              <a href="tel:+4930123456789" className="text-primary hover:underline text-sm font-medium">
                 +49 30 123 456 789
               </a>
             </CardContent>

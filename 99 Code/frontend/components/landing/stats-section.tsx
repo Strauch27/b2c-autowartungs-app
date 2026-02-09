@@ -2,11 +2,24 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Wrench, Calendar, Star, ThumbsUp } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/useLovableTranslation';
+
+const translations = {
+  de: {
+    heading: 'Vertrauen durch Zahlen',
+    subheading: 'Über 15.000 zufriedene Kunden haben bereits gebucht',
+    labels: ['Werkstätten', 'Buchungen', 'Bewertung', 'Empfehlung'],
+  },
+  en: {
+    heading: 'Trust in Numbers',
+    subheading: 'Over 15,000 satisfied customers have already booked',
+    labels: ['Workshops', 'Bookings', 'Rating', 'Recommendation'],
+  },
+};
 
 interface Stat {
   value: number;
   suffix: string;
-  label: string;
   icon: any;
   color: string;
   bgColor: string;
@@ -16,7 +29,6 @@ const stats: Stat[] = [
   {
     value: 200,
     suffix: '+',
-    label: 'Werkstätten',
     icon: Wrench,
     color: 'text-blue-600',
     bgColor: 'bg-blue-50',
@@ -24,7 +36,6 @@ const stats: Stat[] = [
   {
     value: 15000,
     suffix: '+',
-    label: 'Buchungen',
     icon: Calendar,
     color: 'text-green-600',
     bgColor: 'bg-green-50',
@@ -32,7 +43,6 @@ const stats: Stat[] = [
   {
     value: 4.5,
     suffix: '★',
-    label: 'Bewertung',
     icon: Star,
     color: 'text-amber-600',
     bgColor: 'bg-amber-50',
@@ -40,7 +50,6 @@ const stats: Stat[] = [
   {
     value: 92,
     suffix: '%',
-    label: 'Empfehlung',
     icon: ThumbsUp,
     color: 'text-purple-600',
     bgColor: 'bg-purple-50',
@@ -103,15 +112,18 @@ function Counter({ value, suffix }: { value: number; suffix: string }) {
 }
 
 export function StatsSection() {
+  const { language } = useLanguage();
+  const t = translations[language] || translations.de;
+
   return (
     <section className="py-20 px-4 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Vertrauen durch Zahlen
+            {t.heading}
           </h2>
           <p className="text-xl text-gray-600">
-            Über 15.000 zufriedene Kunden haben bereits gebucht
+            {t.subheading}
           </p>
         </div>
 
@@ -127,7 +139,7 @@ export function StatsSection() {
                   <Icon className={`h-8 w-8 ${stat.color}`} />
                 </div>
                 <Counter value={stat.value} suffix={stat.suffix} />
-                <div className="text-gray-600 font-medium mt-2">{stat.label}</div>
+                <div className="text-gray-600 font-medium mt-2">{t.labels[index]}</div>
               </div>
             );
           })}

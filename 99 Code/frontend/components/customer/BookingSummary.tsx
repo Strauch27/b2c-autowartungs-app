@@ -6,6 +6,7 @@ import { formatEuro, formatNumber } from '@/lib/utils/currency';
 import { ServiceType, VehicleData, PriceBreakdown } from '@/lib/types/service';
 import { Car, Gauge, Wrench, Receipt } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { resolveVehicleDisplay } from '@/lib/constants/vehicles';
 
 export interface BookingSummaryProps {
   vehicle: VehicleData;
@@ -49,7 +50,7 @@ export function BookingSummary({
           </div>
           <div className="pl-6 space-y-1">
             <p className="font-semibold text-lg">
-              {vehicle.brand} {vehicle.model}
+              {(() => { const v = resolveVehicleDisplay(vehicle.brand, vehicle.model); return `${v.brandName} ${v.modelName}`; })()}
             </p>
             <p className="text-sm text-muted-foreground">
               {t('buildYear')}: {vehicle.year}
