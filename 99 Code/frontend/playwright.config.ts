@@ -133,6 +133,17 @@ export default defineConfig({
         ...devices['iPad (gen 7)'],
       },
     },
+
+    {
+      name: 'demo',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 720 },
+        launchOptions: { slowMo: 400 },
+        video: 'on',
+        screenshot: 'on',
+      },
+    },
   ],
 
   /* Output folder for test artifacts */

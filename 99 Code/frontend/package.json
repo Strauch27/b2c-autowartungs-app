@@ -19,7 +19,9 @@
     "test:e2e:booking": "playwright test e2e/ui-booking-flow.spec.ts",
     "test:e2e:cross-browser": "playwright test --project=firefox-desktop --project=webkit-desktop e2e/portal-smoke-tests.spec.ts e2e/auth-flows.spec.ts",
     "test:e2e:chrome": "playwright test --project=chromium-desktop",
-    "test:e2e:mobile": "playwright test --project=chromium-mobile"
+    "test:e2e:mobile": "playwright test --project=chromium-mobile",
+    "test:demo": "E2E_TEST=true playwright test e2e/demo-live.spec.ts --headed --project=demo",
+    "test:demo:en": "E2E_TEST=true playwright test e2e/demo-live-en.spec.ts --headed --project=demo"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
