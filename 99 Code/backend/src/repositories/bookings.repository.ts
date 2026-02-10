@@ -1,4 +1,4 @@
-import { PrismaClient, Booking, BookingStatus, ServiceType, User, Vehicle } from '@prisma/client';
+import { PrismaClient, Booking, BookingStatus, ServiceType, User, Vehicle, JockeyAssignment } from '@prisma/client';
 
 export interface CreateBookingParams {
   customerId: string;
@@ -35,10 +35,15 @@ export interface BookingFilters {
   toDate?: Date;
 }
 
+export type JockeyAssignmentSummary = Pick<JockeyAssignment, 'id' | 'type' | 'status' | 'scheduledTime' | 'departedAt' | 'arrivedAt' | 'completedAt'> & {
+  jockey: Pick<User, 'id' | 'firstName' | 'lastName'>;
+};
+
 export type BookingWithRelations = Booking & {
   customer: User;
   vehicle: Vehicle;
   jockey?: User | null;
+  jockeyAssignments?: JockeyAssignmentSummary[];
 };
 
 export class BookingsRepository {
@@ -109,7 +114,20 @@ export class BookingsRepository {
       include: {
         customer: true,
         vehicle: true,
-        jockey: true
+        jockey: true,
+        jockeyAssignments: {
+          select: {
+            id: true,
+            type: true,
+            status: true,
+            scheduledTime: true,
+            departedAt: true,
+            arrivedAt: true,
+            completedAt: true,
+            jockey: { select: { id: true, firstName: true, lastName: true } }
+          },
+          orderBy: { createdAt: 'asc' }
+        }
       }
     });
   }
@@ -123,7 +141,20 @@ export class BookingsRepository {
       include: {
         customer: true,
         vehicle: true,
-        jockey: true
+        jockey: true,
+        jockeyAssignments: {
+          select: {
+            id: true,
+            type: true,
+            status: true,
+            scheduledTime: true,
+            departedAt: true,
+            arrivedAt: true,
+            completedAt: true,
+            jockey: { select: { id: true, firstName: true, lastName: true } }
+          },
+          orderBy: { createdAt: 'asc' }
+        }
       }
     });
   }

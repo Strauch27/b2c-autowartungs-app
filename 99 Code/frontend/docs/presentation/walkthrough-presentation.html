@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoConcierge — Buchungs-Lifecycle Demo</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-from: #0f172a;
+    --bg-to: #1e293b;
+    --customer: #3b82f6;
+    --customer-bg: rgba(59,130,246,.12);
+    --customer-glow: rgba(59,130,246,.35);
+    --jockey: #a855f7;
+    --jockey-bg: rgba(168,85,247,.12);
+    --jockey-glow: rgba(168,85,247,.35);
+    --workshop: #10b981;
+    --workshop-bg: rgba(16,185,129,.12);
+    --workshop-glow: rgba(16,185,129,.35);
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --surface: rgba(255,255,255,.06);
+    --border: rgba(255,255,255,.08);
+    --radius: 16px;
+    --transition: .35s cubic-bezier(.4,0,.2,1);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    background: linear-gradient(135deg, var(--bg-from), var(--bg-to));
+    color: var(--text);
+    min-height: 100vh;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Dot grid pattern overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,.03) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Radial vignette overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,.35) 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Presentation Container ── */
+  .presentation {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 16px 40px 12px;
+    position: relative;
+    z-index: 1;
+    transition: filter .4s ease;
+  }
+  .presentation.blurred {
+    filter: blur(8px) brightness(.6);
+  }
+
+  /* ── Top Bar ── */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    flex-shrink: 0;
+  }
+  .phase-label {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .phase-label .phase-accent {
+    display: inline-block;
+    width: 4px;
+    height: 18px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .phase-label .phase-num { color: var(--text); font-weight: 700; }
+  .slide-counter {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .slide-counter .current { color: var(--text); font-weight: 600; }
+
+  /* ── Segmented Progress Bar ── */
+  .progress-area { flex-shrink: 0; margin-bottom: 12px; }
+  .segmented-progress {
+    display: flex;
+    gap: 3px;
+    height: 5px;
+    margin-bottom: 5px;
+  }
+  .segment {
+    flex: 1;
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+    background: var(--border);
+  }
+  .segment-fill {
+    position: absolute;
+    inset: 0;
+    border-radius: 3px;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--transition), background var(--transition);
+  }
+  .segment.completed .segment-fill { transform: scaleX(1); }
+  .segment.active .segment-fill { transform-origin: left; }
+  .progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* ── Main Stage ── */
+  .stage {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* ── Slide ── */
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateX(60px);
+    transition: opacity var(--transition), transform var(--transition);
+    pointer-events: none;
+  }
+  .slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  /* ── Slide Header ── */
+  .slide-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+  }
+  .role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .5px;
+  }
+  .role-badge svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .role-badge.customer { background: var(--customer-bg); color: var(--customer); }
+  .role-badge.jockey   { background: var(--jockey-bg);   color: var(--jockey); }
+  .role-badge.workshop  { background: var(--workshop-bg);  color: var(--workshop); }
+  .slide-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    text-shadow: 0 2px 8px rgba(0,0,0,.3);
+  }
+
+  /* ── Device Frames ── */
+  .device-frame {
+    position: relative;
+    flex-shrink: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Mobile Frame (iPhone) */
+  .frame-mobile {
+    width: 340px;
+    max-height: calc(100% - 10px);
+    aspect-ratio: 9/19.5;
+    background: #1a1a2e;
+    border-radius: 44px;
+    border: 4px solid #2a2a4a;
+    padding: 10px 10px 14px;
+    box-shadow:
+      0 25px 60px rgba(0,0,0,.5),
+      0 0 0 1px rgba(255,255,255,.05),
+      inset 0 1px 1px rgba(255,255,255,.06);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* iOS Status Bar */
+  .ios-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 20px 4px 24px;
+    flex-shrink: 0;
+    height: 22px;
+  }
+  .ios-status-time {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: .5px;
+  }
+  .ios-status-icons {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .ios-status-icons svg {
+    fill: #fff;
+    opacity: .9;
+  }
+
+  .frame-mobile .notch {
+    width: 110px;
+    height: 5px;
+    background: #2a2a4a;
+    border-radius: 3px;
+    margin: 0 auto 4px;
+    flex-shrink: 0;
+  }
+  .frame-mobile .screen {
+    flex: 1;
+    border-radius: 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .frame-mobile .screen::-webkit-scrollbar { display: none; }
+
+  /* Desktop Frame (Browser) */
+  .frame-desktop {
+    max-width: 880px;
+    width: 92%;
+    max-height: calc(100% - 10px);
+    background: #1a1a2e;
+    border-radius: 14px;
+    border: 3px solid #2a2a4a;
+    padding: 0 0 28px;
+    box-shadow:
+      0 25px 60px rgba(0,0,0,.5),
+      0 0 0 1px rgba(255,255,255,.05),
+      inset 0 1px 1px rgba(255,255,255,.06);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* Browser Chrome */
+  .browser-chrome {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px 7px;
+    flex-shrink: 0;
+    background: rgba(20,20,40,.8);
+    border-bottom: 1px solid rgba(255,255,255,.04);
+  }
+  .browser-dots {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .browser-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  .browser-dot.red { background: #ff5f57; }
+  .browser-dot.yellow { background: #febc2e; }
+  .browser-dot.green { background: #28c840; }
+  .browser-nav-btns {
+    display: flex;
+    gap: 4px;
+    margin-left: 4px;
+    flex-shrink: 0;
+  }
+  .browser-nav-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    border: none;
+    background: rgba(255,255,255,.06);
+    color: rgba(255,255,255,.4);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+  }
+  .browser-address-bar {
+    flex: 1;
+    height: 26px;
+    border-radius: 6px;
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.06);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 6px;
+    min-width: 0;
+  }
+  .browser-lock-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+  .browser-lock-icon svg { width: 11px; height: 11px; fill: #4ade80; }
+  .browser-url {
+    font-size: 12px;
+    color: rgba(255,255,255,.55);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .frame-desktop .screen {
+    flex: 1;
+    border-radius: 0 0 4px 4px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    margin: 0 8px;
+  }
+  .frame-desktop .screen::-webkit-scrollbar { display: none; }
+  .frame-desktop::after {
+    content: '';
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 6px;
+    background: #2a2a4a;
+    border-radius: 3px;
+  }
+
+  /* ── Image Wrapper (contains image + hotspot overlay) ── */
+  .image-wrapper {
+    position: relative;
+    width: 100%;
+  }
+  .image-wrapper img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* ── Hotspot ── */
+  .hotspot {
+    position: absolute;
+    border-radius: 10px;
+    cursor: pointer;
+    z-index: 5;
+    transition: transform .12s ease, box-shadow .12s ease;
+    overflow: visible;
+  }
+  .hotspot-inner {
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    border: 2.5px solid var(--hs-color);
+    background: var(--hs-bg);
+    animation: hotspot-pulse 2s ease-in-out 3;
+  }
+  .hotspot:hover {
+    transform: scale(1.03);
+  }
+  .hotspot:hover .hotspot-inner {
+    background: var(--hs-hover);
+    box-shadow: 0 0 24px var(--hs-glow);
+  }
+  .hotspot:active {
+    transform: scale(0.96);
+  }
+
+  /* Hotspot label tooltip - role-colored */
+  .hotspot-label {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 8px);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 8px;
+    background: var(--hs-tooltip-bg, rgba(0,0,0,.85));
+    color: #fff;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .2s;
+    z-index: 10;
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,.1);
+  }
+  .hotspot:hover .hotspot-label {
+    opacity: 1;
+  }
+
+  /* Pulse animation - 3 iterations only */
+  @keyframes hotspot-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 var(--hs-glow); }
+    50% { box-shadow: 0 0 20px 3px var(--hs-glow); }
+  }
+
+  /* Animated pointer hand near hotspot */
+  .hotspot-pointer {
+    position: absolute;
+    bottom: -28px;
+    right: -16px;
+    width: 28px;
+    height: 28px;
+    opacity: 0;
+    animation: pointer-appear .6s ease .3s forwards, pointer-bob 1.2s ease-in-out .9s 3;
+    pointer-events: none;
+    z-index: 6;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+  }
+  @keyframes pointer-appear {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: .85; transform: translateY(0); }
+  }
+  @keyframes pointer-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  /* Ripple effect */
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,.35);
+    transform: scale(0);
+    animation: ripple-expand .5s ease-out forwards;
+    pointer-events: none;
+    z-index: 20;
+  }
+  @keyframes ripple-expand {
+    to { transform: scale(4); opacity: 0; }
+  }
+
+  /* ── Navigation Arrows ── */
+  .nav-arrow {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s, box-shadow .3s, opacity .2s;
+    z-index: 100;
+    backdrop-filter: blur(8px);
+  }
+  .nav-arrow:hover {
+    background: rgba(255,255,255,.12);
+    box-shadow: 0 0 20px rgba(255,255,255,.08), 0 0 40px rgba(255,255,255,.04);
+  }
+  .nav-arrow:disabled { opacity: .15; pointer-events: none; }
+  .nav-prev { left: 16px; }
+  .nav-next { right: 16px; }
+
+  /* ── Role Transition Overlay ── */
+  .role-transition {
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .4s ease;
+  }
+  .role-transition.show { opacity: 1; pointer-events: auto; }
+  .role-transition-content {
+    text-align: center;
+    animation: rt-enter .5s ease;
+  }
+  @keyframes rt-enter {
+    from { opacity: 0; transform: scale(.8); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .role-transition-icon {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .role-transition-icon svg {
+    width: 72px;
+    height: 72px;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,.3));
+  }
+  .role-transition-title {
+    font-size: 40px;
+    font-weight: 800;
+    margin-bottom: 10px;
+    letter-spacing: -.5px;
+    text-shadow: 0 2px 12px rgba(0,0,0,.3);
+  }
+  .role-transition-subtitle {
+    font-size: 18px;
+    opacity: .8;
+    font-weight: 500;
+  }
+
+  /* ── Floating Hint ── */
+  .click-hint {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,.75);
+    backdrop-filter: blur(8px);
+    color: var(--text);
+    padding: 8px 20px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 90;
+    opacity: 0;
+    transition: opacity .4s ease;
+    pointer-events: none;
+    border: 1px solid var(--border);
+  }
+  .click-hint.show { opacity: 1; }
+  .click-hint-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+    animation: hint-dot-pulse 1.5s ease-in-out infinite;
+    vertical-align: middle;
+  }
+  @keyframes hint-dot-pulse {
+    0%, 100% { opacity: .5; transform: scale(.9); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  /* ── Phase Overview Overlay ── */
+  .overview-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,.95);
+    backdrop-filter: blur(12px);
+    z-index: 200;
+    display: none;
+    flex-direction: column;
+    padding: 32px 40px;
+    overflow-y: auto;
+  }
+  .overview-overlay.open { display: flex; }
+  .overview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    flex-shrink: 0;
+  }
+  .overview-header h2 { font-size: 24px; font-weight: 700; }
+  .overview-close {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .overview-close:hover { background: rgba(255,255,255,.12); }
+  .overview-phases {
+    display: grid;
+    gap: 24px;
+    flex: 1;
+  }
+  .overview-phase {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+  }
+  .overview-phase:hover {
+    border-color: rgba(255,255,255,.2);
+    background: rgba(255,255,255,.08);
+  }
+  .overview-phase-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .overview-phase-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  /* Green checkmark for completed phases */
+  .overview-phase-num .check-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #10b981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .overview-phase-num .check-badge svg {
+    width: 8px;
+    height: 8px;
+    fill: #fff;
+  }
+  .overview-phase-title { font-size: 16px; font-weight: 600; }
+  .overview-phase-count {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-left: 4px;
+    font-weight: 400;
+  }
+  .overview-thumbs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .overview-thumb {
+    width: 90px;
+    height: 60px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: border-color .2s, transform .15s, box-shadow .2s;
+    flex-shrink: 0;
+  }
+  .overview-thumb:hover { transform: scale(1.08); }
+  .overview-thumb.current-thumb {
+    box-shadow: 0 0 14px var(--thumb-glow, rgba(59,130,246,.5));
+  }
+  .overview-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  /* ── Keyboard Hints ── */
+  .keyboard-hints {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 16px;
+    font-size: 11px;
+    color: var(--text-muted);
+    opacity: .4;
+    z-index: 10;
+  }
+  .keyboard-hints kbd {
+    display: inline-block;
+    padding: 1px 6px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 10px;
+    background: var(--surface);
+  }
+
+  /* ── Finish Celebration Overlay ── */
+  .finish-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 160;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15,23,42,.92);
+    backdrop-filter: blur(16px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .6s ease;
+  }
+  .finish-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .finish-title {
+    font-size: 42px;
+    font-weight: 800;
+    letter-spacing: -.5px;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, var(--customer), var(--jockey), var(--workshop));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: finish-scale .8s ease .2s both;
+  }
+  .finish-subtitle {
+    font-size: 18px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+    animation: finish-scale .8s ease .4s both;
+  }
+  .finish-stats {
+    display: flex;
+    gap: 40px;
+    animation: finish-scale .8s ease .6s both;
+  }
+  .finish-stat {
+    text-align: center;
+  }
+  .finish-stat-num {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .finish-stat-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  @keyframes finish-scale {
+    from { opacity: 0; transform: translateY(20px) scale(.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Confetti / star particles */
+  .confetti-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 161;
+    pointer-events: none;
+  }
+
+  /* ── Finish screen (old badge, kept for non-overlay view) ── */
+  .finish-badge {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(16,185,129,.15);
+    border: 1px solid rgba(16,185,129,.3);
+    color: #10b981;
+    padding: 6px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<div class="presentation" id="presentationContainer">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="phase-label">
+      <span class="phase-accent" id="phaseAccent"></span>
+      Phase <span class="phase-num" id="phaseNum">1</span> von 8 — <span id="phaseTitle">Kunde: Buchung erstellen</span>
+    </div>
+    <div class="slide-counter">
+      <span class="current" id="slideCurrent">1</span> / <span id="slideTotal">52</span>
+    </div>
+  </div>
+
+  <!-- Segmented Progress -->
+  <div class="progress-area">
+    <div class="segmented-progress" id="segmentedProgress"></div>
+    <div class="progress-labels">
+      <span id="phaseProgressLabel">Phase 1/21</span>
+      <span id="totalProgressLabel">Gesamt 1/52</span>
+    </div>
+  </div>
+
+  <!-- Stage -->
+  <div class="stage" id="stage"></div>
+</div>
+
+<!-- Nav Arrows -->
+<button class="nav-arrow nav-prev" id="btnPrev" aria-label="Zur&uuml;ck">&#8592;</button>
+<button class="nav-arrow nav-next" id="btnNext" aria-label="Weiter">&#8594;</button>
+
+<!-- Role Transition Overlay -->
+<div class="role-transition" id="roleTransition">
+  <div class="role-transition-content">
+    <div class="role-transition-icon" id="rtIcon"></div>
+    <div class="role-transition-title" id="rtTitle"></div>
+    <div class="role-transition-subtitle" id="rtSubtitle"></div>
+  </div>
+</div>
+
+<!-- Click Hint -->
+<div class="click-hint" id="clickHint">
+  <span class="click-hint-dot" id="hintDot"></span>
+  Klicken Sie auf die markierte Stelle
+</div>
+
+<!-- Phase Overview -->
+<div class="overview-overlay" id="overview">
+  <div class="overview-header">
+    <h2>Phasen-&Uuml;bersicht</h2>
+    <button class="overview-close" id="overviewClose" aria-label="Schlie&szlig;en">&times;</button>
+  </div>
+  <div class="overview-phases" id="overviewPhases"></div>
+</div>
+
+<!-- Keyboard Hints -->
+<div class="keyboard-hints">
+  <span><kbd>&larr;</kbd><kbd>&rarr;</kbd> Navigation</span>
+  <span><kbd>Leertaste</kbd> Weiter</span>
+  <span><kbd>1</kbd>–<kbd>8</kbd> Phase</span>
+  <span><kbd>O</kbd> &Uuml;bersicht</span>
+</div>
+
+<!-- Finish Celebration Overlay -->
+<div class="finish-overlay" id="finishOverlay">
+  <canvas class="confetti-canvas" id="confettiCanvas"></canvas>
+  <div class="finish-title">Buchungs-Lifecycle abgeschlossen</div>
+  <div class="finish-subtitle">Alle 8 Phasen erfolgreich durchlaufen</div>
+  <div class="finish-stats">
+    <div class="finish-stat">
+      <div class="finish-stat-num">52</div>
+      <div class="finish-stat-label">Schritte</div>
+    </div>
+    <div class="finish-stat">
+      <div class="finish-stat-num">3</div>
+      <div class="finish-stat-label">Rollen</div>
+    </div>
+    <div class="finish-stat">
+      <div class="finish-stat-num">8</div>
+      <div class="finish-stat-label">Phasen</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── SVG Icons ──
+const SVG_ICONS = {
+  customer: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v1.2c0 .7.5 1.2 1.2 1.2h16.8c.7 0 1.2-.5 1.2-1.2v-1.2c0-3.2-6.4-4.8-9.6-4.8z"/></svg>',
+  jockey: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 6c-.2-.6-.8-1-1.4-1h-2l-1.2-2.4c-.2-.4-.6-.6-1-.6H10.7c-.4 0-.8.2-1 .6L8.5 5h-2c-.6 0-1.2.4-1.4 1L4 10h16l-1.1-4zM4 12v6c0 1.1.9 2 2 2h1c1.1 0 2-.9 2-2v-1h6v1c0 1.1.9 2 2 2h1c1.1 0 2-.9 2-2v-6H4zm3.5 4c-.8 0-1.5-.7-1.5-1.5S6.7 13 7.5 13s1.5.7 1.5 1.5S8.3 16 7.5 16zm9 0c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5z"/></svg>',
+  workshop: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.5 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>',
+  pointer: '<svg viewBox="0 0 24 24" fill="#fff"><path d="M7 2l12 11.2-5.8.5 3.3 7.3-2.2 1-3.2-7.4L7 18.5V2z"/></svg>',
+  checkmark: '<svg viewBox="0 0 24 24" fill="#fff"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>',
+};
+
+// Large SVGs for role transitions
+const SVG_ICONS_LG = {
+  customer: '<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v1.2c0 .7.5 1.2 1.2 1.2h16.8c.7 0 1.2-.5 1.2-1.2v-1.2c0-3.2-6.4-4.8-9.6-4.8z"/></svg>',
+  jockey: '<svg viewBox="0 0 24 24" fill="#fff"><path d="M18.9 6c-.2-.6-.8-1-1.4-1h-2l-1.2-2.4c-.2-.4-.6-.6-1-.6H10.7c-.4 0-.8.2-1 .6L8.5 5h-2c-.6 0-1.2.4-1.4 1L4 10h16l-1.1-4zM4 12v6c0 1.1.9 2 2 2h1c1.1 0 2-.9 2-2v-1h6v1c0 1.1.9 2 2 2h1c1.1 0 2-.9 2-2v-6H4zm3.5 4c-.8 0-1.5-.7-1.5-1.5S6.7 13 7.5 13s1.5.7 1.5 1.5S8.3 16 7.5 16zm9 0c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5z"/></svg>',
+  workshop: '<svg viewBox="0 0 24 24" fill="#fff"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.5 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>',
+};
+
+// ── Slide Data with Hotspots ──
+// Hotspot coords: {x, y, w, h} as % of image dimensions, label for tooltip
+const IMG_BASE = '../../e2e/walkthrough-screenshots/de-unified/';
+
+const PHASES = [
+  {
+    id: 1,
+    title: 'Kunde: Buchung erstellen',
+    role: 'customer',
+    slides: [
+      { file: '001-landing-page.png', title: 'Startseite \u2014 Jockey-Service', frame: 'desktop',
+        hotspot: { x: 3, y: 10.5, w: 13, h: 2.5, label: 'Jetzt Termin buchen' } },
+      { file: '002-click-price-button.png', title: 'Fahrzeugmarke ausw\u00e4hlen', frame: 'mobile',
+        hotspot: { x: 8, y: 36, w: 23, h: 10, label: 'BMW ausw\u00e4hlen' } },
+      { file: '003-vehicle-brand-grid.png', title: 'Marke best\u00e4tigen', frame: 'mobile',
+        hotspot: { x: 8, y: 36, w: 23, h: 10, label: 'BMW ausw\u00e4hlen' } },
+      { file: '004-vehicle-brand-selected.png', title: 'Modell ausw\u00e4hlen', frame: 'mobile',
+        hotspot: { x: 8, y: 61, w: 84, h: 4.5, label: 'Modell ausw\u00e4hlen' } },
+      { file: '005-vehicle-model-dropdown.png', title: 'Modell w\u00e4hlen', frame: 'mobile',
+        hotspot: { x: 8, y: 61, w: 84, h: 4.5, label: '3er ausw\u00e4hlen' } },
+      { file: '006-vehicle-model-selected.png', title: 'Baujahr w\u00e4hlen', frame: 'mobile',
+        hotspot: { x: 8, y: 68, w: 84, h: 4.5, label: 'Baujahr eingeben' } },
+      { file: '007-vehicle-year-selected.png', title: 'Kilometerstand eingeben', frame: 'mobile',
+        hotspot: { x: 8, y: 75, w: 84, h: 4.5, label: 'Kilometerstand eingeben' } },
+      { file: '008-vehicle-mileage-input.png', title: 'Weiter zum Service', frame: 'mobile',
+        hotspot: { x: 55, y: 95, w: 40, h: 4, label: 'Weiter' } },
+      { file: '009-vehicle-form-complete.png', title: 'Fahrzeugdaten vollst\u00e4ndig', frame: 'mobile',
+        hotspot: { x: 55, y: 95, w: 40, h: 4, label: 'Weiter' } },
+      { file: '010-service-selection.png', title: 'Service w\u00e4hlen', frame: 'mobile',
+        hotspot: { x: 6, y: 18, w: 88, h: 11, label: 'Inspektion w\u00e4hlen' } },
+      { file: '011-service-selected.png', title: 'Service ausgew\u00e4hlt', frame: 'mobile',
+        hotspot: { x: 55, y: 96, w: 40, h: 3.5, label: 'Weiter' } },
+      { file: '012-appointment-page-empty.png', title: 'Termin w\u00e4hlen', frame: 'mobile',
+        hotspot: { x: 8, y: 20, w: 60, h: 32, label: 'Datum w\u00e4hlen' } },
+      { file: '013-date-selected.png', title: 'Zeitfenster w\u00e4hlen', frame: 'mobile',
+        hotspot: { x: 8, y: 56, w: 84, h: 9, label: 'Zeitfenster w\u00e4hlen' } },
+      { file: '014-time-slot-selected.png', title: 'Weiter zur Adresse', frame: 'mobile',
+        hotspot: { x: 55, y: 96, w: 40, h: 3.5, label: 'Weiter' } },
+      { file: '015-address-filled.png', title: 'Adresse eingegeben', frame: 'mobile',
+        hotspot: { x: 55, y: 96, w: 40, h: 3.5, label: 'Weiter' } },
+      { file: '016-booking-confirm-empty.png', title: 'Kontaktdaten eingeben', frame: 'mobile',
+        hotspot: { x: 6, y: 63, w: 88, h: 25, label: 'Kontaktdaten eingeben' } },
+      { file: '017-booking-confirm-filled.png', title: 'Buchung abschlie\u00dfen', frame: 'mobile',
+        hotspot: { x: 35, y: 95, w: 60, h: 4.5, label: 'Jetzt kostenpflichtig buchen' } },
+      { file: '018-register-page.png', title: 'Registrierung', frame: 'mobile',
+        hotspot: { x: 8, y: 34, w: 84, h: 35, label: 'Daten eingeben' } },
+      { file: '019-register-filled.png', title: 'Registrierung abschlie\u00dfen', frame: 'mobile',
+        hotspot: { x: 8, y: 78, w: 84, h: 5, label: 'Registrieren' } },
+      { file: '020-confirmation-page.png', title: 'Buchung best\u00e4tigt!', frame: 'mobile',
+        hotspot: { x: 8, y: 87, w: 84, h: 5, label: 'Zum Kundenportal' } },
+      { file: '021-dashboard-after-booking.png', title: 'Kunden-Dashboard', frame: 'mobile',
+        hotspot: { x: 6, y: 53, w: 48, h: 5, label: 'Details ansehen' } },
+    ]
+  },
+  {
+    id: 2,
+    title: 'Jockey: Fahrzeug abholen',
+    role: 'jockey',
+    slides: [
+      { file: '022-jockey-login-page.png', title: 'Jockey-Login', frame: 'mobile',
+        hotspot: { x: 4, y: 72, w: 92, h: 6, label: 'Anmelden' } },
+      { file: '023-jockey-dashboard-pickup.png', title: 'Abholauftrag', frame: 'mobile',
+        hotspot: { x: 6, y: 42, w: 88, h: 6, label: 'Route starten' } },
+      { file: '024-jockey-pickup-en-route.png', title: 'Unterwegs zum Kunden', frame: 'mobile',
+        hotspot: { x: 6, y: 42, w: 88, h: 6, label: 'Angekommen' } },
+      { file: '025-jockey-pickup-at-location.png', title: 'Beim Kunden', frame: 'mobile',
+        hotspot: { x: 6, y: 42, w: 88, h: 6, label: 'Fahrzeug \u00fcbernommen' } },
+      { file: '026-jockey-pickup-complete.png', title: 'Abholung abgeschlossen', frame: 'mobile',
+        hotspot: null },
+    ]
+  },
+  {
+    id: 3,
+    title: 'Werkstatt: Fahrzeug eingegangen',
+    role: 'workshop',
+    slides: [
+      { file: '027-workshop-login-page.png', title: 'Werkstatt-Login', frame: 'desktop',
+        hotspot: { x: 5, y: 78, w: 33, h: 6, label: 'Anmelden' } },
+      { file: '028-workshop-dashboard-received.png', title: 'Neuer Auftrag eingegangen', frame: 'desktop',
+        hotspot: { x: 2, y: 56, w: 33, h: 5.5, label: 'Annehmen' } },
+      { file: '029-workshop-order-details-received.png', title: 'Auftragsdetails', frame: 'desktop',
+        hotspot: { x: 64, y: 17, w: 29, h: 5, label: 'Bearbeitung starten' } },
+    ]
+  },
+  {
+    id: 4,
+    title: 'Werkstatt: In Bearbeitung',
+    role: 'workshop',
+    slides: [
+      { file: '030-workshop-dashboard-in-progress.png', title: 'In Bearbeitung', frame: 'desktop',
+        hotspot: { x: 35, y: 37, w: 33, h: 25, label: 'Auftrag \u00f6ffnen' } },
+      { file: '031-workshop-order-details-in-progress.png', title: 'Erweiterung anlegen', frame: 'desktop',
+        hotspot: { x: 34, y: 25, w: 34, h: 20, label: 'Beschreibung eingeben' } },
+    ]
+  },
+  {
+    id: 5,
+    title: 'Auftragserweiterung',
+    role: 'customer',
+    slides: [
+      { file: '032-workshop-order-detail-before-extension.png', title: 'Auftrag vor Erweiterung', frame: 'desktop', slideRole: 'workshop',
+        hotspot: { x: 68, y: 75, w: 22, h: 3, label: 'Neue Erweiterung' } },
+      { file: '033-workshop-extension-form-empty.png', title: 'Erweiterungsformular', frame: 'desktop', slideRole: 'workshop',
+        hotspot: { x: 12, y: 58, w: 76, h: 25, label: 'Positionen eingeben' } },
+      { file: '034-workshop-extension-item1-filled.png', title: 'Erste Position eingegeben', frame: 'desktop', slideRole: 'workshop',
+        hotspot: { x: 12, y: 76, w: 22, h: 3, label: '+ Position hinzuf\u00fcgen' } },
+      { file: '035-workshop-extension-two-items.png', title: 'Zwei Positionen', frame: 'desktop', slideRole: 'workshop',
+        hotspot: { x: 60, y: 80, w: 27, h: 3.5, label: 'Erweiterung senden' } },
+      { file: '036-workshop-extension-submitted.png', title: 'Erweiterung eingereicht', frame: 'desktop', slideRole: 'workshop',
+        hotspot: null },
+      { file: '037-customer-dashboard-pending-extension.png', title: 'Erweiterung ausstehend', frame: 'mobile', slideRole: 'customer',
+        hotspot: { x: 6, y: 24, w: 88, h: 6, label: 'Jetzt pr\u00fcfen' } },
+      { file: '038-customer-booking-details-with-extension.png', title: 'Buchungsdetails', frame: 'mobile', slideRole: 'customer',
+        hotspot: { x: 30, y: 32, w: 38, h: 5, label: 'Erweiterungen Tab' } },
+      { file: '039-customer-extensions-tab-pending.png', title: 'Erweiterungen ausstehend', frame: 'mobile', slideRole: 'customer',
+        hotspot: { x: 6, y: 42, w: 88, h: 44, label: 'Erweiterung pr\u00fcfen' } },
+      { file: '040-customer-extension-review-details.png', title: 'Erweiterung pr\u00fcfen', frame: 'mobile', slideRole: 'customer',
+        hotspot: { x: 6, y: 81, w: 88, h: 5.5, label: 'Genehmigen & Bezahlen' } },
+      { file: '041-customer-extension-payment-form.png', title: 'Zahlung', frame: 'mobile', slideRole: 'customer',
+        hotspot: { x: 6, y: 75, w: 88, h: 6, label: 'Mit Demo bezahlen' } },
+      { file: '042-customer-extension-payment-success.png', title: 'Zahlung erfolgreich', frame: 'mobile', slideRole: 'customer',
+        hotspot: null },
+      { file: '043-customer-extension-confirmed.png', title: 'Erweiterung best\u00e4tigt', frame: 'mobile', slideRole: 'customer',
+        hotspot: null },
+      { file: '044-workshop-extension-approved.png', title: 'Werkstatt: Genehmigt', frame: 'desktop', slideRole: 'workshop',
+        hotspot: null },
+    ]
+  },
+  {
+    id: 6,
+    title: 'Werkstatt: Abgeschlossen',
+    role: 'workshop',
+    slides: [
+      { file: '045-workshop-dashboard-completed.png', title: 'Auftrag abgeschlossen', frame: 'desktop',
+        hotspot: { x: 67, y: 37, w: 32, h: 18, label: 'Abgeschlossen' } },
+      { file: '046-workshop-order-details-completed.png', title: 'Auftragsdetails \u2014 Fertig', frame: 'desktop',
+        hotspot: null },
+    ]
+  },
+  {
+    id: 7,
+    title: 'Jockey: R\u00fcckgabe',
+    role: 'jockey',
+    slides: [
+      { file: '047-jockey-return-assignment.png', title: 'R\u00fcckgabeauftrag', frame: 'mobile',
+        hotspot: { x: 6, y: 42, w: 88, h: 6, label: 'Route starten' } },
+      { file: '048-jockey-return-en-route.png', title: 'Unterwegs zum Kunden', frame: 'mobile',
+        hotspot: { x: 6, y: 42, w: 88, h: 6, label: 'Angekommen' } },
+      { file: '049-jockey-return-at-location.png', title: 'Beim Kunden', frame: 'mobile',
+        hotspot: { x: 6, y: 42, w: 88, h: 6, label: 'Fahrzeug \u00fcbergeben' } },
+      { file: '050-jockey-return-complete.png', title: 'R\u00fcckgabe abgeschlossen', frame: 'mobile',
+        hotspot: null },
+    ]
+  },
+  {
+    id: 8,
+    title: 'Kunde: Abschluss',
+    role: 'customer',
+    slides: [
+      { file: '051-customer-dashboard-final.png', title: 'Buchung abgeschlossen', frame: 'mobile',
+        hotspot: { x: 6, y: 35, w: 88, h: 10, label: 'Buchung ansehen' } },
+      { file: '052-customer-booking-details-final.png', title: 'Buchungsdetails \u2014 Abgeschlossen', frame: 'mobile',
+        hotspot: null },
+    ]
+  }
+];
+
+// ── Flatten slides ──
+const allSlides = [];
+PHASES.forEach(phase => {
+  phase.slides.forEach((slide, i) => {
+    allSlides.push({
+      ...slide,
+      phaseId: phase.id,
+      phaseTitle: phase.title,
+      phaseRole: phase.role,
+      role: slide.slideRole || phase.role,
+      indexInPhase: i,
+      phaseLength: phase.slides.length,
+    });
+  });
+});
+
+const TOTAL = allSlides.length;
+let current = 0;
+let overviewOpen = false;
+let transitioning = false;
+let finishShown = false;
+const shownPointers = new Set(); // Track which slides have shown the pointer
+
+// ── DOM refs ──
+const presentationContainer = document.getElementById('presentationContainer');
+const stage = document.getElementById('stage');
+const phaseNum = document.getElementById('phaseNum');
+const phaseAccent = document.getElementById('phaseAccent');
+const phaseTitleEl = document.getElementById('phaseTitle');
+const slideCurrent = document.getElementById('slideCurrent');
+const slideTotal = document.getElementById('slideTotal');
+const segmentedProgress = document.getElementById('segmentedProgress');
+const phaseProgressLabel = document.getElementById('phaseProgressLabel');
+const totalProgressLabel = document.getElementById('totalProgressLabel');
+const btnPrev = document.getElementById('btnPrev');
+const btnNext = document.getElementById('btnNext');
+const overview = document.getElementById('overview');
+const overviewPhases = document.getElementById('overviewPhases');
+const overviewClose = document.getElementById('overviewClose');
+const roleTransition = document.getElementById('roleTransition');
+const rtIcon = document.getElementById('rtIcon');
+const rtTitle = document.getElementById('rtTitle');
+const rtSubtitle = document.getElementById('rtSubtitle');
+const clickHint = document.getElementById('clickHint');
+const hintDot = document.getElementById('hintDot');
+const finishOverlay = document.getElementById('finishOverlay');
+const confettiCanvas = document.getElementById('confettiCanvas');
+
+slideTotal.textContent = TOTAL;
+
+// ── Role config ──
+const roleConfig = {
+  customer: { color: 'var(--customer)', colorRaw: '#3b82f6', glow: 'var(--customer-glow)', bg: 'rgba(59,130,246,.08)', hover: 'rgba(59,130,246,.18)', tooltipBg: 'rgba(59,130,246,.8)', label: 'Kunde', icon: SVG_ICONS.customer, iconLg: SVG_ICONS_LG.customer, gradient: 'linear-gradient(135deg, rgba(59,130,246,.9), rgba(37,99,235,.95))' },
+  jockey:   { color: 'var(--jockey)',   colorRaw: '#a855f7', glow: 'var(--jockey-glow)',   bg: 'rgba(168,85,247,.08)', hover: 'rgba(168,85,247,.18)', tooltipBg: 'rgba(168,85,247,.8)', label: 'Jockey', icon: SVG_ICONS.jockey, iconLg: SVG_ICONS_LG.jockey, gradient: 'linear-gradient(135deg, rgba(168,85,247,.9), rgba(139,92,246,.95))' },
+  workshop: { color: 'var(--workshop)', colorRaw: '#10b981', glow: 'var(--workshop-glow)', bg: 'rgba(16,185,129,.08)', hover: 'rgba(16,185,129,.18)', tooltipBg: 'rgba(16,185,129,.8)', label: 'Werkstatt', icon: SVG_ICONS.workshop, iconLg: SVG_ICONS_LG.workshop, gradient: 'linear-gradient(135deg, rgba(16,185,129,.9), rgba(5,150,105,.95))' },
+};
+
+// ── Build segmented progress bar ──
+PHASES.forEach(phase => {
+  const rc = roleConfig[phase.role];
+  const segment = document.createElement('div');
+  segment.className = 'segment';
+  segment.dataset.phaseId = phase.id;
+  segment.style.flex = phase.slides.length;
+  const fill = document.createElement('div');
+  fill.className = 'segment-fill';
+  fill.style.background = rc.colorRaw;
+  segment.appendChild(fill);
+  segmentedProgress.appendChild(segment);
+});
+
+function updateSegmentedProgress(slideIdx) {
+  const s = allSlides[slideIdx];
+  const segments = segmentedProgress.querySelectorAll('.segment');
+  segments.forEach(seg => {
+    const pid = parseInt(seg.dataset.phaseId);
+    const fill = seg.querySelector('.segment-fill');
+    seg.classList.remove('completed', 'active');
+    if (pid < s.phaseId) {
+      seg.classList.add('completed');
+      fill.style.transform = 'scaleX(1)';
+    } else if (pid === s.phaseId) {
+      seg.classList.add('active');
+      const pct = (s.indexInPhase + 1) / s.phaseLength;
+      fill.style.transform = `scaleX(${pct})`;
+    } else {
+      fill.style.transform = 'scaleX(0)';
+    }
+  });
+}
+
+// ── Build slide elements ──
+allSlides.forEach((s, i) => {
+  const div = document.createElement('div');
+  div.className = 'slide';
+  div.dataset.index = i;
+
+  // Header
+  const header = document.createElement('div');
+  header.className = 'slide-header';
+  const badge = document.createElement('span');
+  badge.className = `role-badge ${s.role}`;
+  badge.innerHTML = roleConfig[s.role].icon + ' ' + roleConfig[s.role].label;
+  const title = document.createElement('span');
+  title.className = 'slide-title';
+  title.textContent = s.title;
+  header.appendChild(badge);
+  header.appendChild(title);
+
+  // Device frame
+  const frameType = s.frame || 'mobile';
+  const frame = document.createElement('div');
+  frame.className = `device-frame frame-${frameType}`;
+
+  if (frameType === 'mobile') {
+    // iOS Status Bar
+    const statusBar = document.createElement('div');
+    statusBar.className = 'ios-status-bar';
+    statusBar.innerHTML = `
+      <span class="ios-status-time">9:41</span>
+      <div class="ios-status-icons">
+        <svg width="15" height="11" viewBox="0 0 15 11"><rect x="0" y="4" width="3" height="7" rx="0.5"/><rect x="4" y="2.5" width="3" height="8.5" rx="0.5"/><rect x="8" y="1" width="3" height="10" rx="0.5"/><rect x="12" y="0" width="3" height="11" rx="0.5"/></svg>
+        <svg width="14" height="10" viewBox="0 0 14 10"><path d="M7 3.2C8.6 3.2 10 3.8 11.1 4.8L12.5 3.4C11 2 9.1 1.2 7 1.2S3 2 1.5 3.4L2.9 4.8C4 3.8 5.4 3.2 7 3.2zM7 6.4c1 0 1.8.4 2.5 1L11 5.9C9.9 5 8.5 4.4 7 4.4S4.1 5 3 5.9l1.5 1.5C5.2 6.8 6 6.4 7 6.4zM5.6 9l1.4 1.4L8.4 9C8 8.6 7.5 8.4 7 8.4S6 8.6 5.6 9z"/></svg>
+        <svg width="22" height="11" viewBox="0 0 22 11"><rect x="0" y="1" width="19" height="9" rx="1.5" fill="none" stroke="#fff" stroke-width="1"/><rect x="1.5" y="2.5" width="14" height="6" rx="0.5"/><rect x="20" y="3.5" width="2" height="4" rx="0.5"/></svg>
+      </div>
+    `;
+    frame.appendChild(statusBar);
+
+    const notch = document.createElement('div');
+    notch.className = 'notch';
+    frame.appendChild(notch);
+  } else {
+    // Browser Chrome with address bar
+    const chrome = document.createElement('div');
+    chrome.className = 'browser-chrome';
+    chrome.innerHTML = `
+      <div class="browser-dots">
+        <span class="browser-dot red"></span>
+        <span class="browser-dot yellow"></span>
+        <span class="browser-dot green"></span>
+      </div>
+      <div class="browser-nav-btns">
+        <span class="browser-nav-btn">&larr;</span>
+        <span class="browser-nav-btn">&rarr;</span>
+      </div>
+      <div class="browser-address-bar">
+        <span class="browser-lock-icon"><svg viewBox="0 0 12 14"><path d="M10 5h-.5V3.5C9.5 1.6 7.9 0 6 0S2.5 1.6 2.5 3.5V5H2C.9 5 0 5.9 0 7v5c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zM6 10.5c-.8 0-1.5-.7-1.5-1.5S5.2 7.5 6 7.5 7.5 8.2 7.5 9 6.8 10.5 6 10.5zM8 5H4V3.5C4 2.4 4.9 1.5 6 1.5s2 .9 2 2V5z"/></svg></span>
+        <span class="browser-url">app.autoconcierge.de</span>
+      </div>
+    `;
+    frame.appendChild(chrome);
+  }
+
+  // Screen with scrollable image-wrapper
+  const screen = document.createElement('div');
+  screen.className = 'screen';
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'image-wrapper';
+
+  const img = document.createElement('img');
+  img.src = IMG_BASE + s.file;
+  img.alt = s.title;
+  img.loading = i < 5 ? 'eager' : 'lazy';
+  img.draggable = false;
+  wrapper.appendChild(img);
+
+  // Hotspot overlay
+  if (s.hotspot) {
+    const hs = s.hotspot;
+    const rc = roleConfig[s.role];
+    const hotspot = document.createElement('div');
+    hotspot.className = 'hotspot';
+    hotspot.style.cssText = `left:${hs.x}%; top:${hs.y}%; width:${hs.w}%; height:${hs.h}%; --hs-color:${rc.color}; --hs-glow:${rc.glow}; --hs-bg:${rc.bg}; --hs-hover:${rc.hover}; --hs-tooltip-bg:${rc.tooltipBg};`;
+
+    const inner = document.createElement('div');
+    inner.className = 'hotspot-inner';
+    hotspot.appendChild(inner);
+
+    if (hs.label) {
+      const label = document.createElement('div');
+      label.className = 'hotspot-label';
+      label.textContent = hs.label;
+      hotspot.appendChild(label);
+    }
+
+    // Animated pointer hand SVG
+    const pointer = document.createElement('div');
+    pointer.className = 'hotspot-pointer';
+    pointer.innerHTML = SVG_ICONS.pointer;
+    pointer.style.display = 'none';
+    hotspot.appendChild(pointer);
+
+    // Click handler with ripple
+    hotspot.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (transitioning) return;
+      // Ripple
+      const rect = hotspot.getBoundingClientRect();
+      const ripple = document.createElement('div');
+      ripple.className = 'ripple';
+      const size = Math.max(rect.width, rect.height) * 2;
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+      ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+      hotspot.appendChild(ripple);
+      ripple.addEventListener('animationend', () => ripple.remove());
+
+      // Advance after short delay
+      setTimeout(() => {
+        if (current < TOTAL - 1) goTo(current + 1, 1);
+      }, 250);
+    });
+
+    wrapper.appendChild(hotspot);
+  }
+
+  // Finish badge on last slide
+  if (i === TOTAL - 1) {
+    const finish = document.createElement('div');
+    finish.className = 'finish-badge';
+    finish.textContent = 'Lifecycle abgeschlossen';
+    div.appendChild(finish);
+  }
+
+  screen.appendChild(wrapper);
+  frame.appendChild(screen);
+  div.appendChild(header);
+  div.appendChild(frame);
+  stage.appendChild(div);
+});
+
+const slideEls = stage.querySelectorAll('.slide');
+
+// ── Show pointer on hotspot for first load ──
+function showPointerForSlide(slideIdx) {
+  if (shownPointers.has(slideIdx)) return;
+  shownPointers.add(slideIdx);
+  const el = slideEls[slideIdx];
+  const pointer = el.querySelector('.hotspot-pointer');
+  if (pointer) {
+    pointer.style.display = 'block';
+    // Hide after animation completes (appear + 3 bobs)
+    setTimeout(() => { pointer.style.display = 'none'; }, 4500);
+  }
+}
+
+// ── Auto-scroll to hotspot ──
+function scrollToHotspot(slideIdx) {
+  const el = slideEls[slideIdx];
+  const screen = el.querySelector('.screen');
+  const hotspot = el.querySelector('.hotspot');
+  if (!screen) return;
+
+  // Reset scroll to top first
+  screen.scrollTop = 0;
+
+  if (!hotspot) return;
+
+  // Show pointer animation on first visit
+  showPointerForSlide(slideIdx);
+
+  // After a delay, check if hotspot is visible and scroll if needed
+  setTimeout(() => {
+    const screenRect = screen.getBoundingClientRect();
+    const hsRect = hotspot.getBoundingClientRect();
+
+    if (hsRect.bottom > screenRect.bottom - 20 || hsRect.top < screenRect.top + 20) {
+      // Hotspot not fully visible, scroll to center it
+      const wrapper = screen.querySelector('.image-wrapper');
+      const wrapperRect = wrapper.getBoundingClientRect();
+      const hsTopInWrapper = hsRect.top - wrapperRect.top;
+      const scrollTarget = hsTopInWrapper - screen.clientHeight / 2 + hsRect.height / 2;
+      screen.scrollTo({ top: Math.max(0, scrollTarget), behavior: 'smooth' });
+    }
+  }, 500);
+}
+
+// ── Role Transition with blur ──
+function showRoleTransition(newRole, phaseTitle, callback) {
+  const rc = roleConfig[newRole];
+  roleTransition.style.background = rc.gradient;
+  rtIcon.innerHTML = rc.iconLg;
+  rtTitle.textContent = rc.label + '-Perspektive';
+  rtSubtitle.textContent = phaseTitle;
+
+  // Blur the background
+  presentationContainer.classList.add('blurred');
+  roleTransition.classList.add('show');
+
+  setTimeout(() => {
+    roleTransition.classList.remove('show');
+    presentationContainer.classList.remove('blurred');
+    setTimeout(callback, 350);
+  }, 1200);
+}
+
+// ── Hint management ──
+let hintTimeout;
+function showHint(role) {
+  hintDot.style.background = roleConfig[role].color;
+  clickHint.classList.add('show');
+  clearTimeout(hintTimeout);
+  hintTimeout = setTimeout(() => clickHint.classList.remove('show'), 4000);
+}
+
+// ── Confetti animation ──
+function startConfetti() {
+  const ctx = confettiCanvas.getContext('2d');
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+
+  const colors = ['#3b82f6', '#a855f7', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
+  const particles = [];
+
+  for (let i = 0; i < 120; i++) {
+    particles.push({
+      x: Math.random() * confettiCanvas.width,
+      y: Math.random() * confettiCanvas.height - confettiCanvas.height,
+      w: Math.random() * 8 + 4,
+      h: Math.random() * 6 + 3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      speed: Math.random() * 3 + 2,
+      angle: Math.random() * Math.PI * 2,
+      spin: (Math.random() - 0.5) * 0.1,
+      drift: (Math.random() - 0.5) * 1,
+    });
+  }
+
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    particles.forEach(p => {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = Math.max(0, 1 - p.y / (confettiCanvas.height * 1.3));
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+
+      p.y += p.speed;
+      p.x += p.drift;
+      p.angle += p.spin;
+    });
+
+    frame++;
+    if (frame < 300) requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ── Show finish celebration ──
+function showFinishCelebration() {
+  if (finishShown) return;
+  finishShown = true;
+  finishOverlay.classList.add('show');
+  startConfetti();
+
+  // Auto-hide after 5 seconds, or on click
+  const hide = () => {
+    finishOverlay.classList.remove('show');
+    finishOverlay.removeEventListener('click', hide);
+  };
+  finishOverlay.addEventListener('click', hide);
+  setTimeout(hide, 5000);
+}
+
+// ── Navigate ──
+function goTo(index, direction) {
+  if (index < 0 || index >= TOTAL || index === current && slideEls[current].classList.contains('active')) return;
+  if (transitioning) return;
+
+  const dir = direction ?? (index > current ? 1 : -1);
+  const prevSlide = allSlides[current];
+  const nextSlide = allSlides[index];
+
+  // Check for role transition (different role AND first slide of a new phase)
+  const roleChanged = prevSlide && nextSlide && prevSlide.role !== nextSlide.role && nextSlide.indexInPhase === 0;
+
+  function doTransition() {
+    transitioning = true;
+
+    // Hide previous
+    if (slideEls[current].classList.contains('active')) {
+      slideEls[current].classList.remove('active');
+      if (dir > 0) slideEls[current].classList.add('exit-left');
+      slideEls[current].style.transform = dir > 0 ? 'translateX(-60px)' : 'translateX(60px)';
+      slideEls[current].style.opacity = '0';
+    }
+
+    current = index;
+    const s = allSlides[current];
+
+    // Setup entry direction
+    slideEls[current].style.transform = dir > 0 ? 'translateX(60px)' : 'translateX(-60px)';
+    slideEls[current].style.opacity = '0';
+    void slideEls[current].offsetWidth;
+
+    // Activate
+    slideEls[current].classList.remove('exit-left');
+    slideEls[current].classList.add('active');
+    slideEls[current].style.transform = '';
+    slideEls[current].style.opacity = '';
+
+    // Update chrome
+    phaseNum.textContent = s.phaseId;
+    phaseTitleEl.textContent = s.phaseTitle;
+    slideCurrent.textContent = current + 1;
+    phaseAccent.style.background = roleConfig[s.role].colorRaw;
+
+    updateSegmentedProgress(current);
+
+    phaseProgressLabel.textContent = `Phase ${s.indexInPhase + 1}/${s.phaseLength}`;
+    totalProgressLabel.textContent = `Gesamt ${current + 1}/${TOTAL}`;
+
+    btnPrev.disabled = current === 0;
+    btnNext.disabled = current === TOTAL - 1;
+
+    // Scroll and hint
+    scrollToHotspot(current);
+    if (s.hotspot) {
+      showHint(s.role);
+    } else {
+      clickHint.classList.remove('show');
+    }
+
+    // Show finish celebration on last slide
+    if (current === TOTAL - 1) {
+      setTimeout(showFinishCelebration, 800);
+    }
+
+    setTimeout(() => { transitioning = false; }, 400);
+  }
+
+  if (roleChanged && dir > 0) {
+    transitioning = true;
+    showRoleTransition(nextSlide.role, `Phase ${nextSlide.phaseId}: ${nextSlide.phaseTitle}`, () => {
+      transitioning = false;
+      doTransition();
+    });
+  } else {
+    doTransition();
+  }
+}
+
+// ── Init first slide ──
+slideEls[0].classList.add('active');
+// Manually set initial state
+const initSlide = allSlides[0];
+phaseNum.textContent = initSlide.phaseId;
+phaseTitleEl.textContent = initSlide.phaseTitle;
+slideCurrent.textContent = 1;
+phaseAccent.style.background = roleConfig[initSlide.role].colorRaw;
+updateSegmentedProgress(0);
+phaseProgressLabel.textContent = `Phase 1/${initSlide.phaseLength}`;
+totalProgressLabel.textContent = `Gesamt 1/${TOTAL}`;
+btnPrev.disabled = true;
+btnNext.disabled = false;
+// Show initial hint and pointer
+setTimeout(() => {
+  if (initSlide.hotspot) {
+    showHint(initSlide.role);
+    showPointerForSlide(0);
+  }
+}, 800);
+
+// ── Phase start indices ──
+const phaseStarts = {};
+allSlides.forEach((s, i) => {
+  if (!(s.phaseId in phaseStarts)) phaseStarts[s.phaseId] = i;
+});
+
+// ── Keyboard ──
+document.addEventListener('keydown', e => {
+  if (overviewOpen) {
+    if (e.key === 'Escape' || e.key === 'o' || e.key === 'O') toggleOverview();
+    return;
+  }
+
+  switch (e.key) {
+    case 'ArrowRight':
+    case ' ':
+      e.preventDefault();
+      goTo(current + 1, 1);
+      break;
+    case 'ArrowLeft':
+      e.preventDefault();
+      goTo(current - 1, -1);
+      break;
+    case 'o':
+    case 'O':
+      toggleOverview();
+      break;
+    default:
+      const n = parseInt(e.key);
+      if (n >= 1 && n <= 8 && phaseStarts[n] !== undefined) {
+        e.preventDefault();
+        goTo(phaseStarts[n]);
+      }
+  }
+});
+
+// ── Arrow buttons ──
+btnPrev.addEventListener('click', () => goTo(current - 1, -1));
+btnNext.addEventListener('click', () => goTo(current + 1, 1));
+
+// ── Overview ──
+function toggleOverview() {
+  overviewOpen = !overviewOpen;
+  overview.classList.toggle('open', overviewOpen);
+  if (overviewOpen) buildOverview();
+}
+
+overviewClose.addEventListener('click', toggleOverview);
+overview.addEventListener('click', e => {
+  if (e.target === overview) toggleOverview();
+});
+
+function buildOverview() {
+  overviewPhases.innerHTML = '';
+  const currentSlide = allSlides[current];
+
+  PHASES.forEach(phase => {
+    const div = document.createElement('div');
+    div.className = 'overview-phase';
+
+    const header = document.createElement('div');
+    header.className = 'overview-phase-header';
+
+    const rc = roleConfig[phase.role];
+    const num = document.createElement('div');
+    num.className = 'overview-phase-num';
+    num.style.cssText = `background:${rc.bg}; color:${rc.colorRaw};`;
+    num.textContent = phase.id;
+
+    // Green checkmark for completed phases
+    if (phase.id < currentSlide.phaseId) {
+      const check = document.createElement('span');
+      check.className = 'check-badge';
+      check.innerHTML = SVG_ICONS.checkmark;
+      num.appendChild(check);
+    }
+
+    const title = document.createElement('div');
+    title.className = 'overview-phase-title';
+    title.innerHTML = `Phase ${phase.id}: ${phase.title} <span class="overview-phase-count">(${phase.slides.length} Schritte)</span>`;
+
+    const badge = document.createElement('span');
+    badge.className = `role-badge ${phase.role}`;
+    badge.innerHTML = rc.icon + ' ' + rc.label;
+    badge.style.marginLeft = 'auto';
+
+    header.appendChild(num);
+    header.appendChild(title);
+    header.appendChild(badge);
+
+    const thumbs = document.createElement('div');
+    thumbs.className = 'overview-thumbs';
+
+    phase.slides.forEach((slide, si) => {
+      const globalIdx = phaseStarts[phase.id] + si;
+      const thumb = document.createElement('div');
+      thumb.className = 'overview-thumb';
+      const slideRole = slide.slideRole || phase.role;
+      if (globalIdx === current) {
+        thumb.classList.add('current-thumb');
+        thumb.style.borderColor = roleConfig[slideRole].colorRaw;
+        thumb.style.setProperty('--thumb-glow', roleConfig[slideRole].glow.replace('var(--', '').replace(')', ''));
+        // Use the raw glow value
+        const glowMap = { customer: 'rgba(59,130,246,.5)', jockey: 'rgba(168,85,247,.5)', workshop: 'rgba(16,185,129,.5)' };
+        thumb.style.boxShadow = `0 0 14px ${glowMap[slideRole]}`;
+      }
+      const img = document.createElement('img');
+      img.src = IMG_BASE + slide.file;
+      img.alt = slide.title;
+      img.loading = 'lazy';
+      thumb.appendChild(img);
+      thumb.addEventListener('click', (e) => {
+        e.stopPropagation();
+        goTo(globalIdx);
+        toggleOverview();
+      });
+      thumbs.appendChild(thumb);
+    });
+
+    div.appendChild(header);
+    div.appendChild(thumbs);
+    div.addEventListener('click', e => {
+      if (!e.target.closest('.overview-thumb')) {
+        goTo(phaseStarts[phase.id]);
+        toggleOverview();
+      }
+    });
+    overviewPhases.appendChild(div);
+  });
+}
+
+// ── Touch/Swipe (only outside device frames) ──
+let touchStartX = 0;
+let touchTarget = null;
+document.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  touchTarget = e.target;
+});
+document.addEventListener('touchend', e => {
+  // Don't interfere with screen scrolling
+  if (touchTarget && touchTarget.closest('.screen')) return;
+  const diff = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(diff) > 50) {
+    if (diff < 0) goTo(current + 1, 1);
+    else goTo(current - 1, -1);
+  }
+});
+</script>
+
+</body>
+</html>

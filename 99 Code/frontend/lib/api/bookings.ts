@@ -13,6 +13,7 @@ export interface BookingVehicleData {
   model: string;
   year: number;
   mileage: number;
+  licensePlate?: string;
   saveVehicle?: boolean;
 }
 
@@ -59,6 +60,24 @@ export interface CreateBookingRequest {
 }
 
 /**
+ * Jockey assignment summary (returned from API)
+ */
+export interface JockeyAssignmentSummary {
+  id: string;
+  type: 'PICKUP' | 'RETURN';
+  status: string;
+  scheduledTime: string | null;
+  departedAt: string | null;
+  arrivedAt: string | null;
+  completedAt: string | null;
+  jockey: {
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
+  };
+}
+
+/**
  * Booking response
  */
 export interface BookingResponse {
@@ -102,6 +121,18 @@ export interface BookingResponse {
     firstName?: string;
     lastName?: string;
   };
+  jockeyAssignments?: JockeyAssignmentSummary[];
+  extensions?: ExtensionSummary[];
+}
+
+export interface ExtensionSummary {
+  id: string;
+  status: string;
+  description: string;
+  totalAmount: number;
+  items: any[];
+  createdAt: string;
+  approvedAt?: string;
 }
 
 /**

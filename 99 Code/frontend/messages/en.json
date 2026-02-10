@@ -36,7 +36,9 @@
     "noModelsAvailable": "No models available",
     "errorLoadingBrands": "Error loading brands",
     "errorLoadingModels": "Error loading models",
-    "plausibilityWarning": "Note"
+    "plausibilityWarning": "Note",
+    "licensePlate": "License Plate",
+    "licensePlatePlaceholder": "e.g. B-AC 1234"
   },
   "navigation": {
     "home": "Home",
@@ -956,6 +958,13 @@
       "vehicles": "Vehicles",
       "profile": "Profile"
     },
+    "bottomNav": {
+      "dashboard": "Dashboard",
+      "newBooking": "New",
+      "myBookings": "Bookings",
+      "vehicles": "Vehicles",
+      "profile": "Profile"
+    },
     "stats": {
       "activeBookings": "Active Bookings",
       "savedVehicles": "Saved Vehicles",
@@ -1024,10 +1033,18 @@
     "busy": "Busy",
     "summaryToday": "{count} assignment today",
     "summaryTodayPlural": "{count} assignments today",
+    "summaryDay": "{count} assignment",
+    "summaryDayPlural": "{count} assignments",
     "summaryPickups": "{count} Pickup",
     "summaryPickupsPlural": "{count} Pickups",
     "summaryReturns": "{count} Return",
     "summaryReturnsPlural": "{count} Returns",
+    "previousDay": "Previous day",
+    "nextDay": "Next day",
+    "backToToday": "Back to today",
+    "upcomingAssignments": "Upcoming Assignments",
+    "completedCount": "Completed ({count})",
+    "noCompletedYet": "No completed assignments yet.",
     "currentAssignment": "Current Assignment",
     "nextAssignment": "Next Assignment",
     "completedToday": "Completed today ({count})",
@@ -1164,11 +1181,31 @@
       "inProgress": "In Progress",
       "completed": "Completed",
       "accept": "Accept",
+      "startWork": "Start Work",
       "complete": "Complete",
       "addExtension": "+ Extension",
       "viewDetails": "View Details",
+      "waitingPickup": "Pickup",
+      "awaitingJockey": "Awaiting jockey pickup",
       "moreOrders": "+{count} more orders",
       "dragToAdvance": "Drag to change status"
+    },
+    "deadline": {
+      "label": "Deadline",
+      "overdue": "Overdue"
+    },
+    "datePicker": {
+      "filterByDate": "Filter by date",
+      "allDates": "All dates",
+      "clearDate": "Clear filter"
+    },
+    "upcoming": {
+      "title": "Upcoming Orders",
+      "noUpcoming": "No upcoming orders in the next 7 days",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "orderCount": "{count} order",
+      "orderCountPlural": "{count} orders"
     },
     "detail": {
       "back": "Back",
@@ -1192,7 +1229,9 @@
       "price": "Price",
       "notes": "Notes",
       "extensions": "Extensions",
-      "extensionApproved": "approved",
+      "extensionApproved": "Approved",
+      "extensionDeclined": "Declined",
+      "extensionPending": "Pending",
       "newExtension": "+ New Extension",
       "extensionItems": "Items",
       "extensionTotal": "Total",
@@ -1595,12 +1634,25 @@
     "keysReceived": "Vehicle keys received",
     "documentsPhotographed": "Registration documented",
     "conditionDocumented": "Condition documented",
+    "mileage": "Mileage",
+    "mileageDesc": "Read the current vehicle mileage",
+    "mileagePlaceholder": "e.g. 12500",
     "notes": "Notes",
     "notesPlaceholder": "Special notes or damages...",
     "cancel": "Cancel",
     "complete": "Complete Handover",
     "success": "Handover documented successfully!",
-    "validationWarning": "Please add at least one photo, capture the signature, and complete the checklist."
+    "validationWarning": "Please add at least one photo, enter the mileage, capture the signature, and complete the checklist."
+  },
+  "jockeyTimeline": {
+    "title": "Jockey Status",
+    "pickup": "Pickup",
+    "return": "Return",
+    "scheduled": "Scheduled",
+    "routeStarted": "Route Started",
+    "arrived": "Arrived",
+    "handoverComplete": "Handover Complete",
+    "jockey": "Driver"
   },
   "customerPortal": {
     "header": {
@@ -1645,6 +1697,12 @@
       "services": "Services",
       "nextAppointment": "Next Appointment",
       "rating": "Rating"
+    },
+    "upcomingAppointments": {
+      "title": "Upcoming Appointments",
+      "noUpcoming": "No upcoming appointments",
+      "pickup": "Pickup",
+      "return": "Return"
     },
     "pastBookings": {
       "title": "Past Bookings",
@@ -1720,6 +1778,11 @@
       "processing": "Processing...",
       "paymentSuccess": "Payment successful!",
       "extensionApproved": "Extension approved"
+    },
+    "bookingsList": {
+      "filterByDate": "Filter by date",
+      "clearFilter": "Clear filter",
+      "noResults": "No bookings for this date"
     },
     "activities": {
       "title": "Activity Log",

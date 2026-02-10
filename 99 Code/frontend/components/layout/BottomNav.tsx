@@ -30,7 +30,7 @@ export function BottomNav({ portal }: BottomNavProps) {
   const pathname = usePathname();
   const params = useParams();
   const locale = (params.locale as string) || 'de';
-  const tCustomer = useTranslations('customerDashboard.nav');
+  const tCustomer = useTranslations('customerDashboard.bottomNav');
   const tJockey = useTranslations('jockeyDashboard.bottomNav');
   const tWorkshop = useTranslations('workshopDashboard.bottomNav');
 
@@ -87,7 +87,7 @@ export function BottomNav({ portal }: BottomNavProps) {
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-cta text-white shadow-lg">
                 {item.icon}
               </span>
-              <span className="text-[10px] font-medium text-cta">
+              <span className="text-[10px] font-medium text-cta whitespace-nowrap">
                 {item.label}
               </span>
             </Link>
@@ -106,7 +106,7 @@ export function BottomNav({ portal }: BottomNavProps) {
             data-testid={`bottom-nav-${item.label.toLowerCase()}`}
           >
             {item.icon}
-            <span className="text-[10px] font-medium">{item.label}</span>
+            <span className="text-[10px] font-medium whitespace-nowrap">{item.label}</span>
           </Link>
         );
       })}

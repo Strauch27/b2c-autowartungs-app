@@ -10,6 +10,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   Camera,
   Upload,
@@ -19,6 +20,7 @@ import {
   Image as ImageIcon,
   CheckCircle,
   AlertCircle,
+  Gauge,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -33,7 +35,7 @@ interface HandoverModalProps {
     vehicle: string;
     type: string;
   };
-  onComplete: (data: { photos: string[]; customerSignature: string; notes: string }) => void;
+  onComplete: (data: { photos: string[]; customerSignature: string; notes: string; mileage?: number }) => void;
 }
 
 const HandoverModal = ({
@@ -47,6 +49,7 @@ const HandoverModal = ({
   const [signature, setSignature] = useState<string | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [notes, setNotes] = useState("");
+  const [mileage, setMileage] = useState("");
   const [checklist, setChecklist] = useState({
     keysReceived: false,
     documentsPhotographed: false,
@@ -131,9 +134,10 @@ const HandoverModal = ({
     setSignature(null);
   };
 
-  const isValid = 
+  const isValid =
     photos.length > 0 &&
     signature &&
+    mileage && parseInt(mileage) > 0 &&
     checklist.keysReceived &&
     checklist.documentsPhotographed &&
     checklist.conditionDocumented;
@@ -145,6 +149,7 @@ const HandoverModal = ({
         photos,
         customerSignature: signature!,
         notes,
+        mileage: parseInt(mileage),
       });
       onOpenChange(false);
     }
@@ -277,6 +282,28 @@ const HandoverModal = ({
                 {t('signatureCaptured')}
               </div>
             )}
+          </div>
+
+          {/* Mileage */}
+          <div className="space-y-3">
+            <Label htmlFor="mileage" className="flex items-center gap-2">
+              <Gauge className="h-4 w-4" />
+              {t('mileage')} <span className="text-destructive">*</span>
+            </Label>
+            <p className="text-sm text-muted-foreground">{t('mileageDesc')}</p>
+            <div className="relative">
+              <Input
+                id="mileage"
+                type="number"
+                placeholder={t('mileagePlaceholder')}
+                value={mileage}
+                onChange={(e) => setMileage(e.target.value)}
+                min="0"
+                max="999999"
+                className={!mileage ? 'border-amber-300' : ''}
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">km</span>
+            </div>
           </div>
 
           {/* Checklist */}

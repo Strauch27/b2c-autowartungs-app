@@ -19,6 +19,7 @@ export const vehicleSchema = z.object({
     })
     .min(0, "Kilometerstand muss mindestens 0 sein")
     .max(500000, "Kilometerstand darf nicht größer als 500.000 km sein"),
+  licensePlate: z.string().optional(),
 });
 
 export type VehicleFormData = z.infer<typeof vehicleSchema>;

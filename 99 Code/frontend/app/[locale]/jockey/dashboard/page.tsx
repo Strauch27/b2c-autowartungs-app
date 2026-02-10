@@ -1,17 +1,18 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useUser } from '@/lib/auth-hooks';
-import { Bell, Loader2, ChevronRight, Car } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Bell, Loader2, ChevronRight, ChevronLeft, Car, CalendarDays } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n/useLovableTranslation';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import HandoverModal from '@/components/jockey/HandoverModal';
 import { AssignmentCard, AssignmentCardAssignment } from '@/components/jockey/AssignmentCard';
 import { AvailabilityToggle } from '@/components/jockey/AvailabilityToggle';
 import { JockeyAssignmentDetail } from '@/components/jockey/JockeyAssignmentDetail';
 import { jockeysApi, JockeyAssignment } from '@/lib/api/jockeys';
+import { resolveVehicleDisplay } from '@/lib/constants/vehicles';
 import { toast } from 'sonner';
 
 function DashboardContent() {
@@ -27,6 +28,28 @@ function DashboardContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [completedExpanded, setCompletedExpanded] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<AssignmentCardAssignment | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [upcomingExpanded, setUpcomingExpanded] = useState(true);
+
+  const formatDateStr = useCallback((date: Date) => {
+    return date.toISOString().slice(0, 10);
+  }, []);
+
+  const selectedDateStr = formatDateStr(selectedDate);
+  const todayStr = formatDateStr(new Date());
+  const isToday = selectedDateStr === todayStr;
+
+  const navigateDate = useCallback((offset: number) => {
+    setSelectedDate(prev => {
+      const next = new Date(prev);
+      next.setDate(next.getDate() + offset);
+      return next;
+    });
+  }, []);
+
+  const goToToday = useCallback(() => {
+    setSelectedDate(new Date());
+  }, []);
 
   useEffect(() => {
     async function fetchAssignments() {
@@ -47,12 +70,24 @@ function DashboardContent() {
     return () => clearInterval(interval);
   }, [language, t.jockeyDashboard.loadError]);
 
-  const today = new Date().toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US', {
+  const headerDateStr = new Date().toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
+
+  const selectedDateDisplay = selectedDate.toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
+
+  const locale = useLocale();
+  const pathname = usePathname();
+  const switchLocale = (newLocale: string) => {
+    router.push(pathname.replace(`/${locale}`, `/${newLocale}`));
+  };
 
   const firstName = user.name?.split(' ')[0] || user.email?.split('@')[0] || '';
   const initials = (user.name || user.email || 'U')
@@ -78,46 +113,73 @@ function DashboardContent() {
   // Convert to display format
   const displayAssignments: AssignmentCardAssignment[] = useMemo(
     () =>
-      assignments.map((a) => ({
-        id: a.id,
-        customer:
-          a.customerName ||
-          (a.booking?.customer
-            ? `${a.booking.customer.firstName || ''} ${a.booking.customer.lastName || ''}`.trim()
-            : 'Customer'),
-        customerPhone: a.customerPhone || a.booking?.customer?.phone || '',
-        address: `${a.customerAddress}, ${a.customerPostalCode} ${a.customerCity}`,
-        time: new Date(a.scheduledTime).toLocaleTimeString(language === 'de' ? 'de-DE' : 'en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-        scheduledDate: new Date(a.scheduledTime).toISOString().slice(0, 10),
-        vehicle: `${a.vehicleBrand} ${a.vehicleModel}`,
-        licensePlate: a.vehicleLicensePlate || '',
-        status: mapStatus(a.status),
-        type: mapType(a.type),
-      })),
+      assignments.map((a) => {
+        const vd = resolveVehicleDisplay(a.vehicleBrand || '', a.vehicleModel || '');
+        return {
+          id: a.id,
+          customer:
+            a.customerName ||
+            (a.booking?.customer
+              ? `${a.booking.customer.firstName || ''} ${a.booking.customer.lastName || ''}`.trim()
+              : 'Customer'),
+          customerPhone: a.customerPhone || a.booking?.customer?.phone || '',
+          address: `${a.customerAddress}, ${a.customerPostalCode} ${a.customerCity}`,
+          time: new Date(a.scheduledTime).toLocaleTimeString(language === 'de' ? 'de-DE' : 'en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          scheduledDate: new Date(a.scheduledTime).toISOString().slice(0, 10),
+          vehicle: `${vd.brandName} ${language === 'en' && vd.modelNameEn ? vd.modelNameEn : vd.modelName}`,
+          vehicleBrandLogo: vd.brandLogo,
+          licensePlate: a.vehicleLicensePlate || '',
+          status: mapStatus(a.status),
+          type: mapType(a.type),
+        };
+      }),
     [assignments, language]
   );
 
-  // Categorize assignments
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const todayAssignments = displayAssignments.filter((a) => a.scheduledDate === todayStr);
+  // Categorize assignments for selected date
+  const selectedDayAssignments = displayAssignments.filter((a) => a.scheduledDate === selectedDateStr);
 
-  const activeAssignment = todayAssignments.find(
+  const activeAssignment = selectedDayAssignments.find(
     (a) => a.status === 'inProgress' || a.status === 'atLocation'
   );
-  const upcomingAssignment = todayAssignments.find(
+  const upcomingAssignment = selectedDayAssignments.find(
     (a) => a.status === 'upcoming'
   );
-  const completedAssignments = todayAssignments.filter(
+  const completedAssignments = selectedDayAssignments.filter(
     (a) => a.status === 'completed'
   );
 
-  // Stats
-  const pickupCount = todayAssignments.filter((a) => a.type === 'pickup' && a.status !== 'cancelled').length;
-  const returnCount = todayAssignments.filter((a) => a.type === 'return' && a.status !== 'cancelled').length;
-  const totalCount = todayAssignments.filter((a) => a.status !== 'cancelled').length;
+  // Stats for selected date
+  const pickupCount = selectedDayAssignments.filter((a) => a.type === 'pickup' && a.status !== 'cancelled').length;
+  const returnCount = selectedDayAssignments.filter((a) => a.type === 'return' && a.status !== 'cancelled').length;
+  const totalCount = selectedDayAssignments.filter((a) => a.status !== 'cancelled').length;
+
+  // Upcoming assignments (next 7 days, excluding selected date)
+  const upcomingDays = useMemo(() => {
+    const days: { dateStr: string; label: string; assignments: AssignmentCardAssignment[] }[] = [];
+    const now = new Date();
+    for (let i = 1; i <= 7; i++) {
+      const d = new Date(now);
+      d.setDate(d.getDate() + i);
+      const dateStr = d.toISOString().slice(0, 10);
+      if (dateStr === selectedDateStr) continue;
+      const dayAssignments = displayAssignments.filter(
+        (a) => a.scheduledDate === dateStr && a.status !== 'cancelled'
+      );
+      if (dayAssignments.length > 0) {
+        const label = d.toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US', {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+        });
+        days.push({ dateStr, label, assignments: dayAssignments });
+      }
+    }
+    return days;
+  }, [displayAssignments, selectedDateStr, language]);
 
   const getMapsUrl = (address: string) =>
     `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
@@ -133,10 +195,19 @@ function DashboardContent() {
       } catch {
         toast.error(t.jockeyDashboard.pickupStartError);
       }
-    } else if (action === 'arrived' || action === 'complete_handover') {
+    } else if (action === 'arrived') {
+      if (!window.confirm(t.jockeyDashboard.confirmAction)) return;
+      try {
+        await jockeysApi.updateStatus(id, { status: 'AT_LOCATION' });
+        toast.success(language === 'de' ? 'Angekommen' : 'Arrived');
+        const { assignments: updated } = await jockeysApi.getAssignments({ limit: 50 });
+        setAssignments(updated);
+      } catch {
+        toast.error(language === 'de' ? 'Status-Update fehlgeschlagen' : 'Status update failed');
+      }
+    } else if (action === 'complete_handover') {
       const assignment = displayAssignments.find((a) => a.id === id);
       if (assignment) {
-        if (!window.confirm(t.jockeyDashboard.confirmAction)) return;
         setHandoverModal({ open: true, assignment });
       }
     }
@@ -219,9 +290,19 @@ function DashboardContent() {
             <p className="text-white font-semibold text-base" data-testid="jockey-greeting">
               {td('greeting', { name: firstName })}
             </p>
-            <p className="text-neutral-400 text-xs">{today}</p>
+            <p className="text-neutral-400 text-xs">{headerDateStr}</p>
           </div>
           <div className="flex items-center gap-3">
+            <div className="flex items-center gap-0.5 rounded-lg bg-white/10 p-0.5">
+              <button
+                onClick={() => switchLocale('de')}
+                className={`px-2 py-1 text-[11px] font-semibold rounded-md transition-colors ${locale === 'de' ? 'bg-white/20 text-white' : 'text-neutral-400 hover:text-white'}`}
+              >DE</button>
+              <button
+                onClick={() => switchLocale('en')}
+                className={`px-2 py-1 text-[11px] font-semibold rounded-md transition-colors ${locale === 'en' ? 'bg-white/20 text-white' : 'text-neutral-400 hover:text-white'}`}
+              >EN</button>
+            </div>
             <button
               className="relative"
               aria-label={t.jockeyDashboard.notifications}
@@ -242,10 +323,43 @@ function DashboardContent() {
       {/* Availability toggle */}
       <AvailabilityToggle onToggle={handleAvailabilityToggle} />
 
-      {/* Today summary */}
-      <div className="mx-5 mt-3 px-4 py-2.5 bg-[hsl(222,47%,11%)]/5 rounded-xl" data-testid="today-summary">
+      {/* Date picker */}
+      <div className="mx-5 mt-3 flex items-center justify-between bg-[hsl(222,47%,11%)]/5 rounded-xl px-2 py-1.5" data-testid="date-picker">
+        <button
+          onClick={() => navigateDate(-1)}
+          className="p-2 rounded-lg hover:bg-neutral-200/50 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+          aria-label={td('previousDay')}
+        >
+          <ChevronLeft className="w-4 h-4 text-neutral-600" />
+        </button>
+        <button
+          onClick={goToToday}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-neutral-200/50 transition-colors"
+          data-testid="date-display"
+        >
+          <CalendarDays className="w-4 h-4 text-primary" />
+          <span className="text-sm font-semibold text-foreground">
+            {isToday ? td('today') : selectedDateDisplay}
+          </span>
+          {!isToday && (
+            <span className="text-[10px] text-primary font-medium">
+              {td('backToToday')}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => navigateDate(1)}
+          className="p-2 rounded-lg hover:bg-neutral-200/50 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+          aria-label={td('nextDay')}
+        >
+          <ChevronRight className="w-4 h-4 text-neutral-600" />
+        </button>
+      </div>
+
+      {/* Day summary */}
+      <div className="mx-5 mt-2 px-4 py-2.5 bg-[hsl(222,47%,11%)]/5 rounded-xl" data-testid="today-summary">
         <p className="text-xs font-medium text-foreground">
-          <span className="font-bold">{td(totalCount === 1 ? 'summaryToday' : 'summaryTodayPlural', { count: totalCount })}</span>
+          <span className="font-bold">{td(totalCount === 1 ? 'summaryDay' : 'summaryDayPlural', { count: totalCount })}</span>
           <span className="text-neutral-400 mx-1.5">&middot;</span>
           <span className="text-primary">{td(pickupCount === 1 ? 'summaryPickups' : 'summaryPickupsPlural', { count: pickupCount })}</span>
           <span className="text-neutral-400 mx-1.5">&middot;</span>
@@ -309,7 +423,7 @@ function DashboardContent() {
             )}
 
             {/* Additional upcoming assignments beyond the first */}
-            {todayAssignments
+            {selectedDayAssignments
               .filter(
                 (a) =>
                   a.status === 'upcoming' &&
@@ -334,8 +448,8 @@ function DashboardContent() {
               </div>
             )}
 
-            {/* Completed today */}
-            <div className="mx-5 mt-5 mb-6">
+            {/* Completed for selected day */}
+            <div className="mx-5 mt-5">
               <button
                 onClick={() => setCompletedExpanded(!completedExpanded)}
                 className="flex items-center gap-2 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-2 hover:text-neutral-600 min-h-[44px]"
@@ -344,13 +458,13 @@ function DashboardContent() {
                 <ChevronRight
                   className={`w-3.5 h-3.5 transition-transform ${completedExpanded ? 'rotate-90' : ''}`}
                 />
-                {td('completedToday', { count: completedAssignments.length })}
+                {td('completedCount', { count: completedAssignments.length })}
               </button>
               {completedExpanded && (
                 <div className="space-y-2">
                   {completedAssignments.length === 0 ? (
                     <div className="bg-neutral-50 rounded-xl p-4 text-center">
-                      <p className="text-xs text-neutral-400">{td('noCompletedToday')}</p>
+                      <p className="text-xs text-neutral-400">{td('noCompletedYet')}</p>
                     </div>
                   ) : (
                     completedAssignments.map((a) => (
@@ -366,6 +480,46 @@ function DashboardContent() {
                 </div>
               )}
             </div>
+
+            {/* Upcoming assignments (next 7 days) */}
+            {upcomingDays.length > 0 && (
+              <div className="mx-5 mt-6 mb-6">
+                <button
+                  onClick={() => setUpcomingExpanded(!upcomingExpanded)}
+                  className="flex items-center gap-2 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-3 hover:text-neutral-600 min-h-[44px]"
+                  data-testid="upcoming-toggle"
+                >
+                  <ChevronRight
+                    className={`w-3.5 h-3.5 transition-transform ${upcomingExpanded ? 'rotate-90' : ''}`}
+                  />
+                  {td('upcomingAssignments')}
+                </button>
+                {upcomingExpanded && (
+                  <div className="space-y-4">
+                    {upcomingDays.map((day) => (
+                      <div key={day.dateStr}>
+                        <p className="text-[11px] font-semibold text-neutral-500 mb-2">
+                          {day.label} <span className="text-neutral-400 font-normal">({day.assignments.length})</span>
+                        </p>
+                        <div className="space-y-2">
+                          {day.assignments.map((a) => (
+                            <AssignmentCard
+                              key={a.id}
+                              assignment={a}
+                              variant="upcoming"
+                              onTap={setSelectedAssignment}
+                              getMapsUrl={getMapsUrl}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {upcomingDays.length === 0 && <div className="mb-6" />}
           </>
         )}
       </main>

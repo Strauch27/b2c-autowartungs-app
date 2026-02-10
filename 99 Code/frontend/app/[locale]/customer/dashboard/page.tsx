@@ -10,6 +10,7 @@ import { ActiveBookingHeroCard } from '@/components/customer/ActiveBookingHeroCa
 import { ExtensionAlertBanner } from '@/components/customer/ExtensionAlertBanner';
 import { QuickStatsRow } from '@/components/customer/QuickStatsRow';
 import { PastBookingCard } from '@/components/customer/PastBookingCard';
+import { UpcomingAppointmentCard } from '@/components/customer/UpcomingAppointmentCard';
 
 const COMPLETED_STATUSES = ['DELIVERED', 'RETURNED', 'COMPLETED'];
 const TERMINAL_STATUSES = [...COMPLETED_STATUSES, 'CANCELLED'];
@@ -88,6 +89,16 @@ export default function CustomerDashboardPage() {
     COMPLETED_STATUSES.includes(b.status)
   );
 
+  // Upcoming bookings: non-terminal, non-active (i.e. future pickups), sorted by date
+  const upcomingBookings = bookings
+    .filter((b) => {
+      if (TERMINAL_STATUSES.includes(b.status)) return false;
+      if (activeBooking && b.id === activeBooking.id) return false;
+      const pickupDate = new Date(b.pickupDate);
+      return pickupDate >= new Date(new Date().toDateString());
+    })
+    .sort((a, b) => new Date(a.pickupDate).getTime() - new Date(b.pickupDate).getTime());
+
   const completedCount = pastBookings.length;
 
   const nextAppointment = (() => {
@@ -135,6 +146,20 @@ export default function CustomerDashboardPage() {
 
       {/* Active Booking Hero */}
       {activeBooking && <ActiveBookingHeroCard booking={activeBooking} />}
+
+      {/* Upcoming Appointments */}
+      {upcomingBookings.length > 0 && (
+        <div className="mb-4 animate-card" data-testid="upcoming-appointments-section">
+          <h2 className="font-semibold text-gray-900 mb-3">
+            {t('upcomingAppointments.title')}
+          </h2>
+          <div className="space-y-2">
+            {upcomingBookings.slice(0, 3).map((booking) => (
+              <UpcomingAppointmentCard key={booking.id} booking={booking} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Quick Stats */}
       <QuickStatsRow

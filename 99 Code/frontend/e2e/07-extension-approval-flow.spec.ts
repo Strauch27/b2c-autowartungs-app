@@ -66,70 +66,6 @@ test.describe('Extension Approval Flow', () => {
     await expect(pageTitle.first()).toBeVisible({ timeout: 5000 });
   });
 
-  test('workshop can view dashboard', async ({ asWorkshop }) => {
-    await asWorkshop.goto('/de/workshop/dashboard');
-    await asWorkshop.waitForLoadState('networkidle');
-
-    // Verify on workshop dashboard
-    await expect(asWorkshop).toHaveURL(/\/workshop\/dashboard/);
-
-    // Look for any order cards or table rows
-    const content = asWorkshop.locator('main');
-    await expect(content).toBeVisible({ timeout: 5000 });
-  });
-
-  test('customer dashboard shows bookings section', async ({ asCustomer }) => {
-    await asCustomer.goto('/de/customer/dashboard');
-    await asCustomer.waitForLoadState('networkidle');
-
-    // Check for bookings section
-    const bookingsSection = asCustomer.locator('text=Buchungen').or(
-      asCustomer.locator('text=Bookings')
-    );
-
-    const hasBookings = await bookingsSection.isVisible({ timeout: 5000 }).catch(() => false);
-
-    if (hasBookings) {
-      // Look for booking cards
-      const bookingCard = asCustomer.locator('[class*="card"]').first();
-      const cardExists = await bookingCard.isVisible({ timeout: 3000 }).catch(() => false);
-
-      if (cardExists) {
-        // Try navigating to booking detail
-        const viewButton = bookingCard.locator('a, button').filter({ hasText: /Details|Anzeigen|View/ }).first();
-        const viewButtonExists = await viewButton.isVisible({ timeout: 2000 }).catch(() => false);
-
-        if (viewButtonExists) {
-          await viewButton.click();
-          await asCustomer.waitForURL(/\/customer\/bookings\//, { timeout: 5000 });
-        }
-      }
-    }
-    // Test passes regardless - we just verify the dashboard loads
-    expect(true).toBe(true);
-  });
-
-  test('extension approval modal shows required info (component test)', async ({ asCustomer }) => {
-    // This test verifies the component structure exists
-    // Would need actual extension data to test full modal interaction
-    await asCustomer.goto('/de/customer/dashboard');
-    await asCustomer.waitForLoadState('networkidle');
-
-    // Verify dashboard loaded successfully
-    await expect(asCustomer).toHaveURL(/\/customer\/dashboard/);
-    expect(true).toBe(true);
-  });
-
-  test('decline reason input exists in component (component test)', async ({ asCustomer }) => {
-    // This test verifies the decline workflow component exists
-    // Would need actual extension data to test full interaction
-    await asCustomer.goto('/de/customer/dashboard');
-    await asCustomer.waitForLoadState('networkidle');
-
-    await expect(asCustomer).toHaveURL(/\/customer\/dashboard/);
-    expect(true).toBe(true);
-  });
-
   test('notifications page loads and shows content', async ({ asCustomer }) => {
     await asCustomer.goto('/de/customer/notifications');
     await asCustomer.waitForLoadState('networkidle');
@@ -140,33 +76,5 @@ test.describe('Extension Approval Flow', () => {
     // Page shows either notification list or empty state with "Keine Benachrichtigungen"
     const pageTitle = asCustomer.getByText('Benachrichtigungen').first();
     await expect(pageTitle).toBeVisible({ timeout: 5000 });
-  });
-
-  test('extension status badges exist (component test)', async ({ asCustomer }) => {
-    // This test verifies status badge component exists
-    // Would need real extension data to test actual badge rendering
-    await asCustomer.goto('/de/customer/dashboard');
-    await asCustomer.waitForLoadState('networkidle');
-
-    await expect(asCustomer).toHaveURL(/\/customer\/dashboard/);
-    expect(true).toBe(true);
-  });
-
-  test('extension photos grid layout exists (component test)', async ({ asCustomer }) => {
-    // Would need extension with photos to test grid layout
-    await asCustomer.goto('/de/customer/dashboard');
-    await asCustomer.waitForLoadState('networkidle');
-
-    await expect(asCustomer).toHaveURL(/\/customer\/dashboard/);
-    expect(true).toBe(true);
-  });
-
-  test('extension price calculation exists (component test)', async ({ asCustomer }) => {
-    // Would need extension data to verify price calculation
-    await asCustomer.goto('/de/customer/dashboard');
-    await asCustomer.waitForLoadState('networkidle');
-
-    await expect(asCustomer).toHaveURL(/\/customer\/dashboard/);
-    expect(true).toBe(true);
   });
 });

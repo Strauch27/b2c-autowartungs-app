@@ -329,6 +329,8 @@ export function useLovableTranslation() {
       errorLoadingBrands: vehicleForm('errorLoadingBrands'),
       errorLoadingModels: vehicleForm('errorLoadingModels'),
       plausibilityWarning: vehicleForm('plausibilityWarning'),
+      licensePlate: vehicleForm('licensePlate'),
+      licensePlatePlaceholder: vehicleForm('licensePlatePlaceholder'),
     },
     bookingPage: {
       step1Label: bookingPage('step1Label'),
@@ -526,6 +528,17 @@ export function useLovableTranslation() {
         calendar: workshopDashboard('links.calendar'),
         stats: workshopDashboard('links.stats'),
         team: workshopDashboard('links.team'),
+      },
+      datePicker: {
+        filterByDate: workshopDashboard('datePicker.filterByDate'),
+        allDates: workshopDashboard('datePicker.allDates'),
+        clearDate: workshopDashboard('datePicker.clearDate'),
+      },
+      upcoming: {
+        title: workshopDashboard('upcoming.title'),
+        noUpcoming: workshopDashboard('upcoming.noUpcoming'),
+        today: workshopDashboard('upcoming.today'),
+        tomorrow: workshopDashboard('upcoming.tomorrow'),
       },
     },
   };

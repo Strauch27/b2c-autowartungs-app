@@ -21,12 +21,19 @@ import {
 } from "@/components/ui/dialog";
 import {
   Car,
-  Calendar,
+  Calendar as CalendarIcon,
   ClipboardList,
   Loader2,
   ArrowLeft,
   XCircle,
+  X,
 } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const statusColors: Record<string, string> = {
   CONFIRMED: "bg-blue-100 text-blue-800",
@@ -58,11 +65,13 @@ function BookingsContent() {
   const { language } = useLanguage();
   const tStatus = useTranslations("customerPortal.bookingDetail.status");
   const tDashboard = useTranslations("customerDashboard");
+  const tList = useTranslations("customerPortal.bookingsList");
 
   const [bookings, setBookings] = useState<BookingResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [cancelBookingId, setCancelBookingId] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     fetchBookings();
@@ -122,6 +131,21 @@ function BookingsContent() {
     }).format(new Date(dateString));
   };
 
+  const filteredBookings = filterDate
+    ? bookings.filter((b) => {
+        const pickupDay = new Date(b.pickupDate).toDateString();
+        return pickupDay === filterDate.toDateString();
+      })
+    : bookings;
+
+  const filterDateLabel = filterDate
+    ? new Intl.DateTimeFormat(language === "de" ? "de-DE" : "en-US", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }).format(filterDate)
+    : null;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-8 px-4">
       <div className="max-w-4xl mx-auto">
@@ -145,6 +169,43 @@ function BookingsContent() {
             {tDashboard("nav.dashboard")}
           </Button>
         </div>
+
+        {/* Date Filter */}
+        {!isLoading && bookings.length > 0 && (
+          <div className="mb-4 flex items-center gap-2" data-testid="date-filter">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={filterDate ? "border-blue-300 bg-blue-50 text-blue-700" : ""}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {filterDateLabel || tList("filterByDate")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={filterDate}
+                  onSelect={setFilterDate}
+                  locale={language === "de" ? (undefined as any) : undefined}
+                />
+              </PopoverContent>
+            </Popover>
+            {filterDate && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFilterDate(undefined)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="mr-1 h-3.5 w-3.5" />
+                {tList("clearFilter")}
+              </Button>
+            )}
+          </div>
+        )}
 
         {/* Loading */}
         {isLoading && (
@@ -177,10 +238,20 @@ function BookingsContent() {
           </Card>
         )}
 
+        {/* No results for date filter */}
+        {!isLoading && bookings.length > 0 && filteredBookings.length === 0 && filterDate && (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <CalendarIcon className="mb-3 h-10 w-10 text-muted-foreground" />
+              <p className="text-muted-foreground">{tList("noResults")}</p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Bookings list */}
-        {!isLoading && bookings.length > 0 && (
+        {!isLoading && filteredBookings.length > 0 && (
           <div className="space-y-4">
-            {bookings.map((booking) => (
+            {filteredBookings.map((booking) => (
               <Card key={booking.id} className="overflow-hidden">
                 <CardContent className="p-0">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-4">
@@ -209,7 +280,7 @@ function BookingsContent() {
                             : "Vehicle"}
                         </p>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="h-3.5 w-3.5" />
+                          <CalendarIcon className="h-3.5 w-3.5" />
                           <span>{formatDate(booking.pickupDate)}</span>
                         </div>
                         {booking.totalPrice && (

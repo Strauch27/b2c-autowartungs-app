@@ -74,6 +74,10 @@ function ServiceSelectionContent() {
       mileage: vehicle!.mileage.toString(),
       serviceType,
     });
+    const lp = searchParams.get('licensePlate');
+    if (lp) {
+      params.set('licensePlate', lp);
+    }
 
     router.push(`/${locale}/customer/booking/appointment?${params.toString()}`);
   };

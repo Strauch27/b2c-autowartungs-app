@@ -19,6 +19,7 @@ import { PillTabs } from '@/components/customer/PillTabs';
 import { BookingProgressTimeline } from '@/components/customer/BookingProgressTimeline';
 import { BookingActivityTimeline } from '@/components/customer/BookingActivityTimeline';
 import { ExtensionList } from '@/components/customer/ExtensionList';
+import { JockeyTimeline } from '@/components/shared/JockeyTimeline';
 import { toast } from 'sonner';
 import { resolveVehicleDisplay } from '@/lib/constants/vehicles';
 
@@ -282,6 +283,15 @@ function BookingDetailContent() {
             <div className="animate-card bg-white rounded-2xl shadow-sm border border-gray-100 p-4" data-testid="notes-card">
               <p className="text-sm font-semibold text-gray-900 mb-1">{t('notes')}</p>
               <p className="text-sm text-gray-500">{booking.customerNotes}</p>
+            </div>
+          )}
+
+          {/* Jockey Timelines */}
+          {booking.jockeyAssignments && booking.jockeyAssignments.length > 0 && (
+            <div className="space-y-3" data-testid="jockey-timelines">
+              {booking.jockeyAssignments.map((assignment) => (
+                <JockeyTimeline key={assignment.id} assignment={assignment} />
+              ))}
             </div>
           )}
         </div>

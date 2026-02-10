@@ -9,6 +9,8 @@ import { StatusTimeline } from '@/components/workshop/StatusTimeline';
 import { ExtensionForm } from '@/components/workshop/ExtensionForm';
 import { CommunicationSection } from '@/components/workshop/CommunicationSection';
 import { Loader2, ArrowLeft, Phone, Mail, MapPin, Calendar, Car, User, Wrench, FileText } from 'lucide-react';
+import { resolveVehicleDisplay } from '@/lib/constants/vehicles';
+import { JockeyTimeline } from '@/components/shared/JockeyTimeline';
 import { toast } from 'sonner';
 
 function mapDisplayStatus(bookingStatus: string): 'pending' | 'inProgress' | 'completed' | 'cancelled' {
@@ -121,9 +123,11 @@ function OrderDetailContent() {
   const customerName = order.customer
     ? `${order.customer.firstName || ''} ${order.customer.lastName || ''}`.trim()
     : '';
-  const vehicleLabel = order.vehicle
-    ? `${order.vehicle.brand} ${order.vehicle.model}`
+  const vd = order.vehicle ? resolveVehicleDisplay(order.vehicle.brand, order.vehicle.model) : null;
+  const vehicleLabel = vd
+    ? `${vd.brandName} ${locale === 'en' && vd.modelNameEn ? vd.modelNameEn : vd.modelName}`
     : '';
+  const vehicleBrandLogo = vd?.brandLogo;
 
   // Status advancement button config
   const getAdvanceButton = () => {
@@ -170,7 +174,10 @@ function OrderDetailContent() {
           </button>
           <div>
             <h1 className="text-lg font-bold">{order.bookingNumber}</h1>
-            <p className="text-xs text-muted-foreground">{vehicleLabel}</p>
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+              {vehicleBrandLogo && <img src={vehicleBrandLogo} alt="" className="w-4 h-4 object-contain" />}
+              {vehicleLabel}
+            </p>
           </div>
         </div>
         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusBadge}`}>
@@ -209,7 +216,11 @@ function OrderDetailContent() {
             <p className="text-overline mb-3 text-muted-foreground">{td('vehicleInfo')}</p>
             <div className="space-y-2.5">
               <div className="flex items-center gap-3">
-                <Car className="h-4 w-4 text-muted-foreground" />
+                {vehicleBrandLogo ? (
+                  <img src={vehicleBrandLogo} alt="" className="h-5 w-5 object-contain" />
+                ) : (
+                  <Car className="h-4 w-4 text-muted-foreground" />
+                )}
                 <div>
                   <p className="text-xs text-muted-foreground">{td('brandModel')}</p>
                   <p className="text-sm font-medium">{vehicleLabel || '--'}</p>
@@ -322,7 +333,7 @@ function OrderDetailContent() {
                 <div>
                   <p className="text-xs text-muted-foreground">{td('price')}</p>
                   <p className="text-sm font-bold">
-                    {(parseFloat(order.totalPrice) / 100).toFixed(2)} &euro;
+                    {parseFloat(order.totalPrice).toFixed(2)} &euro;
                   </p>
                 </div>
               )}
@@ -339,6 +350,15 @@ function OrderDetailContent() {
         </div>
       </div>
 
+      {/* Jockey Timelines */}
+      {order.jockeyAssignments && order.jockeyAssignments.length > 0 && (
+        <div className="mb-6 space-y-3">
+          {order.jockeyAssignments.map((assignment: any) => (
+            <JockeyTimeline key={assignment.id} assignment={assignment} />
+          ))}
+        </div>
+      )}
+
       {/* Extensions section */}
       <div className="mb-6 rounded-xl border border-neutral-200 bg-card p-5 shadow-sm">
         <div className="flex items-center justify-between">
@@ -353,9 +373,37 @@ function OrderDetailContent() {
           )}
         </div>
 
-        {/* Existing extensions would be shown here if the API returns them */}
-        {!showExtensionForm && (
-          <p className="mt-2 text-xs text-muted-foreground">--</p>
+        {order.extensions && order.extensions.length > 0 ? (
+          <div className="mt-3 space-y-2">
+            {order.extensions.map((ext: any) => (
+              <div key={ext.id} className="rounded-lg border border-border bg-background p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{ext.description}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {ext.items?.length || 0} {ext.items?.length === 1 ? 'Position' : 'Positionen'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold">
+                      {(typeof ext.totalAmount === 'number' ? ext.totalAmount / 100 : parseFloat(ext.totalAmount)).toFixed(2)} &euro;
+                    </p>
+                    <span className={`text-xs font-medium ${
+                      ext.status === 'APPROVED' ? 'text-success' :
+                      ext.status === 'DECLINED' ? 'text-destructive' :
+                      'text-cta'
+                    }`}>
+                      {ext.status === 'APPROVED' ? td('extensionApproved') :
+                       ext.status === 'DECLINED' ? td('extensionDeclined') :
+                       td('extensionPending')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          !showExtensionForm && <p className="mt-2 text-xs text-muted-foreground">--</p>
         )}
 
         {showExtensionForm && (

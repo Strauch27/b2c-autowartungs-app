@@ -10,11 +10,15 @@ interface Order {
   bookingNumber: string;
   customer: string;
   vehicle: string;
+  vehicleBrandLogo?: string;
   vehiclePlate: string;
+  vehicleMileage?: number;
+  vehicleYear?: number;
   service: string;
   status: 'pending' | 'inProgress' | 'completed' | 'cancelled';
   backendStatus?: string;
   date: string;
+  deliveryDeadline?: Date;
   extensionApproved?: boolean;
 }
 
@@ -40,11 +44,16 @@ export function KanbanBoard({ orders, onAccept, onComplete, onOpenDetails, onOpe
         key={order.id}
         bookingNumber={order.bookingNumber || order.id}
         vehicle={order.vehicle}
+        vehicleBrandLogo={order.vehicleBrandLogo}
         vehiclePlate={order.vehiclePlate}
+        vehicleMileage={order.vehicleMileage}
+        vehicleYear={order.vehicleYear}
         service={order.service}
         customer={order.customer}
         date={order.date}
         column={column}
+        backendStatus={order.backendStatus}
+        deliveryDeadline={order.deliveryDeadline}
         extensionApproved={order.extensionApproved}
         onAccept={() => onAccept(order.id, order.backendStatus)}
         onComplete={() => onComplete(order.id, order.backendStatus)}

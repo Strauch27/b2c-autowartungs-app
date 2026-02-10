@@ -11,6 +11,7 @@ export interface AssignmentCardAssignment {
   time: string;
   scheduledDate: string;
   vehicle: string;
+  vehicleBrandLogo?: string;
   licensePlate?: string;
   status: 'upcoming' | 'inProgress' | 'atLocation' | 'completed' | 'cancelled';
   type: 'pickup' | 'return';
@@ -107,7 +108,11 @@ export function AssignmentCard({ assignment, variant, onAction, onTap, getMapsUr
 
         {/* Vehicle */}
         <div className="flex items-center gap-1.5 mt-1 text-xs text-neutral-500">
-          <Car className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+          {assignment.vehicleBrandLogo ? (
+            <img src={assignment.vehicleBrandLogo} alt="" className="w-4 h-4 object-contain shrink-0" />
+          ) : (
+            <Car className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+          )}
           <span>{assignment.vehicle}{assignment.licensePlate ? ` \u00B7 ${assignment.licensePlate}` : ''}</span>
         </div>
       </div>

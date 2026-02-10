@@ -61,6 +61,9 @@ export default function BookingPage() {
       year: data.year.toString(),
       mileage: data.mileage.toString(),
     });
+    if (data.licensePlate) {
+      params.set('licensePlate', data.licensePlate);
+    }
     router.push(`/${locale}/customer/booking/service?${params.toString()}`);
   };
 

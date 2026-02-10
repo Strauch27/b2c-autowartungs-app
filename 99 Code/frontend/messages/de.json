@@ -36,7 +36,9 @@
     "noModelsAvailable": "Keine Modelle verfügbar",
     "errorLoadingBrands": "Fehler beim Laden der Marken",
     "errorLoadingModels": "Fehler beim Laden der Modelle",
-    "plausibilityWarning": "Hinweis"
+    "plausibilityWarning": "Hinweis",
+    "licensePlate": "Kennzeichen",
+    "licensePlatePlaceholder": "z.B. B-AC 1234"
   },
   "navigation": {
     "home": "Startseite",
@@ -956,6 +958,13 @@
       "vehicles": "Fahrzeuge",
       "profile": "Profil"
     },
+    "bottomNav": {
+      "dashboard": "Dashboard",
+      "newBooking": "Neu",
+      "myBookings": "Buchungen",
+      "vehicles": "Fahrzeuge",
+      "profile": "Profil"
+    },
     "stats": {
       "activeBookings": "Aktive Buchungen",
       "savedVehicles": "Gespeicherte Fahrzeuge",
@@ -1024,10 +1033,18 @@
     "busy": "Beschäftigt",
     "summaryToday": "{count} Auftrag heute",
     "summaryTodayPlural": "{count} Aufträge heute",
+    "summaryDay": "{count} Auftrag",
+    "summaryDayPlural": "{count} Aufträge",
     "summaryPickups": "{count} Abholung",
     "summaryPickupsPlural": "{count} Abholungen",
     "summaryReturns": "{count} Rückgabe",
     "summaryReturnsPlural": "{count} Rückgaben",
+    "previousDay": "Vorheriger Tag",
+    "nextDay": "Nächster Tag",
+    "backToToday": "Zurück zu heute",
+    "upcomingAssignments": "Anstehende Aufträge",
+    "completedCount": "Erledigt ({count})",
+    "noCompletedYet": "Noch keine abgeschlossenen Aufträge.",
     "currentAssignment": "Aktueller Auftrag",
     "nextAssignment": "Nächster Auftrag",
     "completedToday": "Heute erledigt ({count})",
@@ -1164,11 +1181,31 @@
       "inProgress": "In Bearbeitung",
       "completed": "Abgeschlossen",
       "accept": "Annehmen",
+      "startWork": "Arbeit starten",
       "complete": "Abschließen",
       "addExtension": "+ Erweiterung",
       "viewDetails": "Details ansehen",
+      "waitingPickup": "Abholung",
+      "awaitingJockey": "Warte auf Jockey-Abholung",
       "moreOrders": "+{count} weitere Aufträge",
       "dragToAdvance": "Ziehen um Status zu ändern"
+    },
+    "deadline": {
+      "label": "Frist",
+      "overdue": "Überfällig"
+    },
+    "datePicker": {
+      "filterByDate": "Nach Datum filtern",
+      "allDates": "Alle Tage",
+      "clearDate": "Filter zurücksetzen"
+    },
+    "upcoming": {
+      "title": "Anstehende Aufträge",
+      "noUpcoming": "Keine anstehenden Aufträge in den nächsten 7 Tagen",
+      "today": "Heute",
+      "tomorrow": "Morgen",
+      "orderCount": "{count} Auftrag",
+      "orderCountPlural": "{count} Aufträge"
     },
     "detail": {
       "back": "Zurück",
@@ -1192,7 +1229,9 @@
       "price": "Preis",
       "notes": "Notizen",
       "extensions": "Erweiterungen",
-      "extensionApproved": "genehmigt",
+      "extensionApproved": "Genehmigt",
+      "extensionDeclined": "Abgelehnt",
+      "extensionPending": "Ausstehend",
       "newExtension": "+ Neue Erweiterung",
       "extensionItems": "Positionen",
       "extensionTotal": "Gesamt",
@@ -1595,12 +1634,25 @@
     "keysReceived": "Fahrzeugschlüssel erhalten",
     "documentsPhotographed": "Fahrzeugschein fotografiert",
     "conditionDocumented": "Zustand dokumentiert",
+    "mileage": "Kilometerstand",
+    "mileageDesc": "Aktuellen Kilometerstand des Fahrzeugs ablesen",
+    "mileagePlaceholder": "z.B. 12500",
     "notes": "Anmerkungen",
     "notesPlaceholder": "Besondere Hinweise oder Beschädigungen...",
     "cancel": "Abbrechen",
     "complete": "Übergabe abschließen",
     "success": "Übergabe erfolgreich dokumentiert!",
-    "validationWarning": "Bitte fügen Sie mindestens ein Foto hinzu, erfassen Sie die Unterschrift und vervollständigen Sie die Checkliste."
+    "validationWarning": "Bitte fügen Sie mindestens ein Foto hinzu, geben Sie den Kilometerstand ein, erfassen Sie die Unterschrift und vervollständigen Sie die Checkliste."
+  },
+  "jockeyTimeline": {
+    "title": "Jockey-Status",
+    "pickup": "Abholung",
+    "return": "Rückgabe",
+    "scheduled": "Geplant",
+    "routeStarted": "Unterwegs",
+    "arrived": "Angekommen",
+    "handoverComplete": "Übergabe abgeschlossen",
+    "jockey": "Fahrer"
   },
   "customerPortal": {
     "header": {
@@ -1645,6 +1697,12 @@
       "services": "Services",
       "nextAppointment": "Nächster Termin",
       "rating": "Bewertung"
+    },
+    "upcomingAppointments": {
+      "title": "Anstehende Termine",
+      "noUpcoming": "Keine anstehenden Termine",
+      "pickup": "Abholung",
+      "return": "Rückgabe"
     },
     "pastBookings": {
       "title": "Vergangene Buchungen",
@@ -1720,6 +1778,11 @@
       "processing": "Wird verarbeitet...",
       "paymentSuccess": "Zahlung erfolgreich!",
       "extensionApproved": "Erweiterung genehmigt"
+    },
+    "bookingsList": {
+      "filterByDate": "Nach Datum filtern",
+      "clearFilter": "Filter aufheben",
+      "noResults": "Keine Buchungen für dieses Datum"
     },
     "activities": {
       "title": "Aktivitätenverlauf",

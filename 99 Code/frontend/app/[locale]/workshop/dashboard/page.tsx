@@ -1,15 +1,20 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { Loader2, Car } from "lucide-react";
+import { Loader2, Car, CalendarIcon, X, ChevronDown, ChevronUp, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/useLovableTranslation";
 import ExtensionModal from "@/components/workshop/ExtensionModal";
 import { workshopsApi, WorkshopOrder, CreateExtensionData } from "@/lib/api/workshops";
+import { resolveVehicleDisplay } from "@/lib/constants/vehicles";
 import { toast } from "sonner";
 import { WorkshopStatsBar } from "@/components/workshop/WorkshopStatsBar";
 import { KanbanBoard } from "@/components/workshop/KanbanBoard";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format, isSameDay, isAfter, startOfDay, addDays, isTomorrow, isToday } from "date-fns";
+import { de, enUS } from "date-fns/locale";
 
 interface Order {
   id: string;
@@ -18,12 +23,17 @@ interface Order {
   customerEmail: string;
   customerPhone: string;
   vehicle: string;
+  vehicleBrandLogo?: string;
   vehiclePlate: string;
+  vehicleMileage?: number;
+  vehicleYear?: number;
   vehicleId?: string;
   service: string;
   status: "pending" | "inProgress" | "completed" | "cancelled";
   backendStatus?: string;
   date: string;
+  rawPickupDate: Date;
+  deliveryDeadline?: Date;
   pickupAddress: string;
   notes?: string;
   extensionApproved?: boolean;
@@ -40,6 +50,10 @@ function DashboardContent() {
     customerName: string;
   }>({ open: false, orderId: "", customerName: "" });
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [upcomingExpanded, setUpcomingExpanded] = useState(true);
+
+  const dateLocale = language === 'de' ? de : enUS;
 
   useEffect(() => {
     async function fetchOrders(isRefresh = false) {
@@ -77,27 +91,46 @@ function DashboardContent() {
     : { INSPECTION: 'Inspection', OIL_SERVICE: 'Oil Change', BRAKE_SERVICE: 'Brake Service', TUV: 'TÜV/MOT', CLIMATE_SERVICE: 'Climate Service', CUSTOM: 'Custom Service' };
 
   // Convert workshop orders to display format
-  const orders = workshopOrders.map(o => ({
-    id: o.bookingNumber,
-    bookingNumber: o.bookingNumber,
-    customer: o.customer ? `${o.customer.firstName || ''} ${o.customer.lastName || ''}`.trim() : 'Customer',
-    customerEmail: o.customer?.email || '',
-    customerPhone: o.customer?.phone || '',
-    vehicle: o.vehicle ? `${o.vehicle.brand} ${o.vehicle.model}` : 'Vehicle',
-    vehiclePlate: o.vehicle?.licensePlate || '',
-    vehicleId: o.vehicle?.id,
-    service: Array.isArray(o.services) && o.services.length > 0
-      ? `${o.services.length} ${t.workshopDashboard.services}`
-      : (serviceTypeLabels[o.serviceType] || o.serviceType),
-    status: mapStatus(o.status),
-    backendStatus: o.status,
-    date: new Date(o.pickupDate).toLocaleDateString(language === "de" ? "de-DE" : "en-US"),
-    pickupAddress: `${o.pickupAddress}, ${o.pickupPostalCode} ${o.pickupCity}`,
-    notes: o.customerNotes,
-  })) as Order[];
+  const orders = workshopOrders.map(o => {
+    const vd = o.vehicle ? resolveVehicleDisplay(o.vehicle.brand, o.vehicle.model) : null;
+    // Deadline: 3h before delivery date (so jockey has time to return car)
+    let deliveryDeadline: Date | undefined;
+    if (o.deliveryDate) {
+      deliveryDeadline = new Date(new Date(o.deliveryDate).getTime() - 3 * 60 * 60 * 1000);
+    }
+    return {
+      id: o.bookingNumber,
+      bookingNumber: o.bookingNumber,
+      customer: o.customer ? `${o.customer.firstName || ''} ${o.customer.lastName || ''}`.trim() : 'Customer',
+      customerEmail: o.customer?.email || '',
+      customerPhone: o.customer?.phone || '',
+      vehicle: vd ? `${vd.brandName} ${language === 'en' && vd.modelNameEn ? vd.modelNameEn : vd.modelName}` : 'Vehicle',
+      vehicleBrandLogo: vd?.brandLogo,
+      vehiclePlate: o.vehicle?.licensePlate || '',
+      vehicleMileage: o.vehicle?.mileage,
+      vehicleYear: o.vehicle?.year,
+      vehicleId: o.vehicle?.id,
+      service: Array.isArray(o.services) && o.services.length > 0
+        ? `${o.services.length} ${t.workshopDashboard.services}`
+        : (serviceTypeLabels[o.serviceType] || o.serviceType),
+      status: mapStatus(o.status),
+      backendStatus: o.status,
+      date: new Date(o.pickupDate).toLocaleDateString(language === "de" ? "de-DE" : "en-US"),
+      rawPickupDate: new Date(o.pickupDate),
+      deliveryDeadline,
+      pickupAddress: `${o.pickupAddress}, ${o.pickupPostalCode} ${o.pickupCity}`,
+      notes: o.customerNotes,
+      extensionApproved: Array.isArray((o as any).extensions) && (o as any).extensions.some((e: any) => e.status === 'APPROVED'),
+    };
+  }) as Order[];
 
-  // Filter by search
+  // Filter by search and date
   const filteredOrders = orders.filter(o => {
+    // Date filter
+    if (selectedDate && !isSameDay(o.rawPickupDate, selectedDate)) {
+      return false;
+    }
+    // Search filter
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return o.id.toLowerCase().includes(q)
@@ -105,18 +138,62 @@ function DashboardContent() {
       || o.vehicle.toLowerCase().includes(q);
   });
 
-  // Stats
+  // Stats based on filtered orders
   const stats = {
-    newCount: orders.filter(o => o.status === 'pending').length,
-    inProgressCount: orders.filter(o => o.status === 'inProgress').length,
-    completedCount: orders.filter(o => o.status === 'completed').length,
+    newCount: filteredOrders.filter(o => o.status === 'pending').length,
+    inProgressCount: filteredOrders.filter(o => o.status === 'inProgress').length,
+    completedCount: filteredOrders.filter(o => o.status === 'completed').length,
   };
+
+  // Upcoming orders: future orders grouped by date (next 7 days)
+  const upcomingGroups = useMemo(() => {
+    const today = startOfDay(new Date());
+    const endDate = addDays(today, 7);
+
+    const futureOrders = orders.filter(o => {
+      const d = startOfDay(o.rawPickupDate);
+      return isAfter(d, today) || isSameDay(d, addDays(today, 1));
+    }).filter(o => {
+      const d = startOfDay(o.rawPickupDate);
+      return !isAfter(d, endDate);
+    });
+
+    // Group by date
+    const groups: Record<string, Order[]> = {};
+    for (const order of futureOrders) {
+      const key = startOfDay(order.rawPickupDate).toISOString();
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(order);
+    }
+
+    // Sort by date and convert to array
+    return Object.entries(groups)
+      .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+      .map(([dateStr, groupOrders]) => {
+        const date = new Date(dateStr);
+        let label: string;
+        if (isToday(date)) {
+          label = t.workshopDashboard.upcoming.today;
+        } else if (isTomorrow(date)) {
+          label = t.workshopDashboard.upcoming.tomorrow;
+        } else {
+          label = format(date, 'EEEE, d. MMMM', { locale: dateLocale });
+        }
+        return { date, label, orders: groupOrders };
+      });
+  }, [orders, language]);
 
   const handleAccept = async (orderId: string, currentBackendStatus?: string) => {
     try {
       let targetStatus: string;
-      if (currentBackendStatus === 'PICKED_UP') {
+      if (currentBackendStatus === 'PICKUP_ASSIGNED') {
+        // Can't accept yet - jockey hasn't picked up. This shouldn't be called.
+        toast.error(language === 'de' ? 'Fahrzeug muss erst vom Jockey abgeholt werden' : 'Vehicle must be picked up by jockey first');
+        return;
+      } else if (currentBackendStatus === 'PICKED_UP') {
         targetStatus = 'AT_WORKSHOP';
+      } else if (currentBackendStatus === 'AT_WORKSHOP') {
+        targetStatus = 'IN_SERVICE';
       } else {
         targetStatus = 'IN_SERVICE';
       }
@@ -184,20 +261,63 @@ function DashboardContent() {
         />
       </div>
 
-      {/* Search */}
+      {/* Search + Date Picker */}
       <div className="mb-5">
-        <div className="relative max-w-sm">
-          <svg className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            placeholder={t.workshopDashboard.searchPlaceholder}
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-neutral-200 py-2 pl-9 pr-3 text-sm focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/30"
-            data-testid="workshop-search-input"
-          />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          {/* Search */}
+          <div className="relative max-w-sm flex-1">
+            <svg className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder={t.workshopDashboard.searchPlaceholder}
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full rounded-lg border border-neutral-200 py-2 pl-9 pr-3 text-sm focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/30"
+              data-testid="workshop-search-input"
+            />
+          </div>
+
+          {/* Date Picker */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                  selectedDate
+                    ? 'border-cta bg-cta/5 text-cta'
+                    : 'border-neutral-200 text-muted-foreground hover:border-neutral-300'
+                }`}
+                data-testid="workshop-date-picker-trigger"
+              >
+                <CalendarIcon className="h-4 w-4" />
+                <span>
+                  {selectedDate
+                    ? format(selectedDate, 'dd.MM.yyyy')
+                    : t.workshopDashboard.datePicker.allDates}
+                </span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                locale={dateLocale}
+              />
+              {selectedDate && (
+                <div className="border-t px-3 py-2">
+                  <button
+                    onClick={() => setSelectedDate(undefined)}
+                    className="flex w-full items-center justify-center gap-1.5 rounded-md py-1.5 text-xs text-muted-foreground hover:bg-neutral-100"
+                  >
+                    <X className="h-3 w-3" />
+                    {t.workshopDashboard.datePicker.clearDate}
+                  </button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
@@ -206,7 +326,7 @@ function DashboardContent() {
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Car className="mb-4 h-12 w-12 text-muted-foreground" />
           <p className="text-muted-foreground">
-            {searchQuery
+            {searchQuery || selectedDate
               ? t.workshopDashboard.noMatchingOrders
               : t.workshopDashboard.noOrders}
           </p>
@@ -221,6 +341,66 @@ function DashboardContent() {
             setExtensionModal({ open: true, orderId, customerName })
           }
         />
+      )}
+
+      {/* Upcoming Orders Section */}
+      {upcomingGroups.length > 0 && (
+        <div className="mt-8" data-testid="workshop-upcoming-orders">
+          <button
+            onClick={() => setUpcomingExpanded(!upcomingExpanded)}
+            className="mb-4 flex w-full items-center justify-between rounded-lg bg-neutral-50 px-4 py-3 text-left transition-colors hover:bg-neutral-100"
+          >
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-cta" />
+              <h2 className="text-base font-semibold text-foreground">
+                {t.workshopDashboard.upcoming.title}
+              </h2>
+              <span className="rounded-full bg-cta/10 px-2 py-0.5 text-xs font-medium text-cta">
+                {upcomingGroups.reduce((sum, g) => sum + g.orders.length, 0)}
+              </span>
+            </div>
+            {upcomingExpanded ? (
+              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            )}
+          </button>
+
+          {upcomingExpanded && (
+            <div className="space-y-4">
+              {upcomingGroups.map(group => (
+                <div key={group.date.toISOString()}>
+                  <div className="mb-2 flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-foreground">{group.label}</h3>
+                    <span className="text-xs text-muted-foreground">
+                      ({group.orders.length})
+                    </span>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {group.orders.map(order => (
+                      <button
+                        key={order.id}
+                        onClick={() => router.push(`/${language}/workshop/orders/${order.id}`)}
+                        className="flex flex-col gap-1 rounded-lg border border-neutral-200 bg-card p-3 text-left transition-colors hover:border-cta/30 hover:bg-cta/5"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium text-cta">{order.bookingNumber}</span>
+                          <span className="text-xs text-muted-foreground">{order.date}</span>
+                        </div>
+                        <p className="text-sm font-medium text-foreground">{order.customer}</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          {order.vehicleBrandLogo && <img src={order.vehicleBrandLogo} alt="" className="w-4 h-4 object-contain shrink-0" />}
+                          {order.vehicle} {order.vehiclePlate ? `· ${order.vehiclePlate}` : ''}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{order.service}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Extension Modal (backward compat) */}

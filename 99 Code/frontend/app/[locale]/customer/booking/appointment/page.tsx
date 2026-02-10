@@ -26,6 +26,7 @@ function AppointmentContent() {
   const model = searchParams.get('model') || '';
   const year = searchParams.get('year') || '';
   const mileage = searchParams.get('mileage') || '';
+  const licensePlate = searchParams.get('licensePlate') || '';
   const serviceType = searchParams.get('serviceType') || '';
 
   // Pickup form state
@@ -73,6 +74,7 @@ function AppointmentContent() {
           model,
           year: parseInt(year),
           mileage: parseInt(mileage),
+          licensePlate: licensePlate || undefined,
           saveVehicle: false,
         },
         services: [serviceType],

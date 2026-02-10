@@ -1,11 +1,12 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { PortalLayout } from '@/components/layout/PortalLayout';
 import { NotificationCenter } from '@/components/customer/NotificationCenter';
 import { useAuth } from '@/lib/auth-hooks';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { LogOut } from 'lucide-react';
 
 export default function CustomerLayout({
   children,
@@ -30,8 +31,15 @@ export default function CustomerLayout({
 }
 
 function CustomerLayoutInner({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const t = useTranslations('customerPortal.header');
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const switchLocale = (newLocale: string) => {
+    router.push(pathname.replace(`/${locale}`, `/${newLocale}`));
+  };
 
   const initials = user?.name
     ? user.name
@@ -48,6 +56,16 @@ function CustomerLayoutInner({ children }: { children: React.ReactNode }) {
       title={t('title')}
       rightSlot={
         <div className="flex items-center gap-2">
+          <div className="flex items-center gap-0.5 rounded-lg bg-neutral-100 p-0.5">
+            <button
+              onClick={() => switchLocale('de')}
+              className={`px-2 py-1 text-[11px] font-semibold rounded-md transition-colors ${locale === 'de' ? 'bg-white text-foreground shadow-sm' : 'text-neutral-400 hover:text-foreground'}`}
+            >DE</button>
+            <button
+              onClick={() => switchLocale('en')}
+              className={`px-2 py-1 text-[11px] font-semibold rounded-md transition-colors ${locale === 'en' ? 'bg-white text-foreground shadow-sm' : 'text-neutral-400 hover:text-foreground'}`}
+            >EN</button>
+          </div>
           <NotificationCenter />
           <div
             className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold"
@@ -55,6 +73,14 @@ function CustomerLayoutInner({ children }: { children: React.ReactNode }) {
           >
             {initials}
           </div>
+          <button
+            onClick={logout}
+            className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-neutral-100 transition-colors"
+            aria-label="Logout"
+            data-testid="logout-button"
+          >
+            <LogOut className="h-4 w-4 text-neutral-500" />
+          </button>
         </div>
       }
     >

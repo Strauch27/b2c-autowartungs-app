@@ -69,6 +69,27 @@ export async function getWorkshopOrders(req: Request, res: Response, next: NextF
               firstName: true,
               lastName: true
             }
+          },
+          extensions: {
+            select: {
+              id: true,
+              status: true,
+              description: true,
+              totalAmount: true,
+            }
+          },
+          jockeyAssignments: {
+            select: {
+              id: true,
+              type: true,
+              status: true,
+              scheduledTime: true,
+              departedAt: true,
+              arrivedAt: true,
+              completedAt: true,
+              jockey: { select: { id: true, firstName: true, lastName: true } }
+            },
+            orderBy: { createdAt: 'asc' }
           }
         },
         orderBy: {
@@ -104,8 +125,14 @@ export async function getWorkshopOrder(req: Request, res: Response, next: NextFu
   try {
     const id = req.params.id as string;
 
-    const booking = await prisma.booking.findUnique({
-      where: { id },
+    // Support lookup by either UUID or bookingNumber (Kanban navigates with bookingNumber)
+    const booking = await prisma.booking.findFirst({
+      where: {
+        OR: [
+          { id },
+          { bookingNumber: id }
+        ]
+      },
       include: {
         customer: {
           select: {
@@ -132,6 +159,31 @@ export async function getWorkshopOrder(req: Request, res: Response, next: NextFu
             firstName: true,
             lastName: true
           }
+        },
+        jockeyAssignments: {
+          select: {
+            id: true,
+            type: true,
+            status: true,
+            scheduledTime: true,
+            departedAt: true,
+            arrivedAt: true,
+            completedAt: true,
+            jockey: { select: { id: true, firstName: true, lastName: true } }
+          },
+          orderBy: { createdAt: 'asc' }
+        },
+        extensions: {
+          select: {
+            id: true,
+            status: true,
+            description: true,
+            totalAmount: true,
+            items: true,
+            createdAt: true,
+            approvedAt: true,
+          },
+          orderBy: { createdAt: 'asc' }
         }
       }
     });

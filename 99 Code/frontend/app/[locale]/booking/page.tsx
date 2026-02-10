@@ -117,6 +117,7 @@ export default function BookingPage() {
           model: formData.model,
           year: parseInt(formData.year),
           mileage: parseInt(formData.mileage),
+          licensePlate: formData.licensePlate || undefined,
           saveVehicle: formData.saveVehicle
         },
         services: formData.selectedServices,

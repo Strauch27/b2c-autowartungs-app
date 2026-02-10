@@ -29,7 +29,7 @@ export function PortalLayout({
         onBack={onBack}
         rightSlot={rightSlot}
       />
-      <main className="pb-20 md:pb-0">
+      <main className="pt-14 pb-20 md:pb-0">
         {children}
       </main>
       <BottomNav portal={portal} />

@@ -216,6 +216,9 @@ export async function updateAssignmentStatus(req: Request, res: Response, next: 
     const updateData: any = { status };
 
     // Set timestamps based on status
+    if (status === 'EN_ROUTE' && !assignment.departedAt) {
+      updateData.departedAt = new Date();
+    }
     if (status === 'AT_LOCATION' && !assignment.arrivedAt) {
       updateData.arrivedAt = new Date();
     }

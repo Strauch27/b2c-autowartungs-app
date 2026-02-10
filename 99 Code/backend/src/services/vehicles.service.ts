@@ -253,6 +253,7 @@ export class VehiclesService {
       model: string;
       year: number;
       mileage: number;
+      licensePlate?: string;
       saveVehicle?: boolean;
     }
   ): Promise<{
@@ -282,16 +283,20 @@ export class VehiclesService {
     let isNew = false;
 
     if (existing) {
-      // Update mileage if the new value is higher
+      // Update mileage and/or licensePlate if needed
+      const updates: { mileage?: number; licensePlate?: string } = {};
       if (vehicleData.mileage > existing.mileage) {
-        vehicle = await this.vehiclesRepository.update(existing.id, {
-          mileage: vehicleData.mileage
-        });
+        updates.mileage = vehicleData.mileage;
+      }
+      if (vehicleData.licensePlate && vehicleData.licensePlate !== existing.licensePlate) {
+        updates.licensePlate = vehicleData.licensePlate;
+      }
+      if (Object.keys(updates).length > 0) {
+        vehicle = await this.vehiclesRepository.update(existing.id, updates);
         logger.info({
-          message: 'Vehicle mileage updated',
+          message: 'Vehicle updated',
           vehicleId: vehicle.id,
-          oldMileage: existing.mileage,
-          newMileage: vehicleData.mileage
+          updates
         });
       } else {
         vehicle = existing;
@@ -303,7 +308,8 @@ export class VehiclesService {
         brand: vehicleData.brand,
         model: vehicleData.model,
         year: vehicleData.year,
-        mileage: vehicleData.mileage
+        mileage: vehicleData.mileage,
+        ...(vehicleData.licensePlate ? { licensePlate: vehicleData.licensePlate } : {})
       });
       isNew = true;
 

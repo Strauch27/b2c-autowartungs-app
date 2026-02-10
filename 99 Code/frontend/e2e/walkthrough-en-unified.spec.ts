@@ -30,7 +30,7 @@ const SCREENSHOT_DIR = path.join(__dirname, 'walkthrough-screenshots', 'en-unifi
 const API_BASE = process.env.PLAYWRIGHT_API_URL || 'http://localhost:5001';
 const LOCALE = 'en';
 
-const VEHICLE = { brandId: 'bmw', brandLabel: 'BMW', model: '3er', year: '2020', mileage: '50000' };
+const VEHICLE = { brandId: 'bmw', brandLabel: 'BMW', model: '3 Series', year: '2020', mileage: '50000' };
 const ADDRESS = { street: '123 Main Street', zip: '58453', city: 'Witten' };
 
 // Viewport presets per role

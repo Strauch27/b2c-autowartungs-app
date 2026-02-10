@@ -38,6 +38,7 @@ export function VehicleSelectionForm({
   const [model, setModel] = useState<string>("");
   const [year, setYear] = useState<string>("");
   const [mileage, setMileage] = useState<string>("");
+  const [licensePlate, setLicensePlate] = useState<string>("");
 
   // Data state
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -74,7 +75,7 @@ export function VehicleSelectionForm({
   // Validate form and check plausibility
   useEffect(() => {
     validateForm();
-  }, [brand, model, year, mileage]);
+  }, [brand, model, year, mileage, licensePlate]);
 
   const loadBrands = async () => {
     setIsLoadingBrands(true);
@@ -125,6 +126,7 @@ export function VehicleSelectionForm({
         model,
         year: year ? parseInt(year) : 0,
         mileage: mileage ? parseInt(mileage) : 0,
+        licensePlate: licensePlate || undefined,
       };
 
       vehicleSchema.parse(formData);
@@ -163,6 +165,7 @@ export function VehicleSelectionForm({
         model,
         year: parseInt(year),
         mileage: parseInt(mileage),
+        licensePlate: licensePlate || undefined,
       });
 
       onSubmit(formData);
@@ -318,6 +321,20 @@ export function VehicleSelectionForm({
         <p className="text-xs text-muted-foreground">
           {t.vehicleForm.mileageRange}
         </p>
+      </div>
+
+      {/* License Plate (optional) */}
+      <div className="space-y-2">
+        <Label htmlFor="licensePlate">
+          {t.vehicleForm.licensePlate || 'Kennzeichen'}
+        </Label>
+        <Input
+          id="licensePlate"
+          type="text"
+          placeholder={t.vehicleForm.licensePlatePlaceholder || 'z.B. B-AC 1234'}
+          value={licensePlate}
+          onChange={(e) => setLicensePlate(e.target.value.toUpperCase())}
+        />
       </div>
 
       {/* Plausibility Warning */}

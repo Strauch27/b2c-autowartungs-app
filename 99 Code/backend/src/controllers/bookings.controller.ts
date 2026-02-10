@@ -32,6 +32,7 @@ const createBookingDtoSchema = z.object({
     model: z.string().min(1, 'Model is required'),
     year: z.number().int().min(1994).max(new Date().getFullYear() + 1),
     mileage: z.number().int().min(0).max(1000000),
+    licensePlate: z.string().optional(),
     saveVehicle: z.boolean().optional()
   }),
   services: z.array(z.string()).min(1, 'At least one service must be selected'),

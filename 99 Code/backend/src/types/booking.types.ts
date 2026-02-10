@@ -14,6 +14,7 @@ export interface BookingVehicleData {
   model: string;
   year: number;
   mileage: number;
+  licensePlate?: string;
   saveVehicle?: boolean; // Whether to save this vehicle for future use
 }
 
@@ -114,6 +115,7 @@ export interface BookingResponse {
     model: string;
     year: number;
     mileage: number;
+    licensePlate?: string;
   };
   jockey?: {
     id: string;
