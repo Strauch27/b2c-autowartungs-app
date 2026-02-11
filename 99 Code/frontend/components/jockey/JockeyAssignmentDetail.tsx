@@ -1,13 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, MapPin, Phone, Car, CheckCircle, User } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, Car, CheckCircle, User, Gauge } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
 import { StatusBanner } from './StatusBanner';
 import { HandoverChecklist } from './HandoverChecklist';
 import { PhotoDocGrid } from './PhotoDocGrid';
 import { SignaturePad } from './SignaturePad';
 import { AssignmentCardAssignment } from './AssignmentCard';
+import { MapView } from '@/components/ui/MapView';
+import { useGeocode } from '@/lib/useGeocode';
 
 interface JockeyAssignmentDetailProps {
   assignment: AssignmentCardAssignment;
@@ -16,6 +19,7 @@ interface JockeyAssignmentDetailProps {
     photos: string[];
     customerSignature: string;
     notes: string;
+    mileage: number;
   }) => void;
 }
 
@@ -29,6 +33,8 @@ export function JockeyAssignmentDetail({
   const [photos, setPhotos] = useState<string[]>([]);
   const [signature, setSignature] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
+  const [mileage, setMileage] = useState('');
+  const coords = useGeocode(assignment.address);
 
   const isPickup = assignment.type === 'pickup';
 
@@ -44,11 +50,16 @@ export function JockeyAssignmentDetail({
     setPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const mileageValue = parseInt(mileage);
+  const isMileageValid = !isNaN(mileageValue) && mileageValue > 0;
+
   const handleComplete = () => {
+    if (!isMileageValid) return;
     onComplete({
       photos,
       customerSignature: signature || '',
       notes,
+      mileage: mileageValue,
     });
   };
 
@@ -75,15 +86,16 @@ export function JockeyAssignmentDetail({
       {/* Status banner */}
       <StatusBanner type={assignment.type} status={assignment.status === 'cancelled' ? 'upcoming' : assignment.status} />
 
-      {/* Map placeholder */}
-      <div className="mx-5 mt-4" data-testid="map-placeholder">
+      {/* Map */}
+      <div className="mx-5 mt-4" data-testid="map-container">
         <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-neutral-200">
-          <div className="h-36 bg-neutral-100 flex items-center justify-center">
-            <div className="text-center">
-              <MapPin className="w-8 h-8 text-neutral-300 mx-auto mb-1" />
-              <p className="text-xs text-neutral-400 font-medium">{t('mapPlaceholder')}</p>
-            </div>
-          </div>
+          <MapView
+            lat={coords?.lat}
+            lng={coords?.lng}
+            address={assignment.address}
+            height="h-[180px] md:h-[250px]"
+            className="rounded-none"
+          />
           <div className="px-4 py-2.5 text-xs text-neutral-500 font-medium bg-neutral-50/50">
             {t('estimatedTime', { minutes: '15', km: '8,3' })}
           </div>
@@ -105,10 +117,10 @@ export function JockeyAssignmentDetail({
               {assignment.customerPhone && (
                 <a
                   href={`tel:${assignment.customerPhone}`}
-                  className="flex items-center gap-1 text-xs text-primary font-medium mt-1 hover:underline"
+                  className="inline-flex items-center gap-1.5 text-xs text-primary font-medium mt-1.5 px-3 py-1.5 bg-primary/10 rounded-full min-h-[36px] active:bg-primary/20 transition-colors"
                   data-testid="customer-phone-link"
                 >
-                  <Phone className="w-3 h-3" />
+                  <Phone className="w-3.5 h-3.5" />
                   {assignment.customerPhone}
                 </a>
               )}
@@ -166,6 +178,32 @@ export function JockeyAssignmentDetail({
             />
           </div>
 
+          {/* Mileage */}
+          <div className="mx-5 mt-4" data-testid="mileage-input-section">
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-neutral-200">
+              <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-3">
+                {t('mileage')} <span className="text-destructive">*</span>
+              </p>
+              <div className="relative">
+                <Gauge className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  placeholder={t('mileagePlaceholder')}
+                  value={mileage}
+                  onChange={(e) => setMileage(e.target.value)}
+                  min="1"
+                  max="999999"
+                  className={`w-full pl-9 pr-10 py-2.5 text-sm rounded-xl border ${
+                    mileage && !isMileageValid ? 'border-destructive' : 'border-neutral-200'
+                  } focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary`}
+                  data-testid="mileage-input"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-neutral-400">km</span>
+              </div>
+            </div>
+          </div>
+
           {/* Signature */}
           <div className="mx-5 mt-4">
             <SignaturePad
@@ -175,15 +213,18 @@ export function JockeyAssignmentDetail({
           </div>
 
           {/* Complete button */}
-          <div className="mx-5 mt-6 mb-24">
-            <button
+          <div className="mx-5 mt-6 mb-8 pb-[env(safe-area-inset-bottom)]">
+            <Button
+              variant="success"
+              size="xl"
               onClick={handleComplete}
-              className="w-full py-3.5 bg-success hover:bg-success/90 text-white font-semibold text-sm rounded-2xl shadow-md flex items-center justify-center gap-2 transition-colors min-h-[56px]"
+              disabled={!isMileageValid}
+              className="w-full rounded-2xl shadow-md"
               data-testid="complete-handover-btn"
             >
               <CheckCircle className="w-5 h-5" />
               {isPickup ? t('completePickup') : t('completeReturn')}
-            </button>
+            </Button>
           </div>
         </>
       )}

@@ -2,6 +2,7 @@
 
 import { AlertCircle, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
 
 interface ExtensionAlertBannerProps {
   count: number;
@@ -37,8 +38,10 @@ export function ExtensionAlertBanner({
           </p>
         </div>
       </div>
-      <button
-        className="btn-hover w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2"
+      <Button
+        variant="cta"
+        className="w-full rounded-xl"
+        size="lg"
         onClick={(e) => {
           e.stopPropagation();
           onReview();
@@ -47,7 +50,7 @@ export function ExtensionAlertBanner({
       >
         {t('cta')}
         <ChevronRight className="w-4 h-4" />
-      </button>
+      </Button>
     </div>
   );
 }

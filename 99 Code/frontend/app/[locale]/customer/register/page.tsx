@@ -83,9 +83,10 @@ export default function RegisterPage() {
         throw new Error(data.error || "Registration failed");
       }
 
-      // Store auth token
+      // Store auth token with customer role prefix
       if (data.data?.token) {
-        localStorage.setItem("auth_token", data.data.token);
+        const { tokenStorage } = await import("@/lib/auth/token-storage");
+        tokenStorage.setToken(data.data.token, 'customer');
       }
 
       // Redirect to booking page after successful registration

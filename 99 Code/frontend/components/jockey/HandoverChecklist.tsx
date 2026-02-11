@@ -20,6 +20,7 @@ export function HandoverChecklist({ items, checked, onToggle }: HandoverChecklis
     { key: 'vehicleReceived', label: t('checkVehicleReceived') },
     { key: 'conditionDocumented', label: t('checkConditionDocumented') },
     { key: 'keysReceived', label: t('checkKeysReceived') },
+    { key: 'mileageRecorded', label: t('checkMileageRecorded') },
     { key: 'customerSignature', label: t('checkCustomerSignature') },
   ];
 
@@ -33,14 +34,14 @@ export function HandoverChecklist({ items, checked, onToggle }: HandoverChecklis
       <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-3">
         {t('handoverChecklist')}
       </p>
-      <div className="space-y-2.5">
+      <div className="space-y-1">
         {checklistItems.map((item) => (
-          <label key={item.key} className="flex items-center gap-3 cursor-pointer">
+          <label key={item.key} className="flex items-center gap-3 cursor-pointer min-h-[48px] py-1">
             <input
               type="checkbox"
               checked={!!checked[item.key]}
               onChange={() => onToggle(item.key)}
-              className="w-5 h-5 rounded border-neutral-300 text-success accent-[hsl(var(--success))]"
+              className="w-6 h-6 rounded border-neutral-300 text-success accent-[hsl(var(--success))] shrink-0"
               data-testid={`checklist-${item.key}`}
             />
             <span

@@ -75,6 +75,15 @@ function BookingsContent() {
 
   useEffect(() => {
     fetchBookings();
+
+    // Poll for status updates every 15 seconds
+    const interval = setInterval(() => {
+      bookingsApi.getAll({ limit: 100 }).then((result) => {
+        setBookings(result.bookings);
+      }).catch(() => {});
+    }, 15000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchBookings = async () => {
@@ -147,15 +156,15 @@ function BookingsContent() {
     : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-6 sm:py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-xl sm:text-2xl font-bold">
               {tDashboard("nav.myBookings")}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {language === "de"
                 ? "Übersicht aller Ihrer Buchungen"
                 : "Overview of all your bookings"}
@@ -163,7 +172,9 @@ function BookingsContent() {
           </div>
           <Button
             variant="outline"
+            size="sm"
             onClick={() => router.push(`/${locale}/customer/dashboard`)}
+            className="self-start sm:self-auto"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             {tDashboard("nav.dashboard")}
@@ -254,21 +265,33 @@ function BookingsContent() {
             {filteredBookings.map((booking) => (
               <Card key={booking.id} className="overflow-hidden">
                 <CardContent className="p-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-4">
-                    {/* Left: Info */}
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 shrink-0">
-                        <Car className="h-6 w-6 text-primary" />
+                  <div className="flex flex-col p-4 gap-3">
+                    {/* Top row: Info + Status badge */}
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 shrink-0">
+                        <Car className="h-5 w-5 text-primary" />
                       </div>
-                      <div className="space-y-1">
-                        <p className="font-semibold">
-                          {Array.isArray(booking.services) &&
-                          booking.services.length > 0
-                            ? booking.services
-                                .map((s) => s.type)
-                                .join(", ")
-                            : booking.serviceType || (language === "de" ? "Service" : "Service")}
-                        </p>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-semibold text-sm">
+                            {Array.isArray(booking.services) &&
+                            booking.services.length > 0
+                              ? booking.services
+                                  .map((s) => s.type)
+                                  .join(", ")
+                              : booking.serviceType || (language === "de" ? "Service" : "Service")}
+                          </p>
+                          <Badge
+                            className={`shrink-0 ${
+                              statusColors[booking.status] ||
+                              "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {STATUS_KEYS.includes(booking.status as any)
+                              ? tStatus(booking.status as any)
+                              : booking.status}
+                          </Badge>
+                        </div>
                         <p className="text-sm text-muted-foreground">
                           {booking.vehicle
                             ? (() => {
@@ -280,56 +303,44 @@ function BookingsContent() {
                             : "Vehicle"}
                         </p>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <CalendarIcon className="h-3.5 w-3.5" />
+                          <CalendarIcon className="h-3.5 w-3.5 shrink-0" />
                           <span>{formatDate(booking.pickupDate)}</span>
+                          {booking.totalPrice && (
+                            <span className="font-medium ml-auto">
+                              {booking.totalPrice}
+                            </span>
+                          )}
                         </div>
-                        {booking.totalPrice && (
-                          <p className="text-sm font-medium">
-                            {booking.totalPrice}
-                          </p>
-                        )}
                       </div>
                     </div>
 
-                    {/* Right: Status + Actions */}
-                    <div className="flex items-center gap-3 sm:flex-col sm:items-end">
-                      <Badge
-                        className={
-                          statusColors[booking.status] ||
-                          "bg-gray-100 text-gray-800"
+                    {/* Actions row */}
+                    <div className="flex gap-2 ml-14">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="min-h-[44px]"
+                        onClick={() =>
+                          router.push(
+                            `/${locale}/customer/bookings/${booking.id}`
+                          )
                         }
                       >
-                        {STATUS_KEYS.includes(booking.status as any)
-                          ? tStatus(booking.status as any)
-                          : booking.status}
-                      </Badge>
+                        {language === "de" ? "Details" : "Details"}
+                      </Button>
 
-                      <div className="flex gap-2">
+                      {/* C4: Cancel button for CONFIRMED bookings */}
+                      {booking.status === "CONFIRMED" && (
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
-                          onClick={() =>
-                            router.push(
-                              `/${locale}/customer/bookings/${booking.id}`
-                            )
-                          }
+                          className="text-red-600 border-red-200 hover:bg-red-50 min-h-[44px]"
+                          onClick={() => setCancelBookingId(booking.id)}
                         >
-                          {language === "de" ? "Details" : "Details"}
+                          <XCircle className="mr-1 h-3.5 w-3.5" />
+                          {language === "de" ? "Stornieren" : "Cancel"}
                         </Button>
-
-                        {/* C4: Cancel button for CONFIRMED bookings */}
-                        {booking.status === "CONFIRMED" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600 border-red-200 hover:bg-red-50"
-                            onClick={() => setCancelBookingId(booking.id)}
-                          >
-                            <XCircle className="mr-1 h-3.5 w-3.5" />
-                            {language === "de" ? "Stornieren" : "Cancel"}
-                          </Button>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>

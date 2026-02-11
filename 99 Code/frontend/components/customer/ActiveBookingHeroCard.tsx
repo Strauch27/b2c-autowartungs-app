@@ -7,6 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { BookingResponse } from '@/lib/api/bookings';
 import { BookingProgressTimeline } from './BookingProgressTimeline';
 import { resolveVehicleDisplay } from '@/lib/constants/vehicles';
+import { Button } from '@/components/ui/button';
 
 const statusProgress: Record<string, number> = {
   PENDING_PAYMENT: 0,
@@ -54,17 +55,17 @@ export function ActiveBookingHeroCard({ booking }: ActiveBookingHeroCardProps) {
           <div className="w-1.5 bg-gradient-to-b from-blue-500 to-blue-600 flex-shrink-0 rounded-l-2xl" />
           <div className="flex-1 p-4">
             {/* Header */}
-            <div className="flex items-start justify-between mb-5">
-              <div>
+            <div className="flex items-start justify-between gap-2 mb-5">
+              <div className="min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-500 text-sm font-medium rounded-full">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 bg-blue-50 text-blue-500 text-xs sm:text-sm font-medium rounded-full">
                     <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse-dot" />
                     {t('inProgress')}
                   </span>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mt-2">{t('title')}</h3>
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mt-2">{t('title')}</h3>
               </div>
-              <span className="text-xs text-gray-400 font-mono bg-gray-50 px-2 py-1 rounded">
+              <span className="text-[10px] sm:text-xs text-gray-400 font-mono bg-gray-50 px-1.5 sm:px-2 py-1 rounded shrink-0">
                 {booking.bookingNumber}
               </span>
             </div>
@@ -137,19 +138,24 @@ export function ActiveBookingHeroCard({ booking }: ActiveBookingHeroCardProps) {
             </div>
 
             {/* Actions */}
-            <div className="flex flex-wrap gap-3">
-              <button
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <Button
                 onClick={() => router.push(`/${locale}/customer/bookings/${booking.id}`)}
-                className="btn-hover bg-blue-500 hover:bg-blue-600 text-white font-medium px-5 py-2.5 rounded-xl text-sm flex items-center gap-2"
+                className="w-full sm:w-auto rounded-xl"
+                size="lg"
                 data-testid="hero-view-details"
               >
                 {t('viewDetails')}
                 <ChevronRight className="w-4 h-4" />
-              </button>
-              <button className="btn-hover border border-gray-300 hover:border-gray-400 text-gray-700 font-medium px-5 py-2.5 rounded-xl text-sm flex items-center gap-2">
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto rounded-xl"
+                size="lg"
+              >
                 <Phone className="w-4 h-4" />
                 {t('contactWorkshop')}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

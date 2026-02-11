@@ -40,7 +40,7 @@ export function PhotoDocGrid({ photos, onCapture, onRemove, maxPhotos = 4 }: Pho
       <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-3">
         {t('photoDocumentation')}
       </p>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-2">
         {Array.from({ length: maxPhotos }).map((_, idx) => {
           const photo = photos[idx];
           if (photo) {
@@ -56,10 +56,10 @@ export function PhotoDocGrid({ photos, onCapture, onRemove, maxPhotos = 4 }: Pho
                 </div>
                 <button
                   onClick={() => onRemove(idx)}
-                  className="absolute -top-1 -right-1 w-5 h-5 bg-destructive rounded-full flex items-center justify-center text-white"
+                  className="absolute -top-1.5 -right-1.5 w-7 h-7 bg-destructive rounded-full flex items-center justify-center text-white shadow-sm"
                   aria-label="Remove photo"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             );

@@ -68,7 +68,7 @@ export function BottomNav({ portal }: BottomNavProps) {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-end justify-around border-t border-neutral-200 bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_12px_rgba(0,0,0,0.05)] md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-around border-t border-neutral-200 bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_12px_rgba(0,0,0,0.05)] md:hidden"
       data-testid="bottom-nav"
       aria-label="Bottom navigation"
     >
@@ -80,7 +80,7 @@ export function BottomNav({ portal }: BottomNavProps) {
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center justify-center gap-0.5 -mt-4"
+              className="flex flex-col items-center justify-center gap-0.5 -mt-4 min-h-[44px] min-w-[44px]"
               aria-label={item.label}
               data-testid={`bottom-nav-${item.label.toLowerCase()}`}
             >
@@ -99,7 +99,7 @@ export function BottomNav({ portal }: BottomNavProps) {
             key={item.href}
             href={item.href}
             className={cn(
-              'flex flex-col items-center justify-center gap-0.5 py-2 px-3',
+              'flex flex-col items-center justify-center gap-0.5 py-2 px-3 min-h-[44px] min-w-[44px]',
               isActive ? 'text-cta' : 'text-neutral-400'
             )}
             aria-label={item.label}

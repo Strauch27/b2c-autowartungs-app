@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
 
 interface ExtensionItem {
   id: string;
@@ -70,7 +71,9 @@ export function ExtensionForm({ orderId, customerName, onSubmit, onCancel }: Ext
 
       <div className="mt-3">
         <label className="text-xs font-medium text-muted-foreground">{t('extensionItems')}</label>
-        <table className="mt-1 w-full text-sm">
+
+        {/* Desktop: table layout */}
+        <table className="mt-1 hidden w-full text-sm sm:table">
           <thead>
             <tr className="text-xs text-muted-foreground">
               <th className="pb-1 text-left font-medium">{t('extensionItemPlaceholder').split(',')[0] || 'Name'}</th>
@@ -126,31 +129,88 @@ export function ExtensionForm({ orderId, customerName, onSubmit, onCancel }: Ext
             ))}
           </tbody>
         </table>
-        <button
+
+        {/* Mobile: stacked card layout */}
+        <div className="mt-2 space-y-3 sm:hidden">
+          {items.map(item => (
+            <div key={item.id} className="rounded-lg border border-neutral-200 bg-white p-3 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <input
+                  type="text"
+                  className="w-full rounded border border-neutral-200 px-3 py-2 text-sm min-h-[44px]"
+                  placeholder={t('extensionItemPlaceholder')}
+                  value={item.name}
+                  onChange={e => updateItem(item.id, 'name', e.target.value)}
+                />
+                <button
+                  onClick={() => removeItem(item.id)}
+                  className="mt-2 text-neutral-300 transition-colors hover:text-destructive"
+                  disabled={items.length <= 1}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-[10px] text-muted-foreground">{t('extensionQuantity')}</label>
+                  <input
+                    type="number"
+                    min={1}
+                    className="w-full rounded border border-neutral-200 px-2 py-2 text-center text-sm min-h-[44px]"
+                    value={item.quantity}
+                    onChange={e => updateItem(item.id, 'quantity', parseInt(e.target.value) || 1)}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-muted-foreground">{t('extensionUnitPrice')}</label>
+                  <input
+                    type="text"
+                    className="w-full rounded border border-neutral-200 px-2 py-2 text-right text-sm min-h-[44px]"
+                    placeholder="0,00"
+                    value={item.unitPrice}
+                    onChange={e => updateItem(item.id, 'unitPrice', e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-[10px] text-muted-foreground">{t('extensionItemTotal')}</label>
+                  <div className="flex flex-1 items-center justify-end text-sm font-medium text-muted-foreground">
+                    {getItemTotal(item)} &euro;
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <Button
+          variant="link"
+          size="sm"
           onClick={addItem}
-          className="mt-2 text-xs font-medium text-primary hover:underline"
+          className="mt-2"
         >
           {t('addPosition')}
-        </button>
+        </Button>
       </div>
 
-      <div className="mt-4 flex items-center justify-between">
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm font-bold text-foreground">
           {t('extensionTotal')}: {total.toFixed(2)} &euro;
         </div>
         <div className="flex gap-2">
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={onCancel}
-            className="px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground"
           >
             {t('cancelExtension')}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="workshop"
+            size="sm"
             onClick={handleSubmit}
-            className="rounded-lg bg-cta px-4 py-2 text-xs font-semibold text-cta-foreground transition-colors hover:bg-cta-hover"
           >
             {t('sendExtension')}
-          </button>
+          </Button>
         </div>
       </div>
 

@@ -28,12 +28,12 @@ export function TopBar({ title, portal, showBack, onBack, rightSlot }: TopBarPro
       )}
       data-testid="top-bar"
     >
-      <div className="flex w-10 items-center justify-start">
+      <div className="flex w-11 items-center justify-start">
         {showBack && (
           <button
             onClick={onBack}
             className={cn(
-              'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
+              'flex h-11 w-11 items-center justify-center rounded-full transition-colors',
               isDark ? 'hover:bg-white/10' : 'hover:bg-neutral-100'
             )}
             aria-label="Back"

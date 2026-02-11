@@ -24,13 +24,14 @@ const buttonVariants = cva(
         "outline-light": "border-2 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10",
         jockey: "bg-jockey text-jockey-foreground hover:bg-jockey/90 btn-hover",
         workshop: "bg-workshop text-workshop-foreground hover:bg-workshop/90 btn-hover",
+        success: "bg-success text-success-foreground hover:bg-success/90 btn-hover shadow-sm",
       },
       size: {
-        default: "h-10 px-4 py-2 rounded-md",
-        sm: "h-8 rounded-md px-3 text-xs",
+        default: "h-11 px-4 py-2 rounded-md",
+        sm: "h-9 rounded-md px-3 text-xs",
         lg: "h-12 rounded-lg px-8",
         xl: "h-14 rounded-xl px-8 text-lg font-bold",
-        icon: "h-10 w-10",
+        icon: "h-11 w-11",
       },
     },
     defaultVariants: {

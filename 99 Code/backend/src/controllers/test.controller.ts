@@ -71,6 +71,12 @@ const PRICE_MATRIX_DATA = [
     oilService: 189, brakeServiceFront: 429, brakeServiceRear: 379, tuv: 89, climateService: 139,
   },
   {
+    brand: 'Audi', model: 'A6', yearFrom: 2018, yearTo: 2026,
+    serviceType: 'INSPECTION', basePrice: 329, mileageMultiplier: 1.0, ageMultiplier: 1.0,
+    inspection30k: 289, inspection60k: 329, inspection90k: 399, inspection120k: 449,
+    oilService: 229, brakeServiceFront: 489, brakeServiceRear: 439, tuv: 89, climateService: 159,
+  },
+  {
     brand: 'BMW', model: '3er G20', yearFrom: 2019, yearTo: 2026,
     serviceType: 'INSPECTION', basePrice: 309, mileageMultiplier: 1.0, ageMultiplier: 1.0,
     inspection30k: 269, inspection60k: 309, inspection90k: 379, inspection120k: 419,
@@ -133,43 +139,6 @@ export async function resetDatabase(req: Request, res: Response): Promise<void> 
 
     // Seed PriceMatrix
     await prisma.priceMatrix.createMany({ data: PRICE_MATRIX_DATA as any });
-
-    // Seed a sample booking at AT_WORKSHOP so the workshop dashboard has data
-    const customer = await prisma.user.findUnique({ where: { email: 'customer@test.com' } });
-    const jockey = await prisma.user.findUnique({ where: { email: 'jockey@test.com' } });
-    if (customer && jockey) {
-      const vehicle = await prisma.vehicle.create({
-        data: {
-          customerId: customer.id,
-          brand: 'VW',
-          model: 'Golf 7',
-          year: 2019,
-          mileage: 45000,
-          licensePlate: 'B-AC 1234',
-        }
-      });
-
-      await prisma.booking.create({
-        data: {
-          bookingNumber: 'AC-SEED-0001',
-          customerId: customer.id,
-          vehicleId: vehicle.id,
-          serviceType: 'INSPECTION',
-          services: [{ type: 'INSPECTION', price: 249 }],
-          mileageAtBooking: 45000,
-          status: 'AT_WORKSHOP',
-          totalPrice: 249,
-          pickupDate: new Date(),
-          pickupTimeSlot: '09:00-11:00',
-          pickupAddress: 'Musterstraße 1',
-          pickupCity: 'Berlin',
-          pickupPostalCode: '10115',
-          jockeyId: jockey.id,
-          paidAt: new Date(),
-          customerNotes: 'Seed booking for testing',
-        }
-      });
-    }
 
     res.json({ ok: true });
   } catch (error) {

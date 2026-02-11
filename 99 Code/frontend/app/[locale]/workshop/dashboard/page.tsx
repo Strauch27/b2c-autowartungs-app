@@ -251,7 +251,7 @@ function DashboardContent() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6" data-testid="workshop-dashboard">
+    <div className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-6" data-testid="workshop-dashboard">
       {/* Stats Bar */}
       <div className="mb-6">
         <WorkshopStatsBar
@@ -265,8 +265,8 @@ function DashboardContent() {
       <div className="mb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           {/* Search */}
-          <div className="relative max-w-sm flex-1">
-            <svg className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="relative flex-1 sm:max-w-sm">
+            <svg className="absolute left-3 top-3 h-4 w-4 text-muted-foreground sm:top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
@@ -274,7 +274,7 @@ function DashboardContent() {
               placeholder={t.workshopDashboard.searchPlaceholder}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full rounded-lg border border-neutral-200 py-2 pl-9 pr-3 text-sm focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/30"
+              className="w-full rounded-lg border border-neutral-200 py-2.5 pl-9 pr-3 text-sm focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/30 min-h-[44px]"
               data-testid="workshop-search-input"
             />
           </div>
@@ -283,7 +283,7 @@ function DashboardContent() {
           <Popover>
             <PopoverTrigger asChild>
               <button
-                className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition-colors min-h-[44px] ${
                   selectedDate
                     ? 'border-cta bg-cta/5 text-cta'
                     : 'border-neutral-200 text-muted-foreground hover:border-neutral-300'
@@ -381,7 +381,7 @@ function DashboardContent() {
                       <button
                         key={order.id}
                         onClick={() => router.push(`/${language}/workshop/orders/${order.id}`)}
-                        className="flex flex-col gap-1 rounded-lg border border-neutral-200 bg-card p-3 text-left transition-colors hover:border-cta/30 hover:bg-cta/5"
+                        className="flex flex-col gap-1 rounded-lg border border-neutral-200 bg-card p-3 text-left transition-colors hover:border-cta/30 hover:bg-cta/5 min-h-[44px]"
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-medium text-cta">{order.bookingNumber}</span>

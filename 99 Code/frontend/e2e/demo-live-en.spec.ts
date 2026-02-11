@@ -129,7 +129,13 @@ async function apiRequest(method: string, endpoint: string, token: string, body?
 
 async function injectToken(page: Page, token: string) {
   await page.goto(`/${LOCALE}`);
-  await page.evaluate((t) => localStorage.setItem('auth_token', t), token);
+  // Set token for all role-specific keys so ProtectedRoute finds it
+  await page.evaluate((t) => {
+    localStorage.setItem('auth_token', t);
+    localStorage.setItem('auth_token_customer', t);
+    localStorage.setItem('auth_token_jockey', t);
+    localStorage.setItem('auth_token_workshop', t);
+  }, token);
 }
 
 async function customerLogin(page: Page, email: string, password: string) {
@@ -141,7 +147,10 @@ async function customerLogin(page: Page, email: string, password: string) {
   const data = await res.json();
   if (!data.success || !data.token) throw new Error(`Customer login failed: ${JSON.stringify(data)}`);
   await page.goto(`/${LOCALE}`);
-  await page.evaluate((t) => localStorage.setItem('auth_token', t), data.token);
+  await page.evaluate((t) => {
+    localStorage.setItem('auth_token', t);
+    localStorage.setItem('auth_token_customer', t);
+  }, data.token);
   return data.token;
 }
 
@@ -555,7 +564,7 @@ test('Demo Live EN — Complete Booking Lifecycle', async ({ page }) => {
 
     // Complete
     await apiRequest('POST', `/api/jockeys/assignments/${pickupAssignmentId}/complete`, jockeyToken, {
-      handoverData: { photos: [], notes: 'Vehicle picked up in good condition' },
+      handoverData: { photos: [], notes: 'Vehicle picked up in good condition', mileage: 50000 },
     });
     await page.goto(`/${LOCALE}/jockey/dashboard`);
     await page.waitForLoadState('networkidle');
@@ -960,7 +969,7 @@ test('Demo Live EN — Complete Booking Lifecycle', async ({ page }) => {
 
     // Complete
     await apiRequest('POST', `/api/jockeys/assignments/${returnAssignmentId}/complete`, jockeyToken, {
-      handoverData: { photos: [], notes: 'Vehicle successfully returned to customer' },
+      handoverData: { photos: [], notes: 'Vehicle successfully returned to customer', mileage: 50045 },
     });
     await page.goto(`/${LOCALE}/jockey/dashboard`);
     await page.waitForLoadState('networkidle');

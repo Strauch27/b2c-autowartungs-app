@@ -144,6 +144,17 @@ export default defineConfig({
         screenshot: 'on',
       },
     },
+
+    {
+      name: 'demo-multi',
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: { slowMo: 200 },
+        video: 'on',
+        screenshot: 'on',
+      },
+      testMatch: 'demo-multi-*.spec.ts',
+    },
   ],
 
   /* Output folder for test artifacts */

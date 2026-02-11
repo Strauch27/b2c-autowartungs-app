@@ -843,9 +843,9 @@ h5, h6 { font-weight: 600; letter-spacing: 0; }
   border: 2px solid hsl(var(--neutral-200));
   cursor: pointer;
 }
-.brand-card:hover {
-  border-color: hsl(var(--primary));
-  background: hsl(217 91% 60% / 0.05);
+.brand-card:hover:not(.brand-card-selected) {
+  border-color: hsl(var(--neutral-400));
+  background: hsl(var(--neutral-100));
 }
 .brand-card-selected {
   border-color: hsl(var(--primary)) !important;

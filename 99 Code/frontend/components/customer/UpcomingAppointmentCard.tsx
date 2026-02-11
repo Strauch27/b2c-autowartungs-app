@@ -86,7 +86,7 @@ export function UpcomingAppointmentCard({ booking }: UpcomingAppointmentCardProp
 
       {/* Pickup / Return dates row */}
       {deliveryDateStr && (
-        <div className="mt-2.5 pt-2.5 border-t border-gray-50 flex items-center gap-4 text-xs text-gray-500">
+        <div className="mt-2.5 pt-2.5 border-t border-gray-50 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs text-gray-500">
           <span>
             <span className="font-medium text-gray-600">{t('pickup')}:</span> {pickupDateStr}
             {booking.pickupTimeSlot ? `, ${booking.pickupTimeSlot}` : ''}

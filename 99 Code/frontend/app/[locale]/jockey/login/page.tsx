@@ -91,12 +91,12 @@ export default function JockeyLoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
                 >
                   {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="h-5 w-5" />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-5 w-5" />
                   )}
                 </button>
               </div>
@@ -110,7 +110,7 @@ export default function JockeyLoginPage() {
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full min-h-[48px] active:scale-[0.98]"
               size="lg"
               disabled={isLoading}
               data-testid="jockey-login-button"

@@ -32,7 +32,7 @@ export function BookingProgressTimeline({ currentStep }: BookingProgressTimeline
               <div className="flex flex-col items-center flex-shrink-0">
                 <div
                   className={cn(
-                    'w-9 h-9 rounded-full flex items-center justify-center',
+                    'w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center',
                     isCompleted && 'bg-emerald-500',
                     isActive && 'bg-blue-500 animate-timeline-pulse',
                     isFuture && 'bg-gray-200'
@@ -53,7 +53,7 @@ export function BookingProgressTimeline({ currentStep }: BookingProgressTimeline
                 </div>
                 <span
                   className={cn(
-                    'text-xs mt-1.5 whitespace-nowrap',
+                    'text-[10px] sm:text-xs mt-1.5 text-center leading-tight max-w-[56px] sm:max-w-none',
                     isCompleted && 'font-medium text-emerald-500',
                     isActive && 'font-semibold text-blue-500',
                     isFuture && 'font-medium text-gray-400'

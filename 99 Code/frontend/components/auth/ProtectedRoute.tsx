@@ -38,9 +38,9 @@ export function ProtectedRoute({
     }
 
     if (requiredRole && !isAuthorized) {
-      // Wrong role - redirect to their dashboard or home
-      const dashboardPath = `/${locale}/${user.role}/dashboard`;
-      router.push(dashboardPath);
+      // Wrong role - redirect to login for this portal
+      const loginPath = `/${locale}/${requiredRole}/login`;
+      router.push(loginPath);
     }
   }, [isLoading, user, isAuthorized, requiredRole, redirectTo, router, locale]);
 

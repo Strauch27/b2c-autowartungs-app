@@ -19,6 +19,8 @@ import { useTranslations } from "next-intl";
 import { bookingsApi } from "@/lib/api/bookings";
 import { resolveVehicleDisplay } from "@/lib/constants/vehicles";
 import { Suspense } from "react";
+import { MapView } from "@/components/ui/MapView";
+import { useGeocode } from "@/lib/useGeocode";
 
 function ConfirmationContent() {
   const router = useRouter();
@@ -33,6 +35,10 @@ function ConfirmationContent() {
   const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const fullAddress = booking
+    ? `${booking.pickupAddress}, ${booking.pickupPostalCode} ${booking.pickupCity}`
+    : undefined;
+  const coords = useGeocode(fullAddress);
 
   useEffect(() => {
     if (!bookingId) {
@@ -86,12 +92,13 @@ function ConfirmationContent() {
           <Alert variant="destructive">
             <h3 className="font-semibold mb-2">{tPayment("error")}</h3>
             <p className="text-sm">{error || tPayment("invalidBooking")}</p>
-            <button
+            <Button
+              variant="link"
               onClick={() => router.push(`/${locale}/customer/dashboard`)}
-              className="mt-4 text-sm underline hover:no-underline"
+              className="mt-4 p-0"
             >
               {tPayment("goToDashboard")}
-            </button>
+            </Button>
           </Alert>
         </div>
       </div>
@@ -175,6 +182,14 @@ function ConfirmationContent() {
                 </p>
               </div>
             </div>
+
+            {/* Map */}
+            <MapView
+              lat={coords?.lat}
+              lng={coords?.lng}
+              address={fullAddress}
+              height="h-[180px] md:h-[250px]"
+            />
           </div>
         </Card>
 

@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "sonner";
-import { DemoBanner } from "@/components/demo/DemoBanner";
 import { DebugLogger } from "@/components/debug/DebugLogger";
 import { Suspense } from "react";
 
@@ -26,7 +25,6 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning>
       <body className={`${inter.variable} ${inter.className} antialiased`}>
-        <DemoBanner />
         <AuthProvider>{children}</AuthProvider>
         <Toaster position="top-right" richColors />
         <Suspense fallback={null}><DebugLogger /></Suspense>

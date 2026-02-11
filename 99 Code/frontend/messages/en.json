@@ -980,6 +980,7 @@
     }
   },
   "jockeyDashboard": {
+    "title": "Jockey",
     "today": "Today",
     "tomorrow": "Tomorrow",
     "later": "Later",
@@ -1076,7 +1077,9 @@
       "checkVehicleReceived": "Vehicle received",
       "checkConditionDocumented": "Condition documented",
       "checkKeysReceived": "Keys received",
+      "checkMileageRecorded": "Mileage recorded",
       "checkCustomerSignature": "Customer signature",
+      "mileagePlaceholder": "e.g. 45000",
       "photoDocumentation": "Document vehicle condition",
       "openCamera": "Open Camera",
       "customerSignature": "Customer Signature",

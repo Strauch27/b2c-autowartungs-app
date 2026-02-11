@@ -6,6 +6,7 @@ import { StripeCheckout } from "@/components/payment/stripe-checkout";
 import { DemoPaymentForm } from "@/components/payment/demo-payment-form";
 import { PaymentSummary } from "@/components/payment/payment-summary";
 import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Suspense } from "react";
 
@@ -35,7 +36,8 @@ function PaymentContent() {
     try {
       setLoading(true);
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
-      const token = localStorage.getItem("auth_token");
+      const { tokenStorage } = await import("@/lib/auth/token-storage");
+      const token = tokenStorage.getToken();
 
       if (!token) {
         router.push(`/${locale}/customer/login`);
@@ -91,12 +93,13 @@ function PaymentContent() {
           <Alert variant="destructive">
             <h3 className="font-semibold mb-2">Error</h3>
             <p className="text-sm">{error || "Invalid booking"}</p>
-            <button
+            <Button
+              variant="link"
               onClick={() => router.push(`/${locale}/customer/dashboard`)}
-              className="mt-4 text-sm underline hover:no-underline"
+              className="mt-4 p-0"
             >
               Go to Dashboard
-            </button>
+            </Button>
           </Alert>
         </div>
       </div>
@@ -108,33 +111,19 @@ function PaymentContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen bg-gray-50 py-6 sm:py-12 px-4">
       <div className="max-w-6xl mx-auto">
-        {/* Demo Mode Banner */}
-        {isDemoMode && (
-          <div className="mb-6 bg-yellow-400 border-2 border-yellow-600 rounded-lg p-4">
-            <div className="flex items-center justify-center space-x-3">
-              <span className="inline-flex items-center px-4 py-2 rounded-full text-base font-bold bg-yellow-600 text-white">
-                DEMO MODE
-              </span>
-              <p className="text-sm font-semibold text-yellow-900">
-                This is a demonstration environment. No real payments will be processed.
-              </p>
-            </div>
-          </div>
-        )}
-
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Complete Your Booking</h1>
-          <p className="text-gray-600">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Complete Your Booking</h1>
+          <p className="text-sm sm:text-base text-gray-600">
             Review your booking details and complete the payment to confirm your
             service appointment.
           </p>
         </div>
 
-        {/* Two Column Layout */}
-        <div className="grid lg:grid-cols-2 gap-8">
+        {/* Two Column Layout - stacks on mobile */}
+        <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
           {/* Left Column - Booking Summary */}
           <div>
             <PaymentSummary booking={booking} />

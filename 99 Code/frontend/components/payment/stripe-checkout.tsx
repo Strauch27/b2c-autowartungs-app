@@ -7,7 +7,7 @@ import { DemoPaymentForm } from "./demo-payment-form";
 import { getStripe } from "@/lib/contexts/StripeContext";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
 
 interface StripeCheckoutProps {
   bookingId: string;
@@ -52,7 +52,8 @@ export function StripeCheckout({
       setError("");
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
-      const token = localStorage.getItem("auth_token");
+      const { tokenStorage } = await import("@/lib/auth/token-storage");
+      const token = tokenStorage.getToken();
 
       if (!token) {
         throw new Error("Authentication required. Please log in.");
@@ -95,7 +96,8 @@ export function StripeCheckout({
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 
       // Get auth token from localStorage
-      const token = localStorage.getItem("auth_token");
+      const { tokenStorage } = await import("@/lib/auth/token-storage");
+      const token = tokenStorage.getToken();
 
       if (!token) {
         throw new Error("Authentication required. Please log in.");
@@ -132,9 +134,9 @@ export function StripeCheckout({
   // Loading state
   if (loading) {
     return (
-      <Card className="p-8">
-        <div className="flex flex-col items-center justify-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <Card className="p-6 sm:p-8">
+        <div className="flex flex-col items-center justify-center py-8 space-y-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
           <p className="text-sm text-gray-600">Initializing secure payment...</p>
         </div>
       </Card>
@@ -144,7 +146,7 @@ export function StripeCheckout({
   // Error state
   if (error) {
     return (
-      <Card className="p-8">
+      <Card className="p-6 sm:p-8">
         <Alert variant="destructive">
           <h3 className="font-semibold mb-2">Payment Initialization Failed</h3>
           <p className="text-sm">{error}</p>
@@ -162,11 +164,11 @@ export function StripeCheckout({
   // Demo mode: render demo payment form directly
   if (isDemoMode) {
     return (
-      <Card className="p-8">
+      <Card className="p-6 sm:p-8">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2">Complete Your Payment</h2>
-          <p className="text-gray-600">
-            Demo payment mode - No real charges will be made
+          <h2 className="text-xl sm:text-2xl font-bold mb-2">Complete Your Payment</h2>
+          <p className="text-sm text-gray-600">
+            Enter your payment details to complete the booking
           </p>
         </div>
 
@@ -186,7 +188,7 @@ export function StripeCheckout({
 
   if (!stripePromise) {
     return (
-      <Card className="p-8">
+      <Card className="p-6 sm:p-8">
         <Alert variant="destructive">
           <p className="text-sm">
             Stripe is not configured. Please contact support.
@@ -197,12 +199,13 @@ export function StripeCheckout({
   }
 
   return (
-    <Card className="p-8">
+    <Card className="p-6 sm:p-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold mb-2">Complete Your Payment</h2>
-        <p className="text-gray-600">
-          Secure payment processing powered by Stripe
-        </p>
+        <h2 className="text-xl sm:text-2xl font-bold mb-2">Complete Your Payment</h2>
+        <div className="flex items-center gap-1.5 text-sm text-gray-600">
+          <Lock className="h-3.5 w-3.5" />
+          <span>Secure payment processing powered by Stripe</span>
+        </div>
       </div>
 
       {clientSecret && (

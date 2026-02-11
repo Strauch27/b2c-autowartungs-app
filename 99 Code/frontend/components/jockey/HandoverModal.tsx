@@ -35,7 +35,7 @@ interface HandoverModalProps {
     vehicle: string;
     type: string;
   };
-  onComplete: (data: { photos: string[]; customerSignature: string; notes: string; mileage?: number }) => void;
+  onComplete: (data: { photos: string[]; customerSignature: string; notes: string; mileage: number }) => void;
 }
 
 const HandoverModal = ({
@@ -157,7 +157,7 @@ const HandoverModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[100dvh] h-[100dvh] overflow-y-auto sm:h-auto sm:max-h-[90vh] sm:max-w-lg rounded-none sm:rounded-lg p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Pencil className="h-5 w-5 text-jockey" />
@@ -177,7 +177,7 @@ const HandoverModal = ({
             </Label>
             <p className="text-sm text-muted-foreground">{t('photosDesc')}</p>
             
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {photos.map((photo, index) => (
                 <div key={index} className="relative aspect-square">
                   <img
@@ -265,7 +265,7 @@ const HandoverModal = ({
               <canvas
                 ref={canvasRef}
                 width={400}
-                height={150}
+                height={200}
                 className="w-full cursor-crosshair touch-none"
                 onMouseDown={startDrawing}
                 onMouseMove={draw}
@@ -309,40 +309,43 @@ const HandoverModal = ({
           {/* Checklist */}
           <div className="space-y-3">
             <Label>{t('checklist')}</Label>
-            <div className="space-y-3 rounded-lg border border-border p-4">
-              <div className="flex items-center space-x-3">
+            <div className="space-y-1 rounded-lg border border-border p-3">
+              <div className="flex items-center space-x-3 min-h-[44px]">
                 <Checkbox
                   id="keys"
                   checked={checklist.keysReceived}
                   onCheckedChange={(c) =>
                     setChecklist({ ...checklist, keysReceived: !!c })
                   }
+                  className="h-5 w-5"
                 />
-                <Label htmlFor="keys" className="font-normal">
+                <Label htmlFor="keys" className="font-normal text-sm">
                   {t('keysReceived')}
                 </Label>
               </div>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 min-h-[44px]">
                 <Checkbox
                   id="documents"
                   checked={checklist.documentsPhotographed}
                   onCheckedChange={(c) =>
                     setChecklist({ ...checklist, documentsPhotographed: !!c })
                   }
+                  className="h-5 w-5"
                 />
-                <Label htmlFor="documents" className="font-normal">
+                <Label htmlFor="documents" className="font-normal text-sm">
                   {t('documentsPhotographed')}
                 </Label>
               </div>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 min-h-[44px]">
                 <Checkbox
                   id="condition"
                   checked={checklist.conditionDocumented}
                   onCheckedChange={(c) =>
                     setChecklist({ ...checklist, conditionDocumented: !!c })
                   }
+                  className="h-5 w-5"
                 />
-                <Label htmlFor="condition" className="font-normal">
+                <Label htmlFor="condition" className="font-normal text-sm">
                   {t('conditionDocumented')}
                 </Label>
               </div>
@@ -372,10 +375,10 @@ const HandoverModal = ({
           )}
 
           {/* Actions */}
-          <div className="flex gap-3">
+          <div className="flex flex-col-reverse sm:flex-row gap-3">
             <Button
               variant="outline"
-              className="flex-1 min-h-[44px]"
+              className="w-full sm:flex-1 min-h-[48px]"
               onClick={() => onOpenChange(false)}
               aria-label={t('cancel')}
             >
@@ -383,7 +386,7 @@ const HandoverModal = ({
             </Button>
             <Button
               variant="jockey"
-              className="flex-1 min-h-[44px]"
+              className="w-full sm:flex-1 min-h-[48px]"
               onClick={handleComplete}
               disabled={!isValid}
               aria-label={t('complete')}

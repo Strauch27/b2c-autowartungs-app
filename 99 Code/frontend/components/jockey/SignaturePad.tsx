@@ -99,11 +99,11 @@ export function SignaturePad({ onSignatureChange, onClear }: SignaturePadProps) 
           </button>
         )}
       </div>
-      <div className="sig-area-lined h-28 rounded-xl border-2 border-neutral-200 flex items-center justify-center overflow-hidden">
+      <div className="sig-area-lined h-40 sm:h-28 rounded-xl border-2 border-neutral-200 flex items-center justify-center overflow-hidden relative">
         <canvas
           ref={canvasRef}
-          width={340}
-          height={112}
+          width={400}
+          height={160}
           className="w-full h-full cursor-crosshair touch-none"
           onMouseDown={startDrawing}
           onMouseMove={draw}

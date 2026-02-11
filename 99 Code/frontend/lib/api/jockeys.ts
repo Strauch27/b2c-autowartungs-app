@@ -37,6 +37,7 @@ export interface JockeyAssignment {
     customerSignature?: string;
     ronjaSignature?: string;
     notes?: string;
+    mileage?: number;
   };
 
   // Relations (from include)
@@ -95,6 +96,7 @@ export interface HandoverData {
   customerSignature?: string;
   ronjaSignature?: string;
   notes?: string;
+  mileage?: number;
 }
 
 /**

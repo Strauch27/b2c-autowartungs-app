@@ -157,22 +157,22 @@ export function ExtensionList({
                 </div>
               )}
 
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
+              <CardHeader className="px-4 sm:px-6">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                  <div className="space-y-1 min-w-0">
                     <CardTitle className="text-base">
                       {extension.description}
                     </CardTitle>
                     <CardDescription className="flex items-center gap-2">
-                      <Clock className="w-3 h-3" />
-                      {t('requestedOn')}: {formatDate(extension.createdAt)}
+                      <Clock className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{t('requestedOn')}: {formatDate(extension.createdAt)}</span>
                     </CardDescription>
                   </div>
                   {getStatusBadge(extension.status, extension.paidAt)}
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 px-4 sm:px-6">
                 {/* Items List - with defensive guard */}
                 {items.length > 0 && (
                   <div className="space-y-2">
@@ -189,7 +189,7 @@ export function ExtensionList({
                             {item.quantity}x {item.name}
                           </span>
                           <span className="font-medium">
-                            {formatPrice(item.price * item.quantity)}&euro;
+                            {formatPrice(item.price * item.quantity)} EUR
                           </span>
                         </div>
                       ))}
@@ -204,7 +204,7 @@ export function ExtensionList({
                       <ImageIcon className="w-4 h-4" />
                       {t('images')}: {extension.images.length}
                     </p>
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                       {extension.images.slice(0, 4).map((image, index) => (
                         <div
                           key={index}
@@ -223,10 +223,9 @@ export function ExtensionList({
 
                 {/* Total Amount */}
                 <div className="flex items-center justify-between pt-4 border-t">
-                  <span className="font-semibold">{t('totalAmount')}:</span>
-                  <span className="text-2xl font-bold text-primary flex items-center gap-1">
-                    {formatPrice(extension.totalAmount)}
-                    <Euro className="w-5 h-5" />
+                  <span className="font-bold">{t('totalAmount')}:</span>
+                  <span className="text-2xl font-bold text-primary">
+                    {formatPrice(extension.totalAmount)} EUR
                   </span>
                 </div>
 

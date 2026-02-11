@@ -51,6 +51,15 @@ export default function CustomerDashboardPage() {
       }
     }
     fetchBookings();
+
+    // Poll for status updates every 15 seconds
+    const interval = setInterval(() => {
+      bookingsApi.getAll({ limit: 50 }).then((result) => {
+        setBookings(result.bookings);
+      }).catch(() => {});
+    }, 15000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Fetch pending extension counts for active bookings

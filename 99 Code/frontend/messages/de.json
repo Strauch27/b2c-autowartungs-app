@@ -980,6 +980,7 @@
     }
   },
   "jockeyDashboard": {
+    "title": "Jockey",
     "today": "Heute",
     "tomorrow": "Morgen",
     "later": "Später",
@@ -1076,7 +1077,9 @@
       "checkVehicleReceived": "Fahrzeug empfangen",
       "checkConditionDocumented": "Zustand dokumentiert",
       "checkKeysReceived": "Schlüssel erhalten",
+      "checkMileageRecorded": "Kilometerstand erfasst",
       "checkCustomerSignature": "Unterschrift Kunde",
+      "mileagePlaceholder": "z.B. 45000",
       "photoDocumentation": "Fahrzeugzustand dokumentieren",
       "openCamera": "Kamera öffnen",
       "customerSignature": "Unterschrift des Kunden",

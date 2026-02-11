@@ -26,7 +26,7 @@ export function KanbanColumn({ title, color, count, children }: KanbanColumnProp
   const colors = colorMap[color];
 
   return (
-    <div className="min-h-[400px]" data-testid={`kanban-column-${color === 'blue' ? 'new' : color === 'amber' ? 'inProgress' : 'completed'}`}>
+    <div className="min-h-[200px] lg:min-h-[400px]" data-testid={`kanban-column-${color === 'blue' ? 'new' : color === 'amber' ? 'inProgress' : 'completed'}`}>
       <div className="mb-3 flex items-center gap-2">
         <div className={`h-2.5 w-2.5 rounded-full ${colors.dot}`} />
         <h3 className="text-sm font-semibold text-foreground">{title}</h3>

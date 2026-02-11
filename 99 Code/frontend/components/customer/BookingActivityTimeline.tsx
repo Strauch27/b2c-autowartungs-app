@@ -156,7 +156,7 @@ export function BookingActivityTimeline({ booking, extensions }: BookingActivity
   };
 
   return (
-    <div className="animate-card bg-white rounded-2xl shadow-sm border border-gray-100 p-5" data-testid="activities-timeline">
+    <div className="animate-card bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5" data-testid="activities-timeline">
       <h3 className="font-semibold text-gray-900 mb-6">{t('title')}</h3>
       <div className="relative">
         <div className="absolute left-4 top-3 bottom-3 w-0.5 bg-gray-200" />

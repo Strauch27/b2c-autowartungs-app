@@ -170,8 +170,8 @@ export class BookingsService {
       throw new ApiError(400, 'Pickup date must be in the future');
     }
 
-    // Validate time slot format (e.g., "08:00")
-    const timeSlotRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    // Validate time slot format (e.g., "08:00" or "08:00-10:00")
+    const timeSlotRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9](-([0-1]?[0-9]|2[0-3]):[0-5][0-9])?$/;
     if (!timeSlotRegex.test(pickupTimeSlot)) {
       throw new ApiError(400, 'Invalid time slot format. Expected format: HH:MM');
     }

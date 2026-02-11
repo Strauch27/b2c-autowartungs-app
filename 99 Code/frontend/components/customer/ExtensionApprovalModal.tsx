@@ -20,6 +20,7 @@ import {
   Image as ImageIcon,
   Loader2,
   CreditCard,
+  Lock,
 } from "lucide-react";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { getStripe } from "@/lib/contexts/StripeContext";
@@ -93,7 +94,7 @@ function PaymentForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-5">
       <div className="rounded-lg bg-muted p-4">
         <h4 className="font-semibold mb-2">{t('paymentTitle')}</h4>
         <p className="text-sm text-muted-foreground">{t('paymentDescription')}</p>
@@ -114,12 +115,11 @@ function PaymentForm({
         </div>
       )}
 
-      <div className="bg-primary/10 rounded-lg p-4">
+      <div className="bg-gray-50 rounded-lg p-4">
         <div className="flex items-center justify-between">
-          <span className="text-lg font-semibold">{t('authorizedAmount')}:</span>
-          <span className="text-3xl font-bold text-primary flex items-center gap-1">
-            {(extension.totalAmount / 100).toFixed(2)}
-            <Euro className="w-6 h-6" />
+          <span className="text-lg font-bold">{t('authorizedAmount')}:</span>
+          <span className="text-2xl font-bold text-primary">
+            {(extension.totalAmount / 100).toFixed(2)} EUR
           </span>
         </div>
       </div>
@@ -130,30 +130,35 @@ function PaymentForm({
           variant="outline"
           onClick={onCancel}
           disabled={isProcessing}
-          className="flex-1"
+          className="flex-1 min-h-[48px]"
+          size="lg"
         >
           {t('cancel')}
         </Button>
         <Button
           type="submit"
           disabled={isProcessing || !stripe || !elements}
-          className="flex-1"
+          className="flex-1 min-h-[48px]"
+          size="lg"
         >
           {isProcessing ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
               {t('processing')}
             </>
           ) : (
             <>
-              <CreditCard className="w-4 h-4 mr-2" />
+              <CreditCard className="w-5 h-5 mr-2" />
               {t('authorize')}
             </>
           )}
         </Button>
       </div>
 
-      <p className="text-xs text-center text-muted-foreground">{t('securityNotice')}</p>
+      <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+        <Lock className="h-3 w-3" />
+        <span>{t('securityNotice')}</span>
+      </div>
     </form>
   );
 }
@@ -274,7 +279,7 @@ export function ExtensionApprovalModal({
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-yellow-600" />
@@ -304,11 +309,11 @@ export function ExtensionApprovalModal({
                         <div className="flex-1">
                           <p className="font-medium">{item.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {item.quantity}x à {formatPrice(item.price)}€
+                            {item.quantity}x @ {formatPrice(item.price)} EUR
                           </p>
                         </div>
                         <span className="text-lg font-bold">
-                          {formatPrice(item.price * item.quantity)}€
+                          {formatPrice(item.price * item.quantity)} EUR
                         </span>
                       </div>
                     ))}
@@ -341,12 +346,11 @@ export function ExtensionApprovalModal({
                 )}
 
                 {/* Total Amount */}
-                <div className="rounded-lg bg-primary/10 p-4">
+                <div className="rounded-lg bg-gray-50 p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-semibold">{t('totalAmount')}:</span>
-                    <span className="text-3xl font-bold text-primary flex items-center gap-1">
-                      {formatPrice(extension.totalAmount)}
-                      <Euro className="w-6 h-6" />
+                    <span className="text-lg font-bold">{t('totalAmount')}:</span>
+                    <span className="text-2xl font-bold text-primary">
+                      {formatPrice(extension.totalAmount)} EUR
                     </span>
                   </div>
                 </div>
@@ -363,29 +367,31 @@ export function ExtensionApprovalModal({
                 </div>
               </div>
 
-              <DialogFooter className="gap-2">
+              <DialogFooter className="flex-col sm:flex-row gap-2">
                 <Button
                   variant="outline"
                   onClick={handleDeclineClick}
                   disabled={isLoadingPayment}
-                  className="text-destructive hover:text-destructive"
+                  className="text-destructive hover:text-destructive min-h-[48px] w-full sm:w-auto"
+                  size="lg"
                 >
-                  <XCircle className="w-4 h-4 mr-2" />
+                  <XCircle className="w-5 h-5 mr-2" />
                   {t('decline')}
                 </Button>
                 <Button
                   onClick={handleApproveClick}
                   disabled={isLoadingPayment}
-                  className="flex-1"
+                  className="flex-1 min-h-[48px]"
+                  size="lg"
                 >
                   {isLoadingPayment ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                       {t('loadingPayment')}
                     </>
                   ) : (
                     <>
-                      <CheckCircle className="w-4 h-4 mr-2" />
+                      <CheckCircle className="w-5 h-5 mr-2" />
                       {t('approveAndPay')}
                     </>
                   )}
@@ -469,11 +475,13 @@ export function ExtensionApprovalModal({
                 </div>
               </div>
 
-              <DialogFooter className="gap-2">
+              <DialogFooter className="flex-col sm:flex-row gap-2">
                 <Button
                   variant="outline"
                   onClick={handleCancelDecline}
                   disabled={isDeclining}
+                  className="min-h-[48px] w-full sm:w-auto"
+                  size="lg"
                 >
                   {t('cancel')}
                 </Button>
@@ -481,16 +489,17 @@ export function ExtensionApprovalModal({
                   variant="destructive"
                   onClick={handleDecline}
                   disabled={isDeclining}
-                  className="flex-1"
+                  className="flex-1 min-h-[48px]"
+                  size="lg"
                 >
                   {isDeclining ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                       {t('declining')}
                     </>
                   ) : (
                     <>
-                      <XCircle className="w-4 h-4 mr-2" />
+                      <XCircle className="w-5 h-5 mr-2" />
                       {t('confirmDecline')}
                     </>
                   )}
@@ -507,7 +516,7 @@ export function ExtensionApprovalModal({
           open={selectedImageIndex !== null}
           onOpenChange={() => setSelectedImageIndex(null)}
         >
-          <DialogContent className="max-w-4xl">
+          <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-4xl">
             <img
               src={extension.images[selectedImageIndex]}
               alt={`Evidence ${selectedImageIndex + 1}`}

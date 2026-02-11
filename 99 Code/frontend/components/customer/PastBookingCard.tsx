@@ -61,10 +61,10 @@ export function PastBookingCard({ booking, index }: PastBookingCardProps) {
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-emerald-500 text-xs font-medium rounded-full">
+      <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+        <span className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 bg-green-50 text-emerald-500 text-xs font-medium rounded-full">
           <Check className="w-3 h-3" strokeWidth={2.5} />
-          {t('completed')}
+          <span className="hidden sm:inline">{t('completed')}</span>
         </span>
         <span className="text-sm font-semibold text-gray-700 hidden sm:inline">
           {formatEuro(typeof booking.totalPrice === 'string' ? parseFloat(booking.totalPrice) : booking.totalPrice)}

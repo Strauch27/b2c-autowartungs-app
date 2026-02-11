@@ -51,11 +51,11 @@ export function AssignmentCard({ assignment, variant, onAction, onTap, getMapsUr
   if (variant === 'completed') {
     return (
       <div
-        className={`bg-white/60 rounded-2xl border-l-4 border-success p-4 shadow-sm ${onTap ? 'cursor-pointer' : ''}`}
+        className={`bg-white/60 rounded-2xl border-l-4 border-success p-4 shadow-sm min-h-[48px] flex items-center ${onTap ? 'cursor-pointer active:bg-neutral-50' : ''}`}
         onClick={() => onTap?.(assignment)}
         data-testid={`jockey-card-${assignment.id}`}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-2">
             <span className={`px-2.5 py-0.5 text-[11px] font-semibold rounded-full ${badgeBg}`}>
               {isPickup ? t('pickup') : t('return')}
@@ -76,7 +76,7 @@ export function AssignmentCard({ assignment, variant, onAction, onTap, getMapsUr
       data-testid={`jockey-card-${assignment.id}`}
     >
       <div
-        className={`p-4 ${onTap ? 'cursor-pointer' : ''}`}
+        className={`p-4 ${onTap ? 'cursor-pointer active:bg-neutral-50/50' : ''}`}
         onClick={() => onTap?.(assignment)}
       >
         {/* Top row: Type badge + status + time */}
@@ -120,7 +120,7 @@ export function AssignmentCard({ assignment, variant, onAction, onTap, getMapsUr
       {/* Action button - only for active assignments */}
       {!isUpcoming && getActionText() && (
         <button
-          className={`w-full py-3.5 ${actionBg} text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors min-h-[56px]`}
+          className={`w-full py-3.5 ${actionBg} text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors min-h-[56px] active:scale-[0.98] active:brightness-95`}
           onClick={() => onAction?.(assignment.id, getActionKey())}
           data-testid={`jockey-action-${assignment.id}`}
         >
@@ -134,15 +134,15 @@ export function AssignmentCard({ assignment, variant, onAction, onTap, getMapsUr
           {assignment.customerPhone ? (
             <a
               href={`tel:${assignment.customerPhone}`}
-              className="flex-1 py-2.5 text-xs font-medium text-neutral-500 hover:text-primary hover:bg-primary/5 flex items-center justify-center gap-1.5 transition-colors min-h-[44px]"
+              className="flex-1 py-2.5 text-xs font-medium text-neutral-500 hover:text-primary active:bg-primary/10 hover:bg-primary/5 flex items-center justify-center gap-1.5 transition-colors min-h-[48px]"
               data-testid={`jockey-call-${assignment.id}`}
             >
-              <Phone className="w-3.5 h-3.5" />
+              <Phone className="w-4 h-4" />
               {t('callCustomer')}
             </a>
           ) : (
-            <span className="flex-1 py-2.5 text-xs font-medium text-neutral-300 flex items-center justify-center gap-1.5 min-h-[44px]">
-              <Phone className="w-3.5 h-3.5" />
+            <span className="flex-1 py-2.5 text-xs font-medium text-neutral-300 flex items-center justify-center gap-1.5 min-h-[48px]">
+              <Phone className="w-4 h-4" />
               {t('callCustomer')}
             </span>
           )}
@@ -150,10 +150,10 @@ export function AssignmentCard({ assignment, variant, onAction, onTap, getMapsUr
             href={getMapsUrl(assignment.address)}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 py-2.5 text-xs font-medium text-neutral-500 hover:text-primary hover:bg-primary/5 flex items-center justify-center gap-1.5 transition-colors min-h-[44px]"
+            className="flex-1 py-2.5 text-xs font-medium text-neutral-500 hover:text-primary active:bg-primary/10 hover:bg-primary/5 flex items-center justify-center gap-1.5 transition-colors min-h-[48px]"
             data-testid={`jockey-navigate-${assignment.id}`}
           >
-            <Navigation className="w-3.5 h-3.5" />
+            <Navigation className="w-4 h-4" />
             {t('navigateTo')}
           </a>
         </div>

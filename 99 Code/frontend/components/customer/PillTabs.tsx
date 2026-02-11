@@ -22,7 +22,7 @@ export function PillTabs({ tabs, activeTab, onTabChange }: PillTabsProps) {
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
           className={cn(
-            'flex-1 px-4 py-2 text-sm font-medium rounded-full text-center transition-all duration-200 relative',
+            'flex-1 px-2 sm:px-4 py-2.5 text-sm font-medium rounded-full text-center transition-all duration-200 relative',
             activeTab === tab.id
               ? 'bg-blue-500 text-white'
               : 'text-gray-600 hover:bg-gray-200'

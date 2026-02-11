@@ -7,6 +7,55 @@ async function main() {
   console.log('Starting database seeding...');
 
   // ============================================================================
+  // 0. CLEAN UP - Delete all transactional data and extra users
+  // ============================================================================
+  console.log('\nCleaning up existing data...');
+
+  // Delete in dependency order (children first)
+  const deletedExtensions = await prisma.extension.deleteMany({});
+  console.log(`  Deleted ${deletedExtensions.count} extensions`);
+
+  const deletedAssignments = await prisma.jockeyAssignment.deleteMany({});
+  console.log(`  Deleted ${deletedAssignments.count} jockey assignments`);
+
+  const deletedNotifications = await prisma.notificationLog.deleteMany({});
+  console.log(`  Deleted ${deletedNotifications.count} notifications`);
+
+  const deletedBookings = await prisma.booking.deleteMany({});
+  console.log(`  Deleted ${deletedBookings.count} bookings`);
+
+  const deletedVehicles = await prisma.vehicle.deleteMany({});
+  console.log(`  Deleted ${deletedVehicles.count} vehicles`);
+
+  const deletedTimeSlots = await prisma.timeSlot.deleteMany({});
+  console.log(`  Deleted ${deletedTimeSlots.count} time slots`);
+
+  // Delete all users except jockey1 and workshop1
+  const deletedCustomerProfiles = await prisma.customerProfile.deleteMany({});
+  console.log(`  Deleted ${deletedCustomerProfiles.count} customer profiles`);
+
+  // Delete extra jockey/workshop users (keep only our two)
+  const deletedJockeyProfiles = await prisma.jockeyProfile.deleteMany({
+    where: { user: { email: { not: 'jockey@test.de' } } },
+  });
+  console.log(`  Deleted ${deletedJockeyProfiles.count} extra jockey profiles`);
+
+  const deletedWorkshopProfiles = await prisma.workshopProfile.deleteMany({
+    where: { user: { email: { not: 'werkstatt@test.de' } } },
+  });
+  console.log(`  Deleted ${deletedWorkshopProfiles.count} extra workshop profiles`);
+
+  // Delete all users that are not jockey1 or workshop1
+  const deletedUsers = await prisma.user.deleteMany({
+    where: {
+      email: { notIn: ['jockey@test.de', 'werkstatt@test.de'] },
+    },
+  });
+  console.log(`  Deleted ${deletedUsers.count} extra users`);
+
+  console.log('✓ Cleanup complete');
+
+  // ============================================================================
   // 1. PRICE MATRIX - TOP 10 VEHICLE MODELS
   // ============================================================================
   console.log('\nCreating PriceMatrix entries...');
@@ -126,6 +175,25 @@ async function main() {
       climateService: 139,
     },
     {
+      brand: 'Audi',
+      model: 'A6',
+      yearFrom: 2018,
+      yearTo: 2026,
+      serviceType: 'INSPECTION',
+      basePrice: 329,
+      mileageMultiplier: 1.0,
+      ageMultiplier: 1.0,
+      inspection30k: 289,
+      inspection60k: 329,
+      inspection90k: 399,
+      inspection120k: 449,
+      oilService: 229,
+      brakeServiceFront: 489,
+      brakeServiceRear: 439,
+      tuv: 89,
+      climateService: 159,
+    },
+    {
       brand: 'BMW',
       model: '3er G20',
       yearFrom: 2019,
@@ -210,14 +278,24 @@ async function main() {
   console.log(`✓ Created ${priceMatrixData.length} PriceMatrix entries`);
 
   // ============================================================================
-  // 2. WORKSHOP USER + PROFILE
+  // 2. WORKSHOP USER + PROFILE (workshop1)
   // ============================================================================
-  console.log('\nCreating workshop user and profile...');
+  console.log('\nCreating/updating workshop user and profile...');
   const workshopPasswordHash = await bcrypt.hash('password123', 10);
-  const workshopUser = await prisma.user.create({
-    data: {
+  const workshopUser = await prisma.user.upsert({
+    where: { email: 'werkstatt@test.de' },
+    update: {
+      username: 'workshop1',
+      passwordHash: workshopPasswordHash,
+      role: 'WORKSHOP',
+      firstName: 'Workshop',
+      lastName: 'Manager',
+      phone: '+49 2302 123456',
+      isActive: true,
+    },
+    create: {
       email: 'werkstatt@test.de',
-      username: 'werkstatt1',
+      username: 'workshop1',
       passwordHash: workshopPasswordHash,
       role: 'WORKSHOP',
       firstName: 'Workshop',
@@ -239,15 +317,39 @@ async function main() {
       workshopProfile: true,
     },
   });
-  console.log(`✓ Workshop user created: ${workshopUser.email} (Username: ${workshopUser.username})`);
+  // Ensure workshop profile exists (in case user existed but profile didn't)
+  if (!workshopUser.workshopProfile) {
+    await prisma.workshopProfile.create({
+      data: {
+        userId: workshopUser.id,
+        workshopName: 'Werkstatt Witten',
+        address: 'Hauptstraße 1',
+        city: 'Witten',
+        postalCode: '58452',
+        phone: '+49 2302 123456',
+        capacity: 16,
+      },
+    });
+  }
+  console.log(`✓ Workshop user: ${workshopUser.email} (Username: ${workshopUser.username})`);
 
   // ============================================================================
-  // 3. JOCKEY USER + PROFILE
+  // 3. JOCKEY USER + PROFILE (jockey1)
   // ============================================================================
-  console.log('\nCreating jockey user and profile...');
+  console.log('\nCreating/updating jockey user and profile...');
   const jockeyPasswordHash = await bcrypt.hash('password123', 10);
-  const jockeyUser = await prisma.user.create({
-    data: {
+  const jockeyUser = await prisma.user.upsert({
+    where: { email: 'jockey@test.de' },
+    update: {
+      username: 'jockey1',
+      passwordHash: jockeyPasswordHash,
+      role: 'JOCKEY',
+      firstName: 'Hans',
+      lastName: 'Fahrer',
+      phone: '+49170234567',
+      isActive: true,
+    },
+    create: {
       email: 'jockey@test.de',
       username: 'jockey1',
       passwordHash: jockeyPasswordHash,
@@ -269,56 +371,22 @@ async function main() {
       jockeyProfile: true,
     },
   });
-  console.log(`✓ Jockey user created: ${jockeyUser.email} (Username: ${jockeyUser.username})`);
-
-  // ============================================================================
-  // 4. TEST CUSTOMER USER + PROFILE
-  // ============================================================================
-  console.log('\nCreating test customer user and profile...');
-  const customerPasswordHash = await bcrypt.hash('password123', 10);
-  const customerUser = await prisma.user.create({
-    data: {
-      email: 'kunde@test.de',
-      passwordHash: customerPasswordHash,
-      role: 'CUSTOMER',
-      firstName: 'Max',
-      lastName: 'Mustermann',
-      phone: '+49170123456',
-      isActive: true,
-      customerProfile: {
-        create: {
-          street: 'Musterstraße 42',
-          city: 'Witten',
-          postalCode: '58452',
-          stripeCustomerId: 'cus_test_12345',
-          preferredContactMethod: 'EMAIL',
-        },
+  // Ensure jockey profile exists (in case user existed but profile didn't)
+  if (!jockeyUser.jockeyProfile) {
+    await prisma.jockeyProfile.create({
+      data: {
+        userId: jockeyUser.id,
+        licenseNumber: 'DL123456',
+        vehicleType: 'VW Golf',
+        isAvailable: true,
+        rating: 5.0,
       },
-    },
-    include: {
-      customerProfile: true,
-    },
-  });
-  console.log(`✓ Customer user created: ${customerUser.email}`);
+    });
+  }
+  console.log(`✓ Jockey user: ${jockeyUser.email} (Username: ${jockeyUser.username})`);
 
   // ============================================================================
-  // 5. TEST VEHICLE
-  // ============================================================================
-  console.log('\nCreating test vehicle...');
-  const testVehicle = await prisma.vehicle.create({
-    data: {
-      customerId: customerUser.id,
-      brand: 'VW',
-      model: 'Golf 7',
-      year: 2016,
-      mileage: 75000,
-      licensePlate: 'EN-MW-1234',
-    },
-  });
-  console.log(`✓ Test vehicle created: ${testVehicle.brand} ${testVehicle.model} (ID: ${testVehicle.id})`);
-
-  // ============================================================================
-  // 6. TIME SLOTS FOR NEXT 7 DAYS
+  // 4. TIME SLOTS FOR NEXT 7 DAYS
   // ============================================================================
   console.log('\nCreating time slots for next 7 days...');
   const today = new Date();
@@ -340,9 +408,19 @@ async function main() {
     if (slotDate.getDay() === 0) continue;
 
     for (const timeSlot of timeSlots) {
-      await prisma.timeSlot.create({
-        data: {
-          workshopUserId: workshopUser.workshopProfile!.id,
+      const workshopProfileId = workshopUser.workshopProfile?.id;
+      if (!workshopProfileId) continue;
+      await prisma.timeSlot.upsert({
+        where: {
+          workshopUserId_date_timeSlot: {
+            workshopUserId: workshopProfileId,
+            date: slotDate,
+            timeSlot: timeSlot,
+          },
+        },
+        update: {},
+        create: {
+          workshopUserId: workshopProfileId,
           date: slotDate,
           timeSlot: timeSlot,
           isAvailable: true,
@@ -361,8 +439,7 @@ async function main() {
   console.log('\nSummary:');
   console.log(`- Workshop user: ${workshopUser.email} (username: ${workshopUser.username}, password: password123)`);
   console.log(`- Jockey user: ${jockeyUser.email} (username: ${jockeyUser.username}, password: password123)`);
-  console.log(`- Customer user: ${customerUser.email} (password: password123)`);
-  console.log(`- Test vehicle: ${testVehicle.brand} ${testVehicle.model}`);
+  console.log('- No customers, vehicles, or bookings seeded (clean slate for testing)');
   console.log(`- PriceMatrix entries: ${priceMatrixData.length}`);
   console.log(`- Time slots: ${slotsCreated}`);
 }

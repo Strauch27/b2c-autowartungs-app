@@ -66,7 +66,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (role: UserRole, credentials: LoginCredentials) => {
       try {
         const response = await authApi.login(role, credentials);
-        tokenStorage.setToken(response.token);
+        // Store token with role prefix so each portal has its own session
+        tokenStorage.setToken(response.token, role);
         setState({
           user: response.user,
           isAuthenticated: true,
@@ -78,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const locale = currentPath.split('/')[1] || 'de';
 
         // Redirect to appropriate dashboard (with locale prefix)
-        const dashboardPath = `/${locale}/${role}/dashboard`;
+        const dashboardPath = `/${locale}/${role.toLowerCase()}/dashboard`;
         router.push(dashboardPath);
       } catch (error) {
         console.error('Login failed:', error);

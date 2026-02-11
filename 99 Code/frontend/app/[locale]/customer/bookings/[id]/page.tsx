@@ -60,6 +60,15 @@ function BookingDetailContent() {
   useEffect(() => {
     fetchBooking();
     fetchExtensions();
+
+    // Poll for status updates every 15 seconds
+    const interval = setInterval(() => {
+      bookingsApi.getById(bookingId).then((data) => {
+        setBooking(data);
+      }).catch(() => {});
+    }, 15000);
+
+    return () => clearInterval(interval);
   }, [bookingId]);
 
   useEffect(() => {
@@ -139,13 +148,13 @@ function BookingDetailContent() {
   return (
     <div data-testid="booking-detail-page">
       {/* Header card with status and progress */}
-      <div className="animate-card bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4" data-testid="booking-header-card">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <p className="text-xs text-gray-400 font-mono">{booking.bookingNumber}</p>
-            <h2 className="text-lg font-bold text-gray-900 mt-1">{serviceLabel(booking)}</h2>
+      <div className="animate-card bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 mb-4" data-testid="booking-header-card">
+        <div className="flex items-start justify-between gap-2 mb-4">
+          <div className="min-w-0">
+            <p className="text-xs text-gray-400 font-mono truncate">{booking.bookingNumber}</p>
+            <h2 className="text-base sm:text-lg font-bold text-gray-900 mt-1">{serviceLabel(booking)}</h2>
           </div>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-500 text-sm font-medium rounded-full">
+          <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 bg-blue-50 text-blue-500 text-xs sm:text-sm font-medium rounded-full shrink-0">
             <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse-dot" />
             {t(`status.${booking.status}`)}
           </span>
@@ -212,7 +221,7 @@ function BookingDetailContent() {
               </div>
             </div>
             {booking.services && booking.services.length > 0 && (
-              <div className="space-y-1 ml-13">
+              <div className="space-y-1 ml-[52px]">
                 {booking.services.map((service, i) => (
                   <div key={i} className="flex justify-between text-sm px-3 py-1.5 bg-gray-50 rounded-lg">
                     <span className="text-gray-700">{service.type}</span>

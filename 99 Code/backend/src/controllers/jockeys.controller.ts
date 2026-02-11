@@ -20,6 +20,7 @@ const handoverSchema = z.object({
   customerSignature: z.string().optional(),
   ronjaSignature: z.string().optional(),
   notes: z.string().optional(),
+  mileage: z.number().int().positive(),
 });
 
 const completeSchema = z.object({
@@ -28,6 +29,7 @@ const completeSchema = z.object({
     customerSignature: z.string().optional(),
     ronjaSignature: z.string().optional(),
     notes: z.string().optional(),
+    mileage: z.number().int().positive(),
   }).optional(),
 });
 

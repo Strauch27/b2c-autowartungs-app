@@ -63,11 +63,11 @@ export function PaymentSummary({ booking }: PaymentSummaryProps) {
   };
 
   return (
-    <Card className="p-6 space-y-6">
+    <Card className="p-4 sm:p-6 space-y-6">
       {/* Header */}
       <div className="border-b pb-4">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-2xl font-bold">{t('title')}</h2>
+          <h2 className="text-xl sm:text-2xl font-bold">{t('title')}</h2>
           <Badge variant="outline">{booking.bookingNumber}</Badge>
         </div>
         <p className="text-sm text-gray-600">
@@ -145,8 +145,8 @@ export function PaymentSummary({ booking }: PaymentSummaryProps) {
       {/* Total */}
       <div className="border-t pt-4">
         <div className="flex justify-between items-center">
-          <span className="text-xl font-bold">{t('totalAmount')}:</span>
-          <span className="text-3xl font-bold text-primary">
+          <span className="text-lg font-bold">{t('totalAmount')}:</span>
+          <span className="text-2xl font-bold text-primary">
             {toNumber(booking.totalPrice).toFixed(2)} EUR
           </span>
         </div>

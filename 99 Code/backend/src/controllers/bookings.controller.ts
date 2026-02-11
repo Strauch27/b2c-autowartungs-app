@@ -38,14 +38,14 @@ const createBookingDtoSchema = z.object({
   services: z.array(z.string()).min(1, 'At least one service must be selected'),
   pickup: z.object({
     date: z.string().min(1, 'Pickup date is required'),
-    timeSlot: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (expected HH:MM)'),
+    timeSlot: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](-([0-1]?[0-9]|2[0-3]):[0-5][0-9])?$/, 'Invalid time format (expected HH:MM or HH:MM-HH:MM)'),
     street: z.string().min(1, 'Street address is required'),
     city: z.string().min(1, 'City is required'),
     postalCode: z.string().min(1, 'Postal code is required')
   }),
   delivery: z.object({
     date: z.string().min(1, 'Delivery date is required'),
-    timeSlot: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (expected HH:MM)')
+    timeSlot: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](-([0-1]?[0-9]|2[0-3]):[0-5][0-9])?$/, 'Invalid time format (expected HH:MM or HH:MM-HH:MM)')
   }),
   customerNotes: z.string().optional()
 });
@@ -55,7 +55,7 @@ const createBookingSchema = z.object({
   vehicleId: z.string().cuid('Invalid vehicle ID'),
   serviceType: z.nativeEnum(ServiceType),
   pickupDate: z.string().datetime('Invalid date format'),
-  pickupTimeSlot: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (expected HH:MM)'),
+  pickupTimeSlot: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](-([0-1]?[0-9]|2[0-3]):[0-5][0-9])?$/, 'Invalid time format (expected HH:MM or HH:MM-HH:MM)'),
   pickupAddress: z.string().min(1, 'Pickup address is required'),
   pickupCity: z.string().min(1, 'Pickup city is required'),
   pickupPostalCode: z.string().min(1, 'Pickup postal code is required'),
@@ -265,7 +265,11 @@ async function createPickupAssignment(booking: any): Promise<void> {
       const dateStr = booking.pickupDate instanceof Date
         ? booking.pickupDate.toISOString().split('T')[0]
         : String(booking.pickupDate).split('T')[0];
-      const pickupDateTime = new Date(`${dateStr}T${booking.pickupTimeSlot}:00`);
+      // pickupTimeSlot may be "HH:MM" or "HH:MM-HH:MM" (range format)
+      const startTime = booking.pickupTimeSlot.includes('-')
+        ? booking.pickupTimeSlot.split('-')[0]
+        : booking.pickupTimeSlot;
+      const pickupDateTime = new Date(`${dateStr}T${startTime}:00`);
 
       await prisma.jockeyAssignment.create({
         data: {

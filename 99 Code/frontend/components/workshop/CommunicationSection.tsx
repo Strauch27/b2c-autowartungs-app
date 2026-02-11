@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
 
 interface Message {
   id: string;
@@ -34,7 +35,7 @@ export function CommunicationSection({ messages, onSend }: CommunicationSectionP
   };
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-card p-5 shadow-sm" data-testid="communication-section">
+    <div className="rounded-xl border border-neutral-200 bg-card p-4 shadow-sm sm:p-5" data-testid="communication-section">
       <p className="text-overline mb-3 text-muted-foreground">{t('communication')}</p>
 
       <div className="mb-3 space-y-2">
@@ -63,19 +64,19 @@ export function CommunicationSection({ messages, onSend }: CommunicationSectionP
       <div className="flex gap-2">
         <input
           type="text"
-          className="flex-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/30"
+          className="flex-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/30 min-h-[44px]"
           placeholder={t('addNote')}
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
         />
-        <button
+        <Button
           onClick={handleSend}
           disabled={!input.trim()}
-          className="rounded-lg bg-foreground px-4 py-2 text-xs font-semibold text-background transition-colors hover:bg-foreground/90 disabled:opacity-50"
+          size="default"
         >
           {t('send')}
-        </button>
+        </Button>
       </div>
     </div>
   );

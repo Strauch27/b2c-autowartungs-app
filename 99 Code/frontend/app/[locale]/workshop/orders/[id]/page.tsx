@@ -12,6 +12,9 @@ import { Loader2, ArrowLeft, Phone, Mail, MapPin, Calendar, Car, User, Wrench, F
 import { resolveVehicleDisplay } from '@/lib/constants/vehicles';
 import { JockeyTimeline } from '@/components/shared/JockeyTimeline';
 import { toast } from 'sonner';
+import { MapView } from '@/components/ui/MapView';
+import { useGeocode } from '@/lib/useGeocode';
+import { Button } from '@/components/ui/button';
 
 function mapDisplayStatus(bookingStatus: string): 'pending' | 'inProgress' | 'completed' | 'cancelled' {
   if (bookingStatus === 'CANCELLED') return 'cancelled';
@@ -34,6 +37,10 @@ function OrderDetailContent() {
   const [order, setOrder] = useState<WorkshopOrder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showExtensionForm, setShowExtensionForm] = useState(false);
+  const orderAddress = order
+    ? `${order.pickupAddress}, ${order.pickupPostalCode} ${order.pickupCity}`
+    : undefined;
+  const coords = useGeocode(orderAddress);
 
   useEffect(() => {
     async function fetchOrder() {
@@ -109,12 +116,12 @@ function OrderDetailContent() {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3">
         <p className="text-muted-foreground">{td('orderNotFound')}</p>
-        <button
+        <Button
+          variant="link"
           onClick={() => router.push(`/${locale}/workshop/dashboard`)}
-          className="text-sm font-medium text-primary hover:underline"
         >
           {td('back')}
-        </button>
+        </Button>
       </div>
     );
   }
@@ -133,13 +140,13 @@ function OrderDetailContent() {
   const getAdvanceButton = () => {
     const status = order.status;
     if (status === 'PICKED_UP') {
-      return { label: td('markArrived'), color: 'bg-primary text-primary-foreground hover:bg-primary/90' };
+      return { label: td('markArrived'), variant: 'default' as const };
     }
     if (status === 'AT_WORKSHOP') {
-      return { label: td('startWork'), color: 'bg-cta text-cta-foreground hover:bg-cta-hover' };
+      return { label: td('startWork'), variant: 'cta' as const };
     }
     if (['IN_SERVICE', 'IN_WORKSHOP'].includes(status)) {
-      return { label: td('markCompleted'), color: 'bg-success text-success-foreground hover:bg-success/90' };
+      return { label: td('markCompleted'), variant: 'success' as const };
     }
     return null;
   };
@@ -162,16 +169,17 @@ function OrderDetailContent() {
   }[displayStatus];
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6" data-testid="workshop-order-detail">
+    <div className="mx-auto max-w-5xl px-3 py-4 sm:px-6 sm:py-6" data-testid="workshop-order-detail">
       {/* Header row */}
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => router.push(`/${locale}/workshop/dashboard`)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 transition-colors hover:bg-neutral-50"
           >
             <ArrowLeft className="h-4 w-4" />
-          </button>
+          </Button>
           <div>
             <h1 className="text-lg font-bold">{order.bookingNumber}</h1>
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -187,19 +195,21 @@ function OrderDetailContent() {
 
       {/* Status advancement */}
       {advanceButton && (
-        <div className="mb-6 rounded-xl border border-neutral-200 bg-card p-5 shadow-sm">
-          <div className="flex items-center justify-between">
+        <div className="mb-6 rounded-xl border border-neutral-200 bg-card p-4 shadow-sm sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold text-foreground">{td('changeStatus')}</p>
               <p className="text-xs text-muted-foreground">{td('statusTimeline')}</p>
             </div>
-            <button
+            <Button
+              variant={advanceButton.variant}
+              size="lg"
               onClick={handleStatusAdvance}
-              className={`rounded-lg px-6 py-2.5 text-sm font-semibold transition-colors ${advanceButton.color}`}
+              className="w-full sm:w-auto"
               data-testid="status-advance-button"
             >
               {advanceButton.label}
-            </button>
+            </Button>
           </div>
           <div className="mt-4">
             <StatusTimeline currentStatus={displayStatus} />
@@ -208,11 +218,11 @@ function OrderDetailContent() {
       )}
 
       {/* Two-column info */}
-      <div className="mb-6 grid gap-5 lg:grid-cols-2">
+      <div className="mb-6 grid gap-4 sm:gap-5 lg:grid-cols-2">
         {/* Left: Vehicle + Customer */}
-        <div className="space-y-5">
+        <div className="space-y-4 sm:space-y-5">
           {/* Vehicle Info */}
-          <div className="rounded-xl border border-neutral-200 bg-card p-5 shadow-sm">
+          <div className="rounded-xl border border-neutral-200 bg-card p-4 shadow-sm sm:p-5">
             <p className="text-overline mb-3 text-muted-foreground">{td('vehicleInfo')}</p>
             <div className="space-y-2.5">
               <div className="flex items-center gap-3">
@@ -255,7 +265,7 @@ function OrderDetailContent() {
           </div>
 
           {/* Customer Info */}
-          <div className="rounded-xl border border-neutral-200 bg-card p-5 shadow-sm">
+          <div className="rounded-xl border border-neutral-200 bg-card p-4 shadow-sm sm:p-5">
             <p className="text-overline mb-3 text-muted-foreground">{td('customerInfo')}</p>
             <div className="space-y-2.5">
               <div className="flex items-center gap-3">
@@ -287,14 +297,20 @@ function OrderDetailContent() {
                   </p>
                 </div>
               </div>
+              <MapView
+                lat={coords?.lat}
+                lng={coords?.lng}
+                address={orderAddress}
+                height="h-[160px] md:h-[200px]"
+              />
             </div>
           </div>
         </div>
 
         {/* Right: Service Details + Notes */}
-        <div className="space-y-5">
+        <div className="space-y-4 sm:space-y-5">
           {/* Service Details */}
-          <div className="rounded-xl border border-neutral-200 bg-card p-5 shadow-sm">
+          <div className="rounded-xl border border-neutral-200 bg-card p-4 shadow-sm sm:p-5">
             <p className="text-overline mb-3 text-muted-foreground">{td('serviceDetails')}</p>
             <div className="space-y-2.5">
               <div>
@@ -307,7 +323,7 @@ function OrderDetailContent() {
                     : (() => { try { return ts(order.serviceType); } catch { return order.serviceType; } })()}
                 </p>
               </div>
-              <div className="flex gap-8">
+              <div className="flex flex-col gap-2 sm:flex-row sm:gap-8">
                 <div>
                   <p className="text-xs text-muted-foreground">{td('pickup')}</p>
                   <p className="text-sm font-medium">
@@ -342,7 +358,7 @@ function OrderDetailContent() {
 
           {/* Notes */}
           {order.customerNotes && (
-            <div className="rounded-xl border border-neutral-200 bg-card p-5 shadow-sm">
+            <div className="rounded-xl border border-neutral-200 bg-card p-4 shadow-sm sm:p-5">
               <p className="text-overline mb-2 text-muted-foreground">{td('notes')}</p>
               <p className="text-sm text-foreground">{order.customerNotes}</p>
             </div>
@@ -360,16 +376,18 @@ function OrderDetailContent() {
       )}
 
       {/* Extensions section */}
-      <div className="mb-6 rounded-xl border border-neutral-200 bg-card p-5 shadow-sm">
+      <div className="mb-6 rounded-xl border border-neutral-200 bg-card p-4 shadow-sm sm:p-5">
         <div className="flex items-center justify-between">
           <p className="text-overline text-muted-foreground">{td('extensions')}</p>
           {displayStatus === 'inProgress' && !showExtensionForm && (
-            <button
+            <Button
+              variant="link"
+              size="sm"
               onClick={() => setShowExtensionForm(true)}
-              className="text-xs font-semibold text-cta hover:underline"
+              className="text-cta"
             >
               {td('newExtension')}
-            </button>
+            </Button>
           )}
         </div>
 

@@ -427,7 +427,7 @@ export async function updateBookingStatus(req: Request, res: Response, next: Nex
           // Use delivery date or schedule for next day
           const scheduledTime = booking.deliveryDate
             ? new Date(booking.deliveryDate)
-            : new Date(Date.now() + 24 * 60 * 60 * 1000); // Tomorrow
+            : new Date(); // Same day — visible immediately on jockey dashboard
 
           // Transaction: create return assignment + update status to RETURN_ASSIGNED
           await prisma.$transaction(async (tx) => {

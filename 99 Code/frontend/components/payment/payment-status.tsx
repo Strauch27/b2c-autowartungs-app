@@ -36,7 +36,8 @@ export function PaymentStatus({
       setError("");
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
-      const token = localStorage.getItem("auth_token");
+      const { tokenStorage } = await import("@/lib/auth/token-storage");
+      const token = tokenStorage.getToken();
 
       if (!token) {
         throw new Error("Authentication required");
@@ -138,11 +139,11 @@ export function PaymentStatus({
   };
 
   return (
-    <Card className="p-6">
+    <Card className="p-4 sm:p-6">
       <div className="space-y-4">
         {/* Status Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+        <div className="flex items-start sm:items-center justify-between gap-3">
+          <div className="flex items-start sm:items-center space-x-3">
             {getStatusIcon()}
             <div>
               <h3 className="font-semibold">Payment Status</h3>
@@ -154,15 +155,15 @@ export function PaymentStatus({
 
         {/* Payment Details */}
         <div className="border-t pt-4 space-y-2">
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between items-center text-sm">
             <span className="text-gray-600">Amount:</span>
-            <span className="font-medium">
+            <span className="text-lg font-bold text-primary">
               {status.amount.toFixed(2)} {status.currency.toUpperCase()}
             </span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Payment ID:</span>
-            <span className="font-mono text-xs">{paymentIntentId}</span>
+            <span className="font-mono text-xs truncate max-w-[200px]">{paymentIntentId}</span>
           </div>
         </div>
 
@@ -170,7 +171,7 @@ export function PaymentStatus({
         {!status.paid && status.status !== "processing" && (
           <button
             onClick={fetchPaymentStatus}
-            className="text-sm text-primary hover:underline"
+            className="text-sm text-primary hover:underline min-h-[44px]"
           >
             Refresh Status
           </button>

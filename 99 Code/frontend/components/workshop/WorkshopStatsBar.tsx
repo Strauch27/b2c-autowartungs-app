@@ -46,23 +46,23 @@ export function WorkshopStatsBar({ newCount, inProgressCount, completedCount, re
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4" data-testid="workshop-stats-bar">
+    <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-4" data-testid="workshop-stats-bar">
       {stats.map((stat, i) => {
         const Icon = stat.icon;
         return (
           <div
             key={i}
-            className="card-interactive rounded-xl border border-neutral-200 bg-card p-4"
+            className="card-interactive rounded-xl border border-neutral-200 bg-card p-3 sm:p-4"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-2xl font-bold ${stat.color}`}>
+                <p className={`text-xl font-bold sm:text-2xl ${stat.color}`}>
                   {stat.isRevenue ? `${stat.value} \u20AC` : stat.value}
                 </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{stat.label}</p>
+                <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-xs">{stat.label}</p>
               </div>
-              <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${stat.bgColor}`}>
-                <Icon className={`h-5 w-5 ${stat.color}`} />
+              <div className={`flex h-8 w-8 items-center justify-center rounded-lg sm:h-10 sm:w-10 ${stat.bgColor}`}>
+                <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} />
               </div>
             </div>
           </div>

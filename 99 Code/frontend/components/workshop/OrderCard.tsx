@@ -157,14 +157,14 @@ export function OrderCard({
           {deliveryDeadline && <DeadlineCountdown deadline={deliveryDeadline} />}
         </div>
         {isWaitingForPickup ? (
-          <div className="w-full bg-neutral-100 py-2.5 text-xs font-medium text-muted-foreground text-center">
+          <div className="w-full bg-neutral-100 py-3 text-xs font-medium text-muted-foreground text-center min-h-[44px] flex items-center justify-center">
             <Truck className="h-3.5 w-3.5 inline mr-1.5" />
             {t('kanban.awaitingJockey')}
           </div>
         ) : (
           <button
             onClick={onAccept}
-            className="w-full bg-primary py-2.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            className="w-full bg-primary py-3 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 min-h-[44px]"
             data-testid={`kanban-action-${bookingNumber}`}
           >
             {backendStatus === 'PICKED_UP' ? t('kanban.accept') : t('kanban.startWork')}
@@ -213,13 +213,13 @@ export function OrderCard({
         <div className="flex border-t border-neutral-200">
           <button
             onClick={onExtension}
-            className="flex-1 border-r border-neutral-200 py-2.5 text-xs font-medium text-cta transition-colors hover:bg-cta/5"
+            className="flex-1 border-r border-neutral-200 py-3 text-xs font-medium text-cta transition-colors hover:bg-cta/5 min-h-[44px]"
           >
             {t('kanban.addExtension')}
           </button>
           <button
             onClick={onComplete}
-            className="flex-1 py-2.5 text-xs font-semibold text-success transition-colors hover:bg-success/5"
+            className="flex-1 py-3 text-xs font-semibold text-success transition-colors hover:bg-success/5 min-h-[44px]"
             data-testid={`kanban-action-${bookingNumber}`}
           >
             {t('kanban.complete')}
@@ -272,7 +272,7 @@ export function OrderCard({
       </div>
       <button
         onClick={onViewDetails}
-        className="w-full border-t border-neutral-200 py-2 text-xs text-muted-foreground transition-colors hover:bg-primary/5 hover:text-primary"
+        className="w-full border-t border-neutral-200 py-3 text-xs text-muted-foreground transition-colors hover:bg-primary/5 hover:text-primary min-h-[44px]"
         data-testid={`kanban-action-${bookingNumber}`}
       >
         {t('kanban.viewDetails')}

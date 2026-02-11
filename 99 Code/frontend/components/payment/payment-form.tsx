@@ -9,7 +9,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { DemoPaymentForm } from "./demo-payment-form";
 
@@ -113,11 +113,11 @@ export function PaymentForm({
       <div className="bg-gray-50 rounded-lg p-4 space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">{t('bookingId')}:</span>
-          <span className="font-medium">{bookingId}</span>
+          <span className="font-medium font-mono text-xs">{bookingId}</span>
         </div>
-        <div className="flex justify-between text-lg font-bold border-t pt-2">
+        <div className="flex justify-between items-center text-lg font-bold border-t pt-2">
           <span>{t('totalAmount')}:</span>
-          <span>{amount.toFixed(2)} EUR</span>
+          <span className="text-2xl font-bold text-primary">{amount.toFixed(2)} EUR</span>
         </div>
       </div>
 
@@ -125,7 +125,7 @@ export function PaymentForm({
       <Button
         type="submit"
         disabled={isProcessing || !stripe || !elements}
-        className="w-full"
+        className="w-full min-h-[48px]"
         size="lg"
       >
         {isProcessing ? (
@@ -139,9 +139,10 @@ export function PaymentForm({
       </Button>
 
       {/* Security Notice */}
-      <p className="text-xs text-center text-gray-500">
-        {t('securityNotice')}
-      </p>
+      <div className="flex items-center justify-center gap-1.5 text-xs text-gray-500">
+        <Lock className="h-3 w-3" />
+        <span>{t('securityNotice')}</span>
+      </div>
     </form>
   );
 }

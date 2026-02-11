@@ -3,10 +3,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useUser } from '@/lib/auth-hooks';
-import { Bell, Loader2, ChevronRight, ChevronLeft, Car, CalendarDays } from 'lucide-react';
-import { useRouter, usePathname } from 'next/navigation';
+import { Loader2, ChevronRight, ChevronLeft, Car, CalendarDays } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/useLovableTranslation';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import HandoverModal from '@/components/jockey/HandoverModal';
 import { AssignmentCard, AssignmentCardAssignment } from '@/components/jockey/AssignmentCard';
 import { AvailabilityToggle } from '@/components/jockey/AvailabilityToggle';
@@ -17,7 +16,6 @@ import { toast } from 'sonner';
 
 function DashboardContent() {
   const user = useUser();
-  const router = useRouter();
   const { t, language } = useLanguage();
   const td = useTranslations('jockeyDashboard');
   const [handoverModal, setHandoverModal] = useState<{
@@ -83,19 +81,7 @@ function DashboardContent() {
     month: 'short',
   });
 
-  const locale = useLocale();
-  const pathname = usePathname();
-  const switchLocale = (newLocale: string) => {
-    router.push(pathname.replace(`/${locale}`, `/${newLocale}`));
-  };
-
   const firstName = user.name?.split(' ')[0] || user.email?.split('@')[0] || '';
-  const initials = (user.name || user.email || 'U')
-    .split(' ')
-    .map((n: string) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
 
   // Map status
   const mapStatus = (s: string): AssignmentCardAssignment['status'] => {
@@ -217,6 +203,7 @@ function DashboardContent() {
     photos: string[];
     customerSignature: string;
     notes: string;
+    mileage?: number;
   }) => {
     if (handoverModal.assignment) {
       try {
@@ -225,6 +212,7 @@ function DashboardContent() {
           customerSignature: handoverData?.customerSignature || '',
           ronjaSignature: '',
           notes: handoverData?.notes || '',
+          mileage: handoverData?.mileage,
         });
         toast.success(
           handoverModal.assignment.type === 'pickup'
@@ -248,6 +236,7 @@ function DashboardContent() {
     photos: string[];
     customerSignature: string;
     notes: string;
+    mileage: number;
   }) => {
     if (!selectedAssignment) return;
     try {
@@ -256,6 +245,7 @@ function DashboardContent() {
         customerSignature: data.customerSignature,
         ronjaSignature: '',
         notes: data.notes,
+        mileage: data.mileage,
       });
       toast.success(
         selectedAssignment.type === 'pickup'
@@ -283,42 +273,13 @@ function DashboardContent() {
 
   return (
     <>
-      {/* Dark navy header */}
-      <header className="bg-gradient-to-r from-[hsl(222,47%,11%)] to-[hsl(217,33%,17%)] px-5 pt-3 pb-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-white font-semibold text-base" data-testid="jockey-greeting">
-              {td('greeting', { name: firstName })}
-            </p>
-            <p className="text-neutral-400 text-xs">{headerDateStr}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-0.5 rounded-lg bg-white/10 p-0.5">
-              <button
-                onClick={() => switchLocale('de')}
-                className={`px-2 py-1 text-[11px] font-semibold rounded-md transition-colors ${locale === 'de' ? 'bg-white/20 text-white' : 'text-neutral-400 hover:text-white'}`}
-              >DE</button>
-              <button
-                onClick={() => switchLocale('en')}
-                className={`px-2 py-1 text-[11px] font-semibold rounded-md transition-colors ${locale === 'en' ? 'bg-white/20 text-white' : 'text-neutral-400 hover:text-white'}`}
-              >EN</button>
-            </div>
-            <button
-              className="relative"
-              aria-label={t.jockeyDashboard.notifications}
-              data-testid="notification-bell"
-            >
-              <Bell className="w-5 h-5 text-neutral-300" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive rounded-full text-white text-[9px] flex items-center justify-center font-bold">
-                3
-              </span>
-            </button>
-            <div className="w-8 h-8 rounded-full bg-primary/30 border-2 border-primary flex items-center justify-center text-white text-xs font-bold">
-              {initials}
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Greeting bar */}
+      <div className="px-5 pt-3 pb-2">
+        <p className="font-semibold text-base text-foreground" data-testid="jockey-greeting">
+          {td('greeting', { name: firstName })}
+        </p>
+        <p className="text-neutral-400 text-xs">{headerDateStr}</p>
+      </div>
 
       {/* Availability toggle */}
       <AvailabilityToggle onToggle={handleAvailabilityToggle} />
@@ -368,7 +329,7 @@ function DashboardContent() {
       </div>
 
       {/* Main content */}
-      <main className="pb-20">
+      <div>
         {isLoading ? (
           <div className="flex items-center justify-center py-12" role="status" aria-label="Loading">
             <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
@@ -507,6 +468,7 @@ function DashboardContent() {
                               key={a.id}
                               assignment={a}
                               variant="upcoming"
+                              onAction={handleAction}
                               onTap={setSelectedAssignment}
                               getMapsUrl={getMapsUrl}
                             />
@@ -522,7 +484,7 @@ function DashboardContent() {
             {upcomingDays.length === 0 && <div className="mb-6" />}
           </>
         )}
-      </main>
+      </div>
 
       {/* Handover Modal */}
       {handoverModal.assignment && (

@@ -33,20 +33,20 @@ export function AvailabilityToggle({ initialAvailable = true, onToggle }: Availa
         </span>
         <button
           onClick={handleToggle}
-          className="relative w-11 h-6 cursor-pointer"
+          className="relative w-14 h-8 cursor-pointer"
           role="switch"
           aria-checked={available}
           aria-label={t('statusLabel')}
           data-testid="availability-switch"
         >
           <div
-            className={`toggle-track-transition w-11 h-6 rounded-full ${
+            className={`toggle-track-transition w-14 h-8 rounded-full ${
               available ? 'bg-success' : 'bg-neutral-300'
             }`}
           />
           <div
-            className={`toggle-knob-transition absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md ${
-              available ? 'left-[22px]' : 'left-0.5'
+            className={`toggle-knob-transition absolute top-1 w-6 h-6 bg-white rounded-full shadow-md ${
+              available ? 'left-[28px]' : 'left-1'
             }`}
           />
         </button>
