@@ -4,7 +4,7 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin('./i18n.ts');
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: 'standalone',
   webpack: (config) => {
     // Fix for Zod locale imports in Turbopack/Next.js 16
     config.resolve.fallback = {

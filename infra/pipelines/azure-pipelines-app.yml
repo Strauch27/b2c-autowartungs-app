@@ -1,0 +1,325 @@
+# =============================================================================
+# Application Pipeline  --  Build, Test, Deploy (Preprod -> E2E -> Prod)
+# =============================================================================
+# Triggers on pushes to main that touch application source code under "99 Code/".
+# Builds both backend and frontend Docker images, pushes them to ACR, then
+# deploys to preprod, runs E2E smoke tests, and finally deploys to production
+# (with manual approval).
+# =============================================================================
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - '99 Code/**'
+
+pr: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  azureSubscription: 'Azure-B2C-PoC'
+  acrLoginServer: 'crb2cpoc.azurecr.io'
+  backendImage: 'b2cpoc/backend'
+  frontendImage: 'b2cpoc/frontend'
+  codeRoot: '$(Build.SourcesDirectory)/99 Code'
+
+# =============================================================================
+# Stages
+# =============================================================================
+stages:
+
+  # ===========================================================================
+  # Stage 1: Build
+  # ===========================================================================
+  - stage: Build
+    displayName: 'Build & Push Images'
+    jobs:
+
+      # -----------------------------------------------------------------------
+      # Job: Build Backend
+      # -----------------------------------------------------------------------
+      - job: BuildBackend
+        displayName: 'Build Backend'
+        steps:
+          - checkout: self
+
+          - task: NodeTool@0
+            displayName: 'Use Node.js 20.x'
+            inputs:
+              versionSpec: '20.x'
+
+          - script: |
+              cd "$(codeRoot)/backend"
+              npm ci
+            displayName: 'npm ci (backend)'
+
+          - script: |
+              cd "$(codeRoot)/backend"
+              npx prisma generate
+            displayName: 'Prisma generate'
+
+          - script: |
+              cd "$(codeRoot)/backend"
+              npm run build
+            displayName: 'npm run build (backend)'
+
+          - script: |
+              cd "$(codeRoot)/backend"
+              npm run test:unit
+            displayName: 'Unit tests (backend)'
+            continueOnError: true
+
+          - template: templates/docker-build.yml
+            parameters:
+              dockerfilePath: '$(codeRoot)/backend/Dockerfile'
+              imageName: '$(backendImage)'
+              buildContext: '$(codeRoot)/backend'
+
+      # -----------------------------------------------------------------------
+      # Job: Build Frontend (parallel with backend)
+      # -----------------------------------------------------------------------
+      - job: BuildFrontend
+        displayName: 'Build Frontend'
+        steps:
+          - checkout: self
+
+          - task: NodeTool@0
+            displayName: 'Use Node.js 20.x'
+            inputs:
+              versionSpec: '20.x'
+
+          - script: |
+              cd "$(codeRoot)/frontend"
+              npm ci
+            displayName: 'npm ci (frontend)'
+
+          # -- Preprod image --
+          - template: templates/docker-build.yml
+            parameters:
+              dockerfilePath: '$(codeRoot)/frontend/Dockerfile'
+              imageName: '$(frontendImage)'
+              buildContext: '$(codeRoot)/frontend'
+              buildArgs: '--build-arg NEXT_PUBLIC_API_URL=https://app-b2cpoc-backend-preprod.azurewebsites.net'
+
+          # Tag the image we just built as :preprod-<buildId> and :preprod
+          - task: Docker@2
+            displayName: 'Tag frontend image as preprod'
+            inputs:
+              containerRegistry: 'crb2cpoc'
+              repository: '$(frontendImage)'
+              command: 'tag'
+              arguments: '$(acrLoginServer)/$(frontendImage):$(Build.BuildId) $(acrLoginServer)/$(frontendImage):preprod-$(Build.BuildId)'
+
+          - task: Docker@2
+            displayName: 'Push frontend:preprod-$(Build.BuildId)'
+            inputs:
+              containerRegistry: 'crb2cpoc'
+              repository: '$(frontendImage)'
+              command: 'push'
+              tags: |
+                preprod-$(Build.BuildId)
+                preprod
+
+          # -- Prod image --
+          - task: Docker@2
+            displayName: 'Build frontend:prod'
+            inputs:
+              containerRegistry: 'crb2cpoc'
+              repository: '$(frontendImage)'
+              command: 'build'
+              Dockerfile: '$(codeRoot)/frontend/Dockerfile'
+              buildContext: '$(codeRoot)/frontend'
+              arguments: '--build-arg NEXT_PUBLIC_API_URL=https://app-b2cpoc-backend-prod.azurewebsites.net'
+              tags: |
+                prod-$(Build.BuildId)
+                prod
+
+          - task: Docker@2
+            displayName: 'Push frontend:prod-$(Build.BuildId)'
+            inputs:
+              containerRegistry: 'crb2cpoc'
+              repository: '$(frontendImage)'
+              command: 'push'
+              tags: |
+                prod-$(Build.BuildId)
+                prod
+
+  # ===========================================================================
+  # Stage 2: Deploy to Preprod
+  # ===========================================================================
+  - stage: DeployPreprod
+    displayName: 'Deploy to Preprod'
+    dependsOn: Build
+    jobs:
+
+      # -----------------------------------------------------------------------
+      # Job: Migrate Database (preprod)
+      # -----------------------------------------------------------------------
+      - job: MigrateDatabase
+        displayName: 'Run Prisma migrations (preprod)'
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            displayName: 'Prisma migrate deploy (preprod)'
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                set -euo pipefail
+
+                # Retrieve the database connection string from Key Vault
+                DATABASE_URL=$(az keyvault secret show \
+                  --vault-name kv-b2cpoc-preprod \
+                  --name database-url \
+                  --query value -o tsv)
+
+                # Log in to ACR so we can pull the backend image
+                az acr login --name crb2cpoc
+
+                # Run prisma migrate deploy inside the backend container
+                docker run --rm \
+                  -e DATABASE_URL="$DATABASE_URL" \
+                  $(acrLoginServer)/$(backendImage):$(Build.BuildId) \
+                  npx prisma migrate deploy
+
+      # -----------------------------------------------------------------------
+      # Job: Deploy Backend (preprod)
+      # -----------------------------------------------------------------------
+      - job: DeployBackend
+        displayName: 'Deploy Backend (preprod)'
+        dependsOn: MigrateDatabase
+        steps:
+          - template: templates/deploy-app-service.yml
+            parameters:
+              azureSubscription: '$(azureSubscription)'
+              appName: 'app-b2cpoc-backend-preprod'
+              imageName: '$(backendImage)'
+              imageTag: '$(Build.BuildId)'
+
+      # -----------------------------------------------------------------------
+      # Job: Deploy Frontend (preprod)
+      # -----------------------------------------------------------------------
+      - job: DeployFrontend
+        displayName: 'Deploy Frontend (preprod)'
+        dependsOn: DeployBackend
+        steps:
+          - template: templates/deploy-app-service.yml
+            parameters:
+              azureSubscription: '$(azureSubscription)'
+              appName: 'app-b2cpoc-frontend-preprod'
+              imageName: '$(frontendImage)'
+              imageTag: 'preprod-$(Build.BuildId)'
+
+  # ===========================================================================
+  # Stage 3: E2E / Smoke Tests against Preprod
+  # ===========================================================================
+  - stage: E2ETests
+    displayName: 'E2E Tests (Preprod)'
+    dependsOn: DeployPreprod
+    jobs:
+      - job: RunE2E
+        displayName: 'Playwright smoke tests'
+        steps:
+          - checkout: self
+
+          - task: NodeTool@0
+            displayName: 'Use Node.js 20.x'
+            inputs:
+              versionSpec: '20.x'
+
+          - script: |
+              cd "$(codeRoot)/frontend"
+              npm ci
+              npx playwright install --with-deps chromium
+            displayName: 'Install Playwright'
+
+          - script: |
+              cd "$(codeRoot)/frontend"
+              PLAYWRIGHT_BASE_URL=https://app-b2cpoc-frontend-preprod.azurewebsites.net \
+                npx playwright test --project=chromium --reporter=junit --output=test-results
+            displayName: 'Run smoke tests'
+            continueOnError: true
+
+          - task: PublishTestResults@2
+            displayName: 'Publish E2E test results'
+            condition: always()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '$(codeRoot)/frontend/test-results/**/*.xml'
+              mergeTestResults: true
+              testRunTitle: 'E2E Smoke Tests (Preprod)'
+
+  # ===========================================================================
+  # Stage 4: Deploy to Production (requires approval)
+  # ===========================================================================
+  - stage: DeployProd
+    displayName: 'Deploy to Production'
+    dependsOn: E2ETests
+    jobs:
+
+      # -----------------------------------------------------------------------
+      # Job: Migrate Database (prod)
+      # -----------------------------------------------------------------------
+      - deployment: MigrateDatabaseProd
+        displayName: 'Run Prisma migrations (prod)'
+        environment: 'b2cpoc-prod'               # approval gate configured here
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: 'Prisma migrate deploy (prod)'
+                  inputs:
+                    azureSubscription: '$(azureSubscription)'
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      set -euo pipefail
+
+                      DATABASE_URL=$(az keyvault secret show \
+                        --vault-name kv-b2cpoc-prod \
+                        --name database-url \
+                        --query value -o tsv)
+
+                      az acr login --name crb2cpoc
+
+                      docker run --rm \
+                        -e DATABASE_URL="$DATABASE_URL" \
+                        $(acrLoginServer)/$(backendImage):$(Build.BuildId) \
+                        npx prisma migrate deploy
+
+      # -----------------------------------------------------------------------
+      # Job: Deploy Backend (prod)
+      # -----------------------------------------------------------------------
+      - job: DeployBackendProd
+        displayName: 'Deploy Backend (prod)'
+        dependsOn: MigrateDatabaseProd
+        steps:
+          - template: templates/deploy-app-service.yml
+            parameters:
+              azureSubscription: '$(azureSubscription)'
+              appName: 'app-b2cpoc-backend-prod'
+              imageName: '$(backendImage)'
+              imageTag: '$(Build.BuildId)'
+
+      # -----------------------------------------------------------------------
+      # Job: Deploy Frontend (prod)
+      # -----------------------------------------------------------------------
+      - job: DeployFrontendProd
+        displayName: 'Deploy Frontend (prod)'
+        dependsOn: DeployBackendProd
+        steps:
+          - template: templates/deploy-app-service.yml
+            parameters:
+              azureSubscription: '$(azureSubscription)'
+              appName: 'app-b2cpoc-frontend-prod'
+              imageName: '$(frontendImage)'
+              imageTag: 'prod-$(Build.BuildId)'

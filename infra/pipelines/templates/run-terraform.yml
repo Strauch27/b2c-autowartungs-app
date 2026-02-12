@@ -1,0 +1,47 @@
+# ---------------------------------------------------------------------------
+# Template: Run Terraform init + plan/apply
+# ---------------------------------------------------------------------------
+parameters:
+  - name: workingDirectory
+    type: string
+    displayName: 'Terraform working directory'
+
+  - name: azureSubscription
+    type: string
+    displayName: 'Azure service connection name'
+
+  - name: command
+    type: string
+    default: 'plan'
+    values:
+      - plan
+      - apply
+    displayName: 'Terraform command (plan or apply)'
+
+steps:
+  - task: TerraformInstaller@1
+    displayName: 'Install Terraform 1.5.7'
+    inputs:
+      terraformVersion: '1.5.7'
+
+  - task: TerraformTaskV4@4
+    displayName: 'Terraform init'
+    inputs:
+      provider: 'azurerm'
+      command: 'init'
+      workingDirectory: '${{ parameters.workingDirectory }}'
+      backendServiceArm: '${{ parameters.azureSubscription }}'
+      backendAzureRmResourceGroupName: 'rg-b2cpoc-terraform'
+      backendAzureRmStorageAccountName: 'stb2cpoctfstate'
+      backendAzureRmContainerName: 'tfstate'
+      backendAzureRmKey: '${{ parameters.workingDirectory }}/terraform.tfstate'
+
+  - task: TerraformTaskV4@4
+    displayName: 'Terraform ${{ parameters.command }}'
+    inputs:
+      provider: 'azurerm'
+      command: '${{ parameters.command }}'
+      workingDirectory: '${{ parameters.workingDirectory }}'
+      environmentServiceNameAzureRM: '${{ parameters.azureSubscription }}'
+      ${{ if eq(parameters.command, 'apply') }}:
+        commandOptions: '-auto-approve'

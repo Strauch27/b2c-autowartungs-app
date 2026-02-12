@@ -12,7 +12,7 @@ SELECT
   DATE(b."createdAt") AS booking_date,
   COUNT(*) AS total_bookings,
   COUNT(*) FILTER (WHERE b."status" = 'CONFIRMED') AS confirmed_bookings,
-  COUNT(*) FILTER (WHERE b."status" IN ('COMPLETED', 'DELIVERED')) AS completed_bookings,
+  COUNT(*) FILTER (WHERE b."status" IN ('COMPLETED', 'RETURNED')) AS completed_bookings,
   COUNT(*) FILTER (WHERE b."status" = 'CANCELLED') AS cancelled_bookings,
   SUM(b."totalPrice") AS total_revenue,
   SUM(b."totalPrice") FILTER (WHERE b."paidAt" IS NOT NULL) AS paid_revenue,
@@ -69,26 +69,26 @@ ORDER BY lifetime_value DESC;
 CREATE OR REPLACE VIEW "JockeyPerformance" AS
 SELECT
   j."id" AS jockey_id,
-  u."email" AS jockey_email,
-  u."firstName",
-  u."lastName",
+  j."email" AS jockey_email,
+  j."firstName",
+  j."lastName",
   jp."rating",
   jp."isAvailable",
   COUNT(b."id") AS total_assignments,
-  COUNT(b."id") FILTER (WHERE b."status" IN ('COMPLETED', 'DELIVERED')) AS completed_assignments,
+  COUNT(b."id") FILTER (WHERE b."status" IN ('COMPLETED', 'RETURNED')) AS completed_assignments,
   COUNT(b."id") FILTER (WHERE b."status" = 'CANCELLED') AS cancelled_assignments,
   ROUND(
-    COUNT(b."id") FILTER (WHERE b."status" IN ('COMPLETED', 'DELIVERED'))::numeric /
+    COUNT(b."id") FILTER (WHERE b."status" IN ('COMPLETED', 'RETURNED'))::numeric /
     NULLIF(COUNT(b."id"), 0) * 100,
     2
   ) AS completion_rate,
-  SUM(b."totalPrice") FILTER (WHERE b."status" IN ('COMPLETED', 'DELIVERED')) AS total_revenue_generated,
+  SUM(b."totalPrice") FILTER (WHERE b."status" IN ('COMPLETED', 'RETURNED')) AS total_revenue_generated,
   AVG(b."totalPrice") AS avg_booking_value
 FROM "User" j
 INNER JOIN "JockeyProfile" jp ON j."id" = jp."userId"
 LEFT JOIN "Booking" b ON j."id" = b."jockeyId"
 WHERE j."role" = 'JOCKEY' AND j."isActive" = true
-GROUP BY j."id", u."email", u."firstName", u."lastName", jp."rating", jp."isAvailable"
+GROUP BY j."id", j."email", j."firstName", j."lastName", jp."rating", jp."isAvailable"
 ORDER BY completed_assignments DESC;
 
 -- ----------------------------------------------------------------------------
@@ -126,10 +126,10 @@ CREATE OR REPLACE VIEW "ServiceTypePerformance" AS
 SELECT
   b."serviceType",
   COUNT(*) AS total_bookings,
-  COUNT(*) FILTER (WHERE b."status" IN ('COMPLETED', 'DELIVERED')) AS completed_bookings,
+  COUNT(*) FILTER (WHERE b."status" IN ('COMPLETED', 'RETURNED')) AS completed_bookings,
   COUNT(*) FILTER (WHERE b."status" = 'CANCELLED') AS cancelled_bookings,
   ROUND(
-    COUNT(*) FILTER (WHERE b."status" IN ('COMPLETED', 'DELIVERED'))::numeric /
+    COUNT(*) FILTER (WHERE b."status" IN ('COMPLETED', 'RETURNED'))::numeric /
     NULLIF(COUNT(*), 0) * 100,
     2
   ) AS completion_rate,
@@ -183,10 +183,10 @@ SELECT
   COUNT(*) FILTER (WHERE b."status" = 'IN_WORKSHOP') AS in_workshop,
   COUNT(*) FILTER (WHERE b."status" = 'COMPLETED') AS completed,
   COUNT(*) FILTER (WHERE b."status" = 'IN_TRANSIT_TO_CUSTOMER') AS in_transit_to_customer,
-  COUNT(*) FILTER (WHERE b."status" = 'DELIVERED') AS delivered,
+  COUNT(*) FILTER (WHERE b."status" = 'RETURNED') AS delivered,
   COUNT(*) FILTER (WHERE b."status" = 'CANCELLED') AS cancelled,
   ROUND(
-    COUNT(*) FILTER (WHERE b."status" IN ('COMPLETED', 'DELIVERED'))::numeric /
+    COUNT(*) FILTER (WHERE b."status" IN ('COMPLETED', 'RETURNED'))::numeric /
     NULLIF(COUNT(*), 0) * 100,
     2
   ) AS conversion_rate

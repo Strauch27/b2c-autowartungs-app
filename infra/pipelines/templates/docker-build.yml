@@ -1,0 +1,35 @@
+# ---------------------------------------------------------------------------
+# Template: Build and push a Docker image to Azure Container Registry
+# ---------------------------------------------------------------------------
+parameters:
+  - name: dockerfilePath
+    type: string
+    displayName: 'Path to Dockerfile'
+
+  - name: imageName
+    type: string
+    displayName: 'Image name (without registry prefix)'
+
+  - name: buildContext
+    type: string
+    displayName: 'Docker build context directory'
+
+  - name: buildArgs
+    type: string
+    default: ''
+    displayName: 'Optional --build-arg values (multiline)'
+
+steps:
+  - task: Docker@2
+    displayName: 'Build and push ${{ parameters.imageName }}:$(Build.BuildId)'
+    inputs:
+      containerRegistry: 'crb2cpoc'                        # ACR service connection name
+      repository: '${{ parameters.imageName }}'
+      command: 'buildAndPush'
+      Dockerfile: '${{ parameters.dockerfilePath }}'
+      buildContext: '${{ parameters.buildContext }}'
+      tags: |
+        $(Build.BuildId)
+        latest
+      ${{ if ne(parameters.buildArgs, '') }}:
+        arguments: '${{ parameters.buildArgs }}'

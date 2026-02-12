@@ -1,0 +1,28 @@
+# ---------------------------------------------------------------------------
+# Template: Deploy a container image to Azure App Service
+# ---------------------------------------------------------------------------
+parameters:
+  - name: azureSubscription
+    type: string
+    displayName: 'Azure service connection name'
+
+  - name: appName
+    type: string
+    displayName: 'Azure App Service name'
+
+  - name: imageName
+    type: string
+    displayName: 'Full image name (without tag)'
+
+  - name: imageTag
+    type: string
+    default: '$(Build.BuildId)'
+    displayName: 'Image tag to deploy'
+
+steps:
+  - task: AzureWebAppContainer@1
+    displayName: 'Deploy ${{ parameters.imageName }}:${{ parameters.imageTag }} to ${{ parameters.appName }}'
+    inputs:
+      azureSubscription: '${{ parameters.azureSubscription }}'
+      appName: '${{ parameters.appName }}'
+      containers: 'crb2cpoc.azurecr.io/${{ parameters.imageName }}:${{ parameters.imageTag }}'

@@ -1,18 +1,19 @@
 /**
  * Upload Service
- * Handles file uploads to AWS S3 with image processing
+ * Handles file uploads to Azure Blob Storage with image processing
  */
 
 import {
-  S3Client,
-  PutObjectCommand,
-  DeleteObjectCommand,
-  GetObjectCommand,
-  HeadObjectCommand,
-} from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+  BlobServiceClient,
+  ContainerClient,
+  StorageSharedKeyCredential,
+  generateBlobSASQueryParameters,
+  BlobSASPermissions,
+  SASProtocol,
+} from '@azure/storage-blob';
+import { DefaultAzureCredential } from '@azure/identity';
 import sharp from 'sharp';
-import { s3Config, uploadConfig, validateS3Config } from '../config/upload.config';
+import { azureBlobConfig, uploadConfig, validateStorageConfig } from '../config/upload.config';
 
 interface UploadMetadata {
   userId?: string;
@@ -43,21 +44,41 @@ interface FileBuffer {
 }
 
 class UploadService {
-  private s3Client: S3Client;
-  private bucket: string;
+  private containerClient: ContainerClient;
+  private blobServiceClient: BlobServiceClient;
   private isConfigured: boolean;
+  private accountName: string;
+  private containerName: string;
 
   constructor() {
-    this.isConfigured = validateS3Config();
-    this.bucket = s3Config.bucket;
-    this.s3Client = new S3Client({
-      region: s3Config.region,
-      credentials: s3Config.credentials,
-    });
+    this.isConfigured = validateStorageConfig();
+    this.accountName = azureBlobConfig.accountName;
+    this.containerName = azureBlobConfig.containerName;
+
+    if (azureBlobConfig.connectionString) {
+      // Use connection string (local development / explicit credentials)
+      this.blobServiceClient = BlobServiceClient.fromConnectionString(
+        azureBlobConfig.connectionString
+      );
+    } else if (this.accountName) {
+      // Use Managed Identity (Azure-hosted environments)
+      const credential = new DefaultAzureCredential();
+      this.blobServiceClient = new BlobServiceClient(
+        `https://${this.accountName}.blob.core.windows.net`,
+        credential
+      );
+    } else {
+      // Fallback: create a placeholder client (isConfigured will be false)
+      this.blobServiceClient = new BlobServiceClient(
+        'https://placeholder.blob.core.windows.net'
+      );
+    }
+
+    this.containerClient = this.blobServiceClient.getContainerClient(this.containerName);
   }
 
   /**
-   * Upload a single file to S3
+   * Upload a single file to Azure Blob Storage
    */
   async uploadFile(
     file: FileBuffer,
@@ -65,7 +86,7 @@ class UploadService {
     metadata?: UploadMetadata
   ): Promise<UploadResult> {
     if (!this.isConfigured) {
-      throw new Error('S3 configuration is incomplete');
+      throw new Error('Azure Blob Storage configuration is incomplete');
     }
 
     // Validate file type
@@ -89,16 +110,12 @@ class UploadService {
       variants = await this.generateImageVariants(file.buffer, folder, key);
     }
 
-    // Upload to S3
-    const uploadParams = {
-      Bucket: this.bucket,
-      Key: key,
-      Body: processedBuffer,
-      ContentType: file.mimetype,
-      Metadata: this.sanitizeMetadata(metadata),
-    };
-
-    await this.s3Client.send(new PutObjectCommand(uploadParams));
+    // Upload to Azure Blob Storage
+    const blockBlobClient = this.containerClient.getBlockBlobClient(key);
+    await blockBlobClient.uploadData(processedBuffer, {
+      blobHTTPHeaders: { blobContentType: file.mimetype },
+      metadata: this.sanitizeMetadata(metadata),
+    });
 
     const url = this.getPublicUrl(key);
 
@@ -128,21 +145,16 @@ class UploadService {
   }
 
   /**
-   * Delete a file from S3 by URL or key
+   * Delete a file from Azure Blob Storage by URL or key
    */
   async deleteFile(fileUrlOrKey: string): Promise<void> {
     if (!this.isConfigured) {
-      throw new Error('S3 configuration is incomplete');
+      throw new Error('Azure Blob Storage configuration is incomplete');
     }
 
     const key = this.extractKeyFromUrl(fileUrlOrKey);
-
-    const deleteParams = {
-      Bucket: this.bucket,
-      Key: key,
-    };
-
-    await this.s3Client.send(new DeleteObjectCommand(deleteParams));
+    const blockBlobClient = this.containerClient.getBlockBlobClient(key);
+    await blockBlobClient.delete();
   }
 
   /**
@@ -157,24 +169,46 @@ class UploadService {
   }
 
   /**
-   * Generate a signed URL for temporary access
+   * Generate a signed URL for temporary download access
    */
   async generateSignedUrl(
     fileUrlOrKey: string,
     expiresIn: number = uploadConfig.signedUrlExpiration.download
   ): Promise<string> {
     if (!this.isConfigured) {
-      throw new Error('S3 configuration is incomplete');
+      throw new Error('Azure Blob Storage configuration is incomplete');
     }
 
     const key = this.extractKeyFromUrl(fileUrlOrKey);
+    const blockBlobClient = this.containerClient.getBlockBlobClient(key);
 
-    const command = new GetObjectCommand({
-      Bucket: this.bucket,
-      Key: key,
-    });
+    // Use user delegation key with DefaultAzureCredential, or
+    // fall back to generating SAS from connection string
+    const startsOn = new Date();
+    const expiresOn = new Date(startsOn.getTime() + expiresIn * 1000);
 
-    return getSignedUrl(this.s3Client, command, { expiresIn });
+    if (azureBlobConfig.connectionString) {
+      // Extract account name and key from connection string for SAS generation
+      const sasUrl = await this.generateSasUrl(key, BlobSASPermissions.parse('r'), expiresOn);
+      return sasUrl;
+    }
+
+    // For Managed Identity, use user delegation SAS
+    const userDelegationKey = await this.blobServiceClient.getUserDelegationKey(startsOn, expiresOn);
+    const sasParams = generateBlobSASQueryParameters(
+      {
+        containerName: this.containerName,
+        blobName: key,
+        permissions: BlobSASPermissions.parse('r'),
+        startsOn,
+        expiresOn,
+        protocol: SASProtocol.Https,
+      },
+      userDelegationKey,
+      this.accountName
+    );
+
+    return `${blockBlobClient.url}?${sasParams.toString()}`;
   }
 
   /**
@@ -187,27 +221,46 @@ class UploadService {
     expiresIn: number = uploadConfig.signedUrlExpiration.upload
   ): Promise<{ uploadUrl: string; key: string; publicUrl: string }> {
     if (!this.isConfigured) {
-      throw new Error('S3 configuration is incomplete');
+      throw new Error('Azure Blob Storage configuration is incomplete');
     }
 
     this.validateFileType(mimeType);
 
     const key = this.generateKey(folder, filename);
+    const expiresOn = new Date(Date.now() + expiresIn * 1000);
 
-    const command = new PutObjectCommand({
-      Bucket: this.bucket,
-      Key: key,
-      ContentType: mimeType,
-    });
+    const blockBlobClient = this.containerClient.getBlockBlobClient(key);
 
-    const uploadUrl = await getSignedUrl(this.s3Client, command, { expiresIn });
+    if (azureBlobConfig.connectionString) {
+      const uploadUrl = await this.generateSasUrl(key, BlobSASPermissions.parse('cw'), expiresOn);
+      const publicUrl = this.getPublicUrl(key);
+      return { uploadUrl, key, publicUrl };
+    }
+
+    // For Managed Identity, use user delegation SAS
+    const startsOn = new Date();
+    const userDelegationKey = await this.blobServiceClient.getUserDelegationKey(startsOn, expiresOn);
+    const sasParams = generateBlobSASQueryParameters(
+      {
+        containerName: this.containerName,
+        blobName: key,
+        permissions: BlobSASPermissions.parse('cw'),
+        startsOn,
+        expiresOn,
+        protocol: SASProtocol.Https,
+      },
+      userDelegationKey,
+      this.accountName
+    );
+
+    const uploadUrl = `${blockBlobClient.url}?${sasParams.toString()}`;
     const publicUrl = this.getPublicUrl(key);
 
     return { uploadUrl, key, publicUrl };
   }
 
   /**
-   * Check if a file exists in S3
+   * Check if a file exists in Azure Blob Storage
    */
   async fileExists(fileUrlOrKey: string): Promise<boolean> {
     if (!this.isConfigured) {
@@ -216,14 +269,8 @@ class UploadService {
 
     try {
       const key = this.extractKeyFromUrl(fileUrlOrKey);
-
-      await this.s3Client.send(
-        new HeadObjectCommand({
-          Bucket: this.bucket,
-          Key: key,
-        })
-      );
-
+      const blockBlobClient = this.containerClient.getBlockBlobClient(key);
+      await blockBlobClient.getProperties();
       return true;
     } catch (error) {
       return false;
@@ -231,6 +278,44 @@ class UploadService {
   }
 
   // ========== PRIVATE HELPER METHODS ==========
+
+  /**
+   * Generate a SAS URL using connection string credentials
+   */
+  private async generateSasUrl(
+    blobName: string,
+    permissions: BlobSASPermissions,
+    expiresOn: Date
+  ): Promise<string> {
+    const blockBlobClient = this.containerClient.getBlockBlobClient(blobName);
+
+    // Parse account name and key from connection string
+    const accountNameMatch = azureBlobConfig.connectionString.match(/AccountName=([^;]+)/);
+    const accountKeyMatch = azureBlobConfig.connectionString.match(/AccountKey=([^;]+)/);
+
+    if (!accountNameMatch || !accountKeyMatch) {
+      throw new Error('Unable to parse Azure Storage connection string');
+    }
+
+    const sharedKeyCredential = new StorageSharedKeyCredential(
+      accountNameMatch[1],
+      accountKeyMatch[1]
+    );
+
+    const sasParams = generateBlobSASQueryParameters(
+      {
+        containerName: this.containerName,
+        blobName,
+        permissions,
+        startsOn: new Date(),
+        expiresOn,
+        protocol: SASProtocol.Https,
+      },
+      sharedKeyCredential
+    );
+
+    return `${blockBlobClient.url}?${sasParams.toString()}`;
+  }
 
   /**
    * Validate file type
@@ -272,7 +357,7 @@ class UploadService {
   }
 
   /**
-   * Generate a unique S3 key
+   * Generate a unique blob key
    */
   private generateKey(folder: string, filename: string): string {
     const timestamp = Date.now();
@@ -286,7 +371,7 @@ class UploadService {
   }
 
   /**
-   * Extract S3 key from URL
+   * Extract blob key from URL
    */
   private extractKeyFromUrl(urlOrKey: string): string {
     // If it's already a key (no http), return as is
@@ -294,20 +379,23 @@ class UploadService {
       return urlOrKey;
     }
 
-    // Extract key from S3 URL
+    // Extract key from Azure Blob Storage URL
+    // URL format: https://{account}.blob.core.windows.net/{container}/{key}
     const url = new URL(urlOrKey);
-    return url.pathname.substring(1); // Remove leading slash
+    const pathParts = url.pathname.split('/');
+    // Remove leading empty string and container name, rejoin the rest as key
+    return pathParts.slice(2).join('/');
   }
 
   /**
-   * Get public URL for S3 object
+   * Get public URL for a blob
    */
   private getPublicUrl(key: string): string {
-    return `https://${this.bucket}.s3.${s3Config.region}.amazonaws.com/${key}`;
+    return `https://${this.accountName}.blob.core.windows.net/${this.containerName}/${key}`;
   }
 
   /**
-   * Sanitize metadata for S3 (only string values allowed)
+   * Sanitize metadata for Azure Blob Storage (only string values allowed)
    */
   private sanitizeMetadata(metadata?: UploadMetadata): Record<string, string> {
     if (!metadata) return {};
@@ -360,14 +448,10 @@ class UploadService {
         .toBuffer();
 
       const thumbnailKey = originalKey.replace(/(\.[^.]+)$/, '-thumbnail$1');
-      await this.s3Client.send(
-        new PutObjectCommand({
-          Bucket: this.bucket,
-          Key: thumbnailKey,
-          Body: thumbnailBuffer,
-          ContentType: 'image/jpeg',
-        })
-      );
+      const thumbnailBlob = this.containerClient.getBlockBlobClient(thumbnailKey);
+      await thumbnailBlob.uploadData(thumbnailBuffer, {
+        blobHTTPHeaders: { blobContentType: 'image/jpeg' },
+      });
       variants.thumbnail = this.getPublicUrl(thumbnailKey);
 
       // Generate medium
@@ -381,14 +465,10 @@ class UploadService {
         .toBuffer();
 
       const mediumKey = originalKey.replace(/(\.[^.]+)$/, '-medium$1');
-      await this.s3Client.send(
-        new PutObjectCommand({
-          Bucket: this.bucket,
-          Key: mediumKey,
-          Body: mediumBuffer,
-          ContentType: 'image/jpeg',
-        })
-      );
+      const mediumBlob = this.containerClient.getBlockBlobClient(mediumKey);
+      await mediumBlob.uploadData(mediumBuffer, {
+        blobHTTPHeaders: { blobContentType: 'image/jpeg' },
+      });
       variants.medium = this.getPublicUrl(mediumKey);
     } catch (error) {
       console.error('Error generating image variants:', error);

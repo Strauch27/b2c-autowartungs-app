@@ -34,9 +34,10 @@
   "author": "Sten Rauch",
   "license": "MIT",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.980.0",
-    "@aws-sdk/s3-request-presigner": "^3.980.0",
+    "@azure/identity": "^4.6.0",
+    "@azure/storage-blob": "^12.26.0",
     "@prisma/client": "^6.2.0",
+    "applicationinsights": "^3.4.0",
     "@types/bcryptjs": "^2.4.6",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.3",

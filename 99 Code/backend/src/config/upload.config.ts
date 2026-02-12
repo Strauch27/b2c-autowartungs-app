@@ -45,7 +45,7 @@ export const uploadConfig = {
     quality: 85,
   },
 
-  // AWS S3 Folder Structure
+  // Blob Storage Folder Structure
   folders: {
     jockeyPhotos: 'jockeys/photos',
     jockeyDocuments: 'jockeys/documents',
@@ -65,22 +65,16 @@ export const uploadConfig = {
   },
 };
 
-// AWS S3 Configuration from environment variables
-export const s3Config = {
-  region: process.env.AWS_REGION || 'eu-central-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-  },
-  bucket: process.env.AWS_S3_BUCKET || '',
+// Azure Blob Storage Configuration from environment variables
+export const azureBlobConfig = {
+  accountName: process.env.AZURE_STORAGE_ACCOUNT_NAME || '',
+  containerName: process.env.AZURE_STORAGE_CONTAINER_NAME || 'uploads',
+  connectionString: process.env.AZURE_STORAGE_CONNECTION_STRING || '',
 };
 
-// Validate S3 configuration
-export const validateS3Config = (): boolean => {
-  if (!s3Config.credentials.accessKeyId ||
-      !s3Config.credentials.secretAccessKey ||
-      !s3Config.bucket) {
-    console.warn('⚠️  AWS S3 configuration is incomplete. File upload will not work.');
+export const validateStorageConfig = (): boolean => {
+  if (!azureBlobConfig.accountName && !azureBlobConfig.connectionString) {
+    console.warn('⚠️  Azure Blob Storage configuration is incomplete. File upload will not work.');
     return false;
   }
   return true;

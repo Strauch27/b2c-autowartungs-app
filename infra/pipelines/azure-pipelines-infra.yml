@@ -1,0 +1,200 @@
+# =============================================================================
+# Infrastructure Pipeline  --  Terraform validate / plan / apply
+# =============================================================================
+# Triggers on changes under infra/terraform/** or on manual run.
+# Each environment tier (shared, database, preprod, prod) goes through a
+# plan stage followed by an apply stage that requires approval.
+# =============================================================================
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - infra/terraform/**
+
+pr: none   # infrastructure changes should only be applied from main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  azureSubscription: 'Azure-B2C-PoC'
+  terraformRoot: '$(Build.SourcesDirectory)/infra/terraform'
+
+# =============================================================================
+# Stages
+# =============================================================================
+stages:
+
+  # ---------------------------------------------------------------------------
+  # 1. Validate -- fmt check + validate on every module directory
+  # ---------------------------------------------------------------------------
+  - stage: Validate
+    displayName: 'Validate Terraform'
+    jobs:
+      - job: ValidateTerraform
+        displayName: 'Terraform fmt & validate'
+        steps:
+          - checkout: self
+
+          - task: TerraformInstaller@1
+            displayName: 'Install Terraform 1.5.7'
+            inputs:
+              terraformVersion: '1.5.7'
+
+          - script: |
+              set -euo pipefail
+              echo "=== Terraform format check ==="
+              terraform fmt -check -recursive $(terraformRoot)
+            displayName: 'terraform fmt -check'
+
+          - script: |
+              set -euo pipefail
+              for dir in $(find $(terraformRoot) -name '*.tf' -exec dirname {} \; | sort -u); do
+                echo "--- Validating $dir ---"
+                terraform -chdir="$dir" init -backend=false
+                terraform -chdir="$dir" validate
+              done
+            displayName: 'terraform validate (all directories)'
+
+  # ---------------------------------------------------------------------------
+  # 2-3. Shared infrastructure
+  # ---------------------------------------------------------------------------
+  - stage: Plan_Shared
+    displayName: 'Plan -- Shared'
+    dependsOn: Validate
+    jobs:
+      - job: PlanShared
+        displayName: 'Terraform plan (shared)'
+        steps:
+          - checkout: self
+          - template: templates/run-terraform.yml
+            parameters:
+              workingDirectory: '$(terraformRoot)/shared'
+              azureSubscription: '$(azureSubscription)'
+              command: 'plan'
+
+  - stage: Apply_Shared
+    displayName: 'Apply -- Shared'
+    dependsOn: Plan_Shared
+    jobs:
+      - deployment: ApplyShared
+        displayName: 'Terraform apply (shared)'
+        environment: 'b2cpoc-shared'        # requires approval gate in Azure DevOps
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - template: templates/run-terraform.yml
+                  parameters:
+                    workingDirectory: '$(terraformRoot)/shared'
+                    azureSubscription: '$(azureSubscription)'
+                    command: 'apply'
+
+  # ---------------------------------------------------------------------------
+  # 4-5. Database
+  # ---------------------------------------------------------------------------
+  - stage: Plan_Database
+    displayName: 'Plan -- Database'
+    dependsOn: Apply_Shared
+    jobs:
+      - job: PlanDatabase
+        displayName: 'Terraform plan (database)'
+        steps:
+          - checkout: self
+          - template: templates/run-terraform.yml
+            parameters:
+              workingDirectory: '$(terraformRoot)/database'
+              azureSubscription: '$(azureSubscription)'
+              command: 'plan'
+
+  - stage: Apply_Database
+    displayName: 'Apply -- Database'
+    dependsOn: Plan_Database
+    jobs:
+      - deployment: ApplyDatabase
+        displayName: 'Terraform apply (database)'
+        environment: 'b2cpoc-database'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - template: templates/run-terraform.yml
+                  parameters:
+                    workingDirectory: '$(terraformRoot)/database'
+                    azureSubscription: '$(azureSubscription)'
+                    command: 'apply'
+
+  # ---------------------------------------------------------------------------
+  # 6-7. Pre-production environment
+  # ---------------------------------------------------------------------------
+  - stage: Plan_Preprod
+    displayName: 'Plan -- Preprod'
+    dependsOn: Apply_Database
+    jobs:
+      - job: PlanPreprod
+        displayName: 'Terraform plan (preprod)'
+        steps:
+          - checkout: self
+          - template: templates/run-terraform.yml
+            parameters:
+              workingDirectory: '$(terraformRoot)/environments/preprod'
+              azureSubscription: '$(azureSubscription)'
+              command: 'plan'
+
+  - stage: Apply_Preprod
+    displayName: 'Apply -- Preprod'
+    dependsOn: Plan_Preprod
+    jobs:
+      - deployment: ApplyPreprod
+        displayName: 'Terraform apply (preprod)'
+        environment: 'b2cpoc-preprod'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - template: templates/run-terraform.yml
+                  parameters:
+                    workingDirectory: '$(terraformRoot)/environments/preprod'
+                    azureSubscription: '$(azureSubscription)'
+                    command: 'apply'
+
+  # ---------------------------------------------------------------------------
+  # 8-9. Production environment
+  # ---------------------------------------------------------------------------
+  - stage: Plan_Prod
+    displayName: 'Plan -- Prod'
+    dependsOn: Apply_Preprod
+    jobs:
+      - job: PlanProd
+        displayName: 'Terraform plan (prod)'
+        steps:
+          - checkout: self
+          - template: templates/run-terraform.yml
+            parameters:
+              workingDirectory: '$(terraformRoot)/environments/prod'
+              azureSubscription: '$(azureSubscription)'
+              command: 'plan'
+
+  - stage: Apply_Prod
+    displayName: 'Apply -- Prod'
+    dependsOn: Plan_Prod
+    jobs:
+      - deployment: ApplyProd
+        displayName: 'Terraform apply (prod)'
+        environment: 'b2cpoc-prod'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - template: templates/run-terraform.yml
+                  parameters:
+                    workingDirectory: '$(terraformRoot)/environments/prod'
+                    azureSubscription: '$(azureSubscription)'
+                    command: 'apply'
