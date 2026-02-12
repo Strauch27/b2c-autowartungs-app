@@ -45,6 +45,8 @@ export interface CreateExtensionData {
     name: string;
     price: number;
     quantity: number;
+    mediaUrl?: string;
+    mediaType?: 'image' | 'video';
   }>;
   images?: string[];
   videos?: string[];

@@ -82,7 +82,9 @@ const createExtensionSchema = z.object({
   items: z.array(z.object({
     name: z.string().min(1, 'Item name is required'),
     price: z.number().positive('Price must be positive'),
-    quantity: z.number().int().positive('Quantity must be a positive integer')
+    quantity: z.number().int().positive('Quantity must be a positive integer'),
+    mediaUrl: z.string().optional(),
+    mediaType: z.enum(['image', 'video']).optional()
   })).min(1, 'At least one item is required'),
   images: z.array(z.string().url()).optional(),
   videos: z.array(z.string().url()).optional()
@@ -90,6 +92,10 @@ const createExtensionSchema = z.object({
 
 const declineExtensionSchema = z.object({
   reason: z.string().optional()
+});
+
+const respondToExtensionSchema = z.object({
+  acceptedItemIndices: z.array(z.number().int().min(0))
 });
 
 // Initialize services
@@ -652,6 +658,44 @@ export async function declineExtension(req: Request, res: Response, next: NextFu
       success: true,
       data: extension,
       message: 'Extension declined'
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      next(new ApiError(400, error.errors[0].message));
+    } else {
+      next(error);
+    }
+  }
+}
+
+/**
+ * Respond to extension with per-item accept/reject
+ * POST /api/bookings/:id/extensions/:extensionId/respond
+ */
+export async function respondToExtension(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    if (!req.user) {
+      throw new ApiError(401, 'Authentication required');
+    }
+
+    const id = req.params.id as string;
+    const extensionId = req.params.extensionId as string;
+
+    const validatedData = respondToExtensionSchema.parse(req.body);
+
+    const result = await bookingsService.respondToExtension(
+      id,
+      extensionId,
+      req.user.userId as string,
+      validatedData.acceptedItemIndices
+    );
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: result.paymentIntent
+        ? 'Extension partially approved. Payment created for accepted items.'
+        : 'Extension declined. No items were accepted.'
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

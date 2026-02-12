@@ -4,6 +4,7 @@
  */
 
 import { apiClient } from './client';
+import { tokenStorage } from '../auth/token-storage';
 
 /**
  * Vehicle data for booking creation
@@ -161,15 +162,20 @@ interface PaginatedResponse<T> {
 /**
  * Extension data
  */
+export interface ExtensionItem {
+  name: string;
+  price: number;
+  quantity: number;
+  mediaUrl?: string;
+  mediaType?: 'image' | 'video';
+  accepted?: boolean;
+}
+
 export interface ExtensionResponse {
   id: string;
   bookingId: string;
   description: string;
-  items: Array<{
-    name: string;
-    price: number;
-    quantity: number;
-  }>;
+  items: ExtensionItem[];
   totalAmount: number;
   images: string[];
   videos: string[];
@@ -326,6 +332,58 @@ export const bookingsApi = {
       { reason }
     );
     return response.data;
+  },
+
+  /**
+   * Respond to extension with per-item accept/reject
+   */
+  async respondToExtension(
+    bookingId: string,
+    extensionId: string,
+    acceptedItemIndices: number[]
+  ): Promise<{
+    extension: ExtensionResponse;
+    paymentIntent?: {
+      id: string;
+      clientSecret: string | null;
+      amount: number;
+    };
+  }> {
+    const response = await apiClient.post<ApiResponse<any>>(
+      `/api/bookings/${bookingId}/extensions/${extensionId}/respond`,
+      { acceptedItemIndices }
+    );
+    return response.data;
+  },
+
+  /**
+   * Upload media file for extension item
+   */
+  async uploadExtensionMedia(file: File): Promise<{
+    url: string;
+    mediaType: 'image' | 'video';
+    filename: string;
+  }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = tokenStorage.getToken();
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/api/upload/extension-media`,
+      {
+        method: 'POST',
+        body: formData,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Upload failed' }));
+      throw new Error(error.error || 'Upload failed');
+    }
+
+    const result = await response.json();
+    return result.data;
   },
 
   /**

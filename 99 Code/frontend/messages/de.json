@@ -1247,6 +1247,10 @@
       "sendExtension": "Erweiterung senden",
       "cancelExtension": "Abbrechen",
       "extensionNotice": "Der Kunde wird benachrichtigt und muss die Erweiterung genehmigen.",
+      "uploadMedia": "Foto/Video hochladen",
+      "uploading": "Wird hochgeladen...",
+      "uploadError": "Hochladen fehlgeschlagen",
+      "videoTooLong": "Video darf max. 15 Sekunden lang sein",
       "communication": "Notizen & Kommunikation",
       "addNote": "Notiz hinzufügen...",
       "send": "Senden",
@@ -1394,7 +1398,9 @@
     "approveAndPay": "Genehmigen & Bezahlen",
     "extensionApproved": "Erweiterung genehmigt",
     "pendingBanner": "Sie haben {count} ausstehende Auftragserweiterung(en)",
-    "reviewNow": "Jetzt prüfen"
+    "reviewNow": "Jetzt prüfen",
+    "itemAccepted": "Angenommen",
+    "itemRejected": "Abgelehnt"
   },
   "extensionApproval": {
     "reviewTitle": "Auftragserweiterung prüfen",
@@ -1432,7 +1438,14 @@
     "extension": "Auftragserweiterung",
     "description": "Beschreibung",
     "totalCost": "Gesamtkosten",
-    "documentation": "Dokumentation"
+    "documentation": "Dokumentation",
+    "selectItems": "Wählen Sie die Positionen aus, die Sie genehmigen möchten",
+    "selectedTotal": "Ausgewählte Positionen",
+    "noItemsSelected": "Keine Positionen ausgewählt",
+    "paySelectedItems": "Ausgewählte Positionen bezahlen",
+    "declineAll": "Alle ablehnen",
+    "itemsSelected": "{count} von {total} Positionen ausgewählt",
+    "viewMedia": "Nachweis ansehen"
   },
   "bookingPage": {
     "step1Label": "Fahrzeug auswählen",

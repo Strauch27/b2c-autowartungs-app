@@ -841,6 +841,130 @@ export class BookingsService {
   }
 
   /**
+   * Respond to extension with per-item accept/reject
+   */
+  async respondToExtension(
+    bookingId: string,
+    extensionId: string,
+    customerId: string,
+    acceptedItemIndices: number[]
+  ) {
+    // Verify booking ownership
+    const booking = await this.getBookingById(bookingId, customerId);
+
+    // Get extension
+    const extension = await prisma.extension.findUnique({
+      where: { id: extensionId }
+    });
+
+    if (!extension) {
+      throw new ApiError(404, 'Extension not found');
+    }
+
+    if (extension.bookingId !== bookingId) {
+      throw new ApiError(403, 'Extension does not belong to this booking');
+    }
+
+    if (extension.status !== ExtensionStatus.PENDING) {
+      throw new ApiError(400, `Extension is already ${extension.status.toLowerCase()}`);
+    }
+
+    // Get items and mark accepted/rejected
+    const items = extension.items as any[];
+    const updatedItems = items.map((item: any, index: number) => ({
+      ...item,
+      accepted: acceptedItemIndices.includes(index)
+    }));
+
+    // Calculate approved amount from accepted items only
+    const approvedAmount = updatedItems
+      .filter((item: any) => item.accepted)
+      .reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+
+    // If no items accepted, decline
+    if (approvedAmount === 0) {
+      const updatedExtension = await prisma.extension.update({
+        where: { id: extensionId },
+        data: {
+          status: ExtensionStatus.DECLINED,
+          items: updatedItems,
+          declinedAt: new Date()
+        }
+      });
+
+      logger.info({
+        message: 'Extension declined (no items accepted)',
+        extensionId,
+        bookingId,
+      });
+
+      return { extension: updatedExtension };
+    }
+
+    // Create payment intent for approved amount
+    const isDemoMode = process.env.DEMO_MODE === 'true';
+    let paymentIntentId: string;
+    let clientSecret: string | null = null;
+    let amount: number;
+
+    if (isDemoMode) {
+      const demoIntent = await demoPaymentService.createPaymentIntent({
+        amount: approvedAmount,
+        bookingId,
+        customerId,
+        customerEmail: booking.customer.email,
+        metadata: { extensionId: extension.id, type: 'extension' }
+      });
+      await demoPaymentService.confirmPayment(demoIntent.id);
+      paymentIntentId = demoIntent.id;
+      clientSecret = demoIntent.client_secret;
+      amount = demoIntent.amount;
+    } else {
+      const paymentIntent = await paymentService.createPaymentIntent({
+        amount: approvedAmount,
+        bookingId,
+        customerId,
+        customerEmail: booking.customer.email,
+        metadata: { extensionId: extension.id, type: 'extension' }
+      });
+      paymentIntentId = paymentIntent.id;
+      clientSecret = paymentIntent.client_secret;
+      amount = paymentIntent.amount;
+    }
+
+    // Update extension with modified items, new total, and payment info
+    const updatedExtension = await prisma.extension.update({
+      where: { id: extensionId },
+      data: {
+        status: ExtensionStatus.APPROVED,
+        items: updatedItems,
+        totalAmount: approvedAmount,
+        approvedAt: new Date(),
+        paymentIntentId
+      }
+    });
+
+    logger.info({
+      message: 'Extension partially approved',
+      extensionId,
+      bookingId,
+      acceptedItems: acceptedItemIndices.length,
+      totalItems: items.length,
+      approvedAmount,
+      paymentIntentId
+    });
+
+    return {
+      extension: updatedExtension,
+      paymentIntent: {
+        id: paymentIntentId,
+        clientSecret,
+        amount
+      }
+    };
+  }
+
+  /**
    * Get booking extensions
    */
   async getBookingExtensions(bookingId: string, customerId: string) {

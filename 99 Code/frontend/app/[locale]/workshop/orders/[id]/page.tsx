@@ -82,7 +82,7 @@ function OrderDetailContent() {
     }
   };
 
-  const handleExtensionSubmit = async (description: string, items: Array<{ id: string; name: string; quantity: number; unitPrice: string }>) => {
+  const handleExtensionSubmit = async (description: string, items: Array<{ id: string; name: string; quantity: number; unitPrice: string; mediaUrl?: string; mediaType?: 'image' | 'video' }>) => {
     if (!order) return;
     try {
       const extensionData: CreateExtensionData = {
@@ -91,6 +91,8 @@ function OrderDetailContent() {
           name: item.name,
           price: parseFloat(item.unitPrice) * 100,
           quantity: item.quantity,
+          ...(item.mediaUrl && { mediaUrl: item.mediaUrl }),
+          ...(item.mediaType && { mediaType: item.mediaType }),
         })),
       };
       await workshopsApi.createExtension(order.id, extensionData);

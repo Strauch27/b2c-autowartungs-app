@@ -13,7 +13,8 @@ import {
   getBookingStatus,
   getBookingExtensions,
   approveExtension,
-  declineExtension
+  declineExtension,
+  respondToExtension
 } from '../controllers/bookings.controller';
 import { authenticate, optionalAuthenticate } from '../middleware/auth';
 import { requireCustomer } from '../middleware/rbac';
@@ -97,5 +98,13 @@ router.post('/:id/extensions/:extensionId/approve', authRequired, approveExtensi
  * - reason: string (optional)
  */
 router.post('/:id/extensions/:extensionId/decline', authRequired, declineExtension);
+
+/**
+ * POST /api/bookings/:id/extensions/:extensionId/respond
+ * Respond to an extension with per-item accept/reject
+ * Body:
+ * - acceptedItemIndices: number[] (indices of accepted items)
+ */
+router.post('/:id/extensions/:extensionId/respond', authRequired, respondToExtension);
 
 export default router;

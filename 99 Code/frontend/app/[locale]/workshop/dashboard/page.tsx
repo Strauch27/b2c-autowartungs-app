@@ -219,23 +219,27 @@ function DashboardContent() {
     }
   };
 
-  const handleExtensionSubmit = async (items: any[], photos: string[]) => {
+  const handleExtensionSubmit = async (description: string, items: any[]) => {
     try {
       const order = workshopOrders.find(o => o.bookingNumber === extensionModal.orderId);
       if (!order) {
         throw new Error('Booking not found');
       }
       const extensionData: CreateExtensionData = {
-        description: items.map(item => item.description).join(', '),
+        description: description || items.map(item => item.name).join(', '),
         items: items.map(item => ({
-          name: item.description,
-          price: parseFloat(item.price) * 100,
-          quantity: 1
+          name: item.name,
+          price: Math.round(parseFloat(item.unitPrice) * 100),
+          quantity: item.quantity || 1,
+          mediaUrl: item.mediaUrl,
+          mediaType: item.mediaType,
         })),
-        images: photos
       };
       await workshopsApi.createExtension(order.id, extensionData);
       toast.success(t.workshopDashboard.toast.extensionSent);
+      // Refresh orders to show updated extension state
+      const result = await workshopsApi.getOrders({ limit: 50 });
+      setWorkshopOrders(result.orders);
     } catch (error) {
       console.error("Failed to submit extension:", error);
       toast.error(t.workshopDashboard.toast.extensionFailed);

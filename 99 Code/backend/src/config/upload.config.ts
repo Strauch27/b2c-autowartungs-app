@@ -54,6 +54,7 @@ export const uploadConfig = {
     vehiclePhotos: 'vehicles/photos',
     maintenancePhotos: 'maintenance/photos',
     maintenanceVideos: 'maintenance/videos',
+    extensionMedia: 'extensions/media',
     temp: 'temp',
   },
 

@@ -43,6 +43,20 @@ router.post(
 );
 
 /**
+ * @route   POST /api/upload/extension-media
+ * @desc    Upload a single file for extension item evidence (local disk for demo mode)
+ * @access  Private (requires authentication)
+ * @body    file (multipart)
+ */
+router.post(
+  '/extension-media',
+  authenticate,
+  uploadSingleFile,
+  handleMulterError,
+  uploadController.uploadExtensionMedia
+);
+
+/**
  * @route   DELETE /api/upload/:key
  * @desc    Delete a file by key
  * @access  Private (requires authentication)

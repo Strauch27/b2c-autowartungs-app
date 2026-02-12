@@ -220,7 +220,9 @@ const createExtensionSchema = z.object({
   items: z.array(z.object({
     name: z.string().min(1),
     price: z.number().positive(), // In cents
-    quantity: z.number().int().positive()
+    quantity: z.number().int().positive(),
+    mediaUrl: z.string().optional(),
+    mediaType: z.enum(['image', 'video']).optional()
   })).min(1),
   images: z.array(z.string()).optional().default([]),
   videos: z.array(z.string()).optional().default([])

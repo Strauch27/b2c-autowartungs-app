@@ -1247,6 +1247,10 @@
       "sendExtension": "Send Extension",
       "cancelExtension": "Cancel",
       "extensionNotice": "The customer will be notified and must approve the extension.",
+      "uploadMedia": "Upload photo/video",
+      "uploading": "Uploading...",
+      "uploadError": "Upload failed",
+      "videoTooLong": "Video must be 15 seconds or shorter",
       "communication": "Notes & Communication",
       "addNote": "Add note...",
       "send": "Send",
@@ -1394,7 +1398,9 @@
     "approveAndPay": "Approve & Pay",
     "extensionApproved": "Extension Approved",
     "pendingBanner": "You have {count} pending extension(s)",
-    "reviewNow": "Review now"
+    "reviewNow": "Review now",
+    "itemAccepted": "Accepted",
+    "itemRejected": "Rejected"
   },
   "extensionApproval": {
     "reviewTitle": "Review Order Extension",
@@ -1432,7 +1438,14 @@
     "extension": "Order Extension",
     "description": "Description",
     "totalCost": "Total Cost",
-    "documentation": "Documentation"
+    "documentation": "Documentation",
+    "selectItems": "Select the items you want to approve",
+    "selectedTotal": "Selected Total",
+    "noItemsSelected": "No items selected",
+    "paySelectedItems": "Pay Selected Items",
+    "declineAll": "Decline All",
+    "itemsSelected": "{count} of {total} items selected",
+    "viewMedia": "View evidence"
   },
   "bookingPage": {
     "step1Label": "Select vehicle",

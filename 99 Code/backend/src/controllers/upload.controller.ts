@@ -6,6 +6,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { uploadService } from '../services/upload.service';
 import { uploadConfig } from '../config/upload.config';
+import path from 'path';
+import fs from 'fs';
+import crypto from 'crypto';
 
 /**
  * Upload a single file
@@ -303,6 +306,59 @@ export const checkFileExists = async (
     res.status(200).json({
       success: true,
       data: { exists },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Upload extension media to local disk (for demo mode)
+ * Falls back to local storage when S3 is not configured
+ */
+export const uploadExtensionMedia = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.file) {
+      res.status(400).json({
+        success: false,
+        error: 'No file provided',
+      });
+      return;
+    }
+
+    const uploadsDir = path.join(__dirname, '..', '..', 'uploads', 'extensions');
+    // Ensure directory exists
+    fs.mkdirSync(uploadsDir, { recursive: true });
+
+    // Generate unique filename
+    const ext = path.extname(req.file.originalname);
+    const filename = `${crypto.randomUUID()}${ext}`;
+    const filepath = path.join(uploadsDir, filename);
+
+    // Write file to disk
+    fs.writeFileSync(filepath, req.file.buffer);
+
+    // Determine media type
+    const isVideo = req.file.mimetype.startsWith('video/');
+    const mediaType = isVideo ? 'video' : 'image';
+
+    // Build URL relative to backend server
+    const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3001}`;
+    const mediaUrl = `${backendUrl}/uploads/extensions/${filename}`;
+
+    res.status(201).json({
+      success: true,
+      data: {
+        url: mediaUrl,
+        mediaType,
+        filename,
+        originalname: req.file.originalname,
+        size: req.file.size,
+      },
     });
   } catch (error) {
     next(error);

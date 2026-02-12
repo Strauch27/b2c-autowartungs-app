@@ -1,15 +1,21 @@
 'use client';
 
-import { useState } from 'react';
-import { Trash2 } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Trash2, Camera, Loader2, Play, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
+import { bookingsApi } from '@/lib/api/bookings';
+import { toast } from 'sonner';
+
+const MAX_VIDEO_DURATION_SECONDS = 15;
 
 interface ExtensionItem {
   id: string;
   name: string;
   quantity: number;
   unitPrice: string;
+  mediaUrl?: string;
+  mediaType?: 'image' | 'video';
 }
 
 interface ExtensionFormProps {
@@ -19,12 +25,27 @@ interface ExtensionFormProps {
   onCancel: () => void;
 }
 
+function getVideoDuration(file: File): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(video.src);
+      resolve(video.duration);
+    };
+    video.onerror = () => reject(new Error('Failed to load video'));
+    video.src = URL.createObjectURL(file);
+  });
+}
+
 export function ExtensionForm({ orderId, customerName, onSubmit, onCancel }: ExtensionFormProps) {
   const t = useTranslations('workshopDashboard.detail');
   const [description, setDescription] = useState('');
   const [items, setItems] = useState<ExtensionItem[]>([
     { id: '1', name: '', quantity: 1, unitPrice: '' },
   ]);
+  const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const addItem = () => {
     setItems([...items, { id: Date.now().toString(), name: '', quantity: 1, unitPrice: '' }]);
@@ -40,6 +61,44 @@ export function ExtensionForm({ orderId, customerName, onSubmit, onCancel }: Ext
     setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
   };
 
+  const handleMediaUpload = async (itemId: string, file: File) => {
+    // Check video duration
+    if (file.type.startsWith('video/')) {
+      try {
+        const duration = await getVideoDuration(file);
+        if (duration > MAX_VIDEO_DURATION_SECONDS) {
+          toast.error(t('videoTooLong'));
+          return;
+        }
+      } catch {
+        toast.error(t('uploadError'));
+        return;
+      }
+    }
+
+    setUploadingItemId(itemId);
+    try {
+      const result = await bookingsApi.uploadExtensionMedia(file);
+      setItems(prev => prev.map(item =>
+        item.id === itemId
+          ? { ...item, mediaUrl: result.url, mediaType: result.mediaType }
+          : item
+      ));
+    } catch (error) {
+      toast.error(t('uploadError'));
+    } finally {
+      setUploadingItemId(null);
+    }
+  };
+
+  const removeMedia = (itemId: string) => {
+    setItems(prev => prev.map(item =>
+      item.id === itemId
+        ? { ...item, mediaUrl: undefined, mediaType: undefined }
+        : item
+    ));
+  };
+
   const getItemTotal = (item: ExtensionItem) => {
     const price = parseFloat(item.unitPrice) || 0;
     return (price * item.quantity).toFixed(2);
@@ -52,6 +111,64 @@ export function ExtensionForm({ orderId, customerName, onSubmit, onCancel }: Ext
 
   const handleSubmit = () => {
     onSubmit(description, items);
+  };
+
+  const MediaButton = ({ item }: { item: ExtensionItem }) => {
+    const isUploading = uploadingItemId === item.id;
+
+    if (item.mediaUrl) {
+      return (
+        <div className="relative inline-flex items-center gap-1">
+          {item.mediaType === 'video' ? (
+            <div className="h-8 w-8 rounded bg-neutral-100 flex items-center justify-center">
+              <Play className="h-4 w-4 text-neutral-500" />
+            </div>
+          ) : (
+            <img
+              src={item.mediaUrl}
+              alt=""
+              className="h-8 w-8 rounded object-cover"
+            />
+          )}
+          <button
+            type="button"
+            onClick={() => removeMedia(item.id)}
+            className="absolute -right-1 -top-1 rounded-full bg-red-500 p-0.5 text-white hover:bg-red-600"
+          >
+            <X className="h-2.5 w-2.5" />
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <input
+          ref={el => { fileInputRefs.current[item.id] = el; }}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"
+          className="hidden"
+          onChange={e => {
+            const file = e.target.files?.[0];
+            if (file) handleMediaUpload(item.id, file);
+            e.target.value = '';
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRefs.current[item.id]?.click()}
+          disabled={isUploading}
+          className="rounded border border-neutral-200 p-1.5 text-neutral-400 transition-colors hover:border-cta hover:text-cta disabled:opacity-50"
+          title={t('uploadMedia')}
+        >
+          {isUploading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Camera className="h-4 w-4" />
+          )}
+        </button>
+      </>
+    );
   };
 
   return (
@@ -80,6 +197,7 @@ export function ExtensionForm({ orderId, customerName, onSubmit, onCancel }: Ext
               <th className="w-16 pb-1 text-center font-medium">{t('extensionQuantity')}</th>
               <th className="w-24 pb-1 text-right font-medium">{t('extensionUnitPrice')}</th>
               <th className="w-24 pb-1 text-right font-medium">{t('extensionItemTotal')}</th>
+              <th className="w-10 pb-1 text-center font-medium" />
               <th className="w-8" />
             </tr>
           </thead>
@@ -115,6 +233,9 @@ export function ExtensionForm({ orderId, customerName, onSubmit, onCancel }: Ext
                 </td>
                 <td className="py-1 pl-1 text-right text-xs font-medium text-muted-foreground">
                   {getItemTotal(item)} &euro;
+                </td>
+                <td className="py-1 text-center">
+                  <MediaButton item={item} />
                 </td>
                 <td className="py-1 text-center">
                   <button
@@ -177,6 +298,13 @@ export function ExtensionForm({ orderId, customerName, onSubmit, onCancel }: Ext
                     {getItemTotal(item)} &euro;
                   </div>
                 </div>
+              </div>
+              {/* Media upload row for mobile */}
+              <div className="flex items-center gap-2 pt-1">
+                <MediaButton item={item} />
+                {!item.mediaUrl && (
+                  <span className="text-[10px] text-muted-foreground">{t('uploadMedia')}</span>
+                )}
               </div>
             </div>
           ))}
