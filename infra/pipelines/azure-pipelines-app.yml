@@ -212,6 +212,7 @@ stages:
   - stage: E2ETests
     displayName: 'E2E Tests (Preprod)'
     dependsOn: DeployPreprod
+    condition: in(dependencies.DeployPreprod.result, 'Succeeded', 'SucceededWithIssues')
     jobs:
       - job: RunE2E
         displayName: 'Playwright smoke tests'
@@ -251,6 +252,7 @@ stages:
   - stage: DeployProd
     displayName: 'Deploy to Production'
     dependsOn: E2ETests
+    condition: in(dependencies.E2ETests.result, 'Succeeded', 'SucceededWithIssues')
     jobs:
 
       # -----------------------------------------------------------------------
