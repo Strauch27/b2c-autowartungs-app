@@ -37,7 +37,7 @@ export default function ImprintPage() {
               {language === 'de' ? 'Kontakt' : 'Contact'}
             </h3>
             <p className="text-muted-foreground">
-              E-Mail: info@ronya.de<br />
+              E-Mail: b2c@centhree.com<br />
               Telefon: +49 30 123 456 789
             </p>
           </div>

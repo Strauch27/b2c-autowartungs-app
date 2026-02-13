@@ -148,10 +148,10 @@ function BookingSuccessContent() {
               {language === 'de' ? 'Fragen? Kontaktieren Sie uns unter' : 'Questions? Contact us at'}
             </p>
             <a
-              href="mailto:info@ronya.de"
+              href="mailto:b2c@centhree.com"
               className="text-blue-600 hover:text-blue-700 font-semibold text-lg hover:underline"
             >
-              info@ronya.de
+              b2c@centhree.com
             </a>
           </div>
         </div>

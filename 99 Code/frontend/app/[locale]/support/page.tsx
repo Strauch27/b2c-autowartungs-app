@@ -41,8 +41,8 @@ export default function SupportPage() {
               <p className="text-sm text-muted-foreground mb-3">
                 {language === 'de' ? 'Schreiben Sie uns eine E-Mail' : 'Send us an email'}
               </p>
-              <a href="mailto:info@ronya.de" className="text-primary hover:underline text-sm font-medium">
-                info@ronya.de
+              <a href="mailto:b2c@centhree.com" className="text-primary hover:underline text-sm font-medium">
+                b2c@centhree.com
               </a>
             </CardContent>
           </Card>

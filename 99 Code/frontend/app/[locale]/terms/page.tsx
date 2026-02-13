@@ -26,8 +26,8 @@ export default function TermsPage() {
         <div className="prose prose-gray max-w-none space-y-6">
           <p className="text-muted-foreground">
             {language === 'de'
-              ? 'Die AGB werden in Kürze vervollständigt. Bei Fragen wenden Sie sich bitte an info@ronya.de.'
-              : 'The terms and conditions will be completed shortly. For questions, please contact info@ronya.de.'}
+              ? 'Die AGB werden in Kürze vervollständigt. Bei Fragen wenden Sie sich bitte an b2c@centhree.com.'
+              : 'The terms and conditions will be completed shortly. For questions, please contact b2c@centhree.com.'}
           </p>
         </div>
       </div>
