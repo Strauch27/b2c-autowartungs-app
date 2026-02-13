@@ -17,6 +17,12 @@ trigger:
 
 pr: none
 
+parameters:
+  - name: skipBuild
+    displayName: 'Skip image builds (deploy existing latest images)'
+    type: boolean
+    default: false
+
 pool:
   name: 'Self-Hosted'
 
@@ -26,6 +32,14 @@ variables:
   backendImage: 'b2cpoc/backend'
   frontendImage: 'b2cpoc/frontend'
   codeRoot: '$(Build.SourcesDirectory)/99 Code'
+  ${{ if parameters.skipBuild }}:
+    backendTag: 'latest'
+    frontendPreprodTag: 'preprod'
+    frontendProdTag: 'prod'
+  ${{ else }}:
+    backendTag: '$(Build.BuildId)'
+    frontendPreprodTag: 'preprod-$(Build.BuildId)'
+    frontendProdTag: 'prod-$(Build.BuildId)'
 
 # =============================================================================
 # Stages
@@ -37,6 +51,7 @@ stages:
   # ===========================================================================
   - stage: Build
     displayName: 'Build & Push Images'
+    condition: eq('${{ parameters.skipBuild }}', false)
     jobs:
 
       # -----------------------------------------------------------------------
@@ -126,6 +141,7 @@ stages:
   - stage: DeployPreprod
     displayName: 'Deploy to Preprod'
     dependsOn: Build
+    condition: in(dependencies.Build.result, 'Succeeded', 'SucceededWithIssues', 'Skipped')
     jobs:
 
       # -----------------------------------------------------------------------
@@ -174,7 +190,7 @@ stages:
               azureSubscription: '$(azureSubscription)'
               appName: 'app-b2cpoc-backend-preprod'
               imageName: '$(backendImage)'
-              imageTag: '$(Build.BuildId)'
+              imageTag: '$(backendTag)'
 
       # -----------------------------------------------------------------------
       # Job: Deploy Frontend (preprod)
@@ -188,7 +204,7 @@ stages:
               azureSubscription: '$(azureSubscription)'
               appName: 'app-b2cpoc-frontend-preprod'
               imageName: '$(frontendImage)'
-              imageTag: 'preprod-$(Build.BuildId)'
+              imageTag: '$(frontendPreprodTag)'
 
   # ===========================================================================
   # Stage 3: E2E / Smoke Tests against Preprod
@@ -287,7 +303,7 @@ stages:
               azureSubscription: '$(azureSubscription)'
               appName: 'app-b2cpoc-backend-prod'
               imageName: '$(backendImage)'
-              imageTag: '$(Build.BuildId)'
+              imageTag: '$(backendTag)'
 
       # -----------------------------------------------------------------------
       # Job: Deploy Frontend (prod)
@@ -301,4 +317,4 @@ stages:
               azureSubscription: '$(azureSubscription)'
               appName: 'app-b2cpoc-frontend-prod'
               imageName: '$(frontendImage)'
-              imageTag: 'prod-$(Build.BuildId)'
+              imageTag: '$(frontendProdTag)'
