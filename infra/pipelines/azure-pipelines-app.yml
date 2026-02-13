@@ -155,8 +155,8 @@ stages:
                 npx prisma generate
 
                 DATABASE_URL=$(az keyvault secret show \
-                  --vault-name kv-b2cpoc-preprod \
-                  --name database-url \
+                  --vault-name kv-b2cpoc-preprod-01 \
+                  --name DATABASE-URL \
                   --query value -o tsv)
                 export DATABASE_URL
 
@@ -268,8 +268,8 @@ stages:
                       npx prisma generate
 
                       DATABASE_URL=$(az keyvault secret show \
-                        --vault-name kv-b2cpoc-prod \
-                        --name database-url \
+                        --vault-name kv-b2cpoc-prod-01 \
+                        --name DATABASE-URL \
                         --query value -o tsv)
                       export DATABASE_URL
 
